@@ -1,0 +1,22 @@
+const { chromium } = require('playwright');
+(async () => {
+  const b = await chromium.connectOverCDP('http://localhost:9222');
+  const page = b.contexts()[0].pages()[0];
+  await page.bringToFront(); await page.setViewportSize({ width: 1440, height: 900 });
+  const snap = async n => { await page.waitForTimeout(900); await page.screenshot({ path: `cap/s-${n}.png` }); console.log('snap', n); };
+  const step = async (n, fn) => { try { await fn(); await snap(n); } catch (e) { console.log('FAIL', n, e.message.split('\n')[0]); } };
+  const esc = async () => { await page.keyboard.press('Escape'); await page.waitForTimeout(500); };
+  await esc();
+  await step('10-more-actions', async () => page.locator('button[aria-label="More actions"]').first().click({ timeout: 5000 }));
+  await esc();
+  await step('11-account', async () => page.getByRole('button', { name: /My Store Admin/i }).click({ timeout: 5000 }));
+  await esc();
+  await step('12-alerts', async () => page.getByRole('button', { name: /Alerts Feed/i }).click({ timeout: 5000 }));
+  await esc();
+  await step('13-hover-onlinestore', async () => page.getByText('Online Store', { exact: true }).first().hover());
+  await step('14-hover-findter', async () => page.getByText('Findter Filter & Search').first().hover());
+  await step('15-hover-smartfilter', async () => page.getByText('Smart Filter & Search').first().hover());
+  await step('16-collapse', async () => page.getByRole('button', { name: /Collapse navigation/i }).click({ timeout: 5000 }));
+  await step('17-expand-again', async () => page.getByRole('button', { name: /Expand navigation|Collapse navigation/i }).click({ timeout: 5000 }));
+  process.exit(0);
+})();

@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+
+# local browser profiles used while capturing the admin UI (contain login sessions: never commit)
+tools/profile/
+tools/profile-edge/
+tools/edge-manual/
+
+# raw captures of the live Shopify admin (store data) and test output
+tools/cap/
+tools/test/
+tools/*.png
+
+# helper scripts that touch the login form
+tools/login.js
+tools/probe.js
+
+# local editor settings and scratch copies
+.vscode/
+tools/build/master-block-v3.js
