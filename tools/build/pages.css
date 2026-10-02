@@ -1,0 +1,27 @@
+/* ===== Extra styles for the stand-alone pages (filter.html / search.html / metafield.html) ===== */
+/* page frame (the s-page + s-stack wrappers of the original, as plain classes) */
+.pg-contents{display:contents}
+.pg-main{padding:16px 0}
+.pg-grid{display:grid;justify-content:center;grid-template-columns:minmax(0,966px);row-gap:16px;column-gap:16px;padding:0 16px}
+.pg-stack{display:flex;flex-direction:column;row-gap:16px;column-gap:16px}
+@media (max-width:767px){.pg-grid{padding-left:0;padding-right:0}}
+
+/* sidebar: a child page is open, so the parent item shows highlighted text but no pill (the sub item gets the pill) */
+.sh-item--sub[aria-current=page]{background:var(--sh-active);color:#fcfcfc;font-weight:550}
+.sh-item--parent{color:#fcfcfc;font-weight:550}
+.sh-item--parent .sh-appicon{filter:saturate(0) invert(1) brightness(2) contrast(1.5) opacity(.9)}
+.sh-item--parent .ic{color:#fcfcfc}
+
+/* search page: the chevron icon inside each row */
+.pg-chevron{display:inline-flex;width:20px;height:20px;color:#4a4a4a}
+.pg-chevron svg{width:100%;height:100%;fill:currentColor;display:block}
+
+/* ===== Controls drawn like Shopify's s-switch / s-checkbox (native inputs, so they stay interactive) ===== */
+.pg-switch{appearance:none;-webkit-appearance:none;position:relative;display:inline-block;flex:none;box-sizing:border-box;width:32px;height:16px;margin:4px 0;border-radius:9999px;border:1px solid #8a8a8a;background:#fdfdfd;cursor:pointer;vertical-align:middle;transition:background .15s,border-color .15s}
+.pg-switch::before{content:"";position:absolute;top:50%;left:2px;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:#8a8a8a;transition:transform .15s,background .15s}
+.pg-switch:checked{background:#303030;border-color:transparent}
+.pg-switch:checked::before{background:#fff;transform:translateX(16px)}
+.pg-switch:disabled{opacity:.5;cursor:not-allowed}
+.pg-switch:focus-visible,.pg-check:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
+.pg-check{appearance:none;-webkit-appearance:none;position:relative;display:inline-block;flex:none;box-sizing:border-box;width:16px;height:16px;margin:0;border-radius:4px;border:1px solid #8a8a8a;background:#fdfdfd;cursor:pointer;vertical-align:middle}
+.pg-check:checked{background:#303030 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m4 8.5 2.5 2.5L12 5.5'/%3E%3C/svg%3E") center/100% no-repeat;border-color:#303030}

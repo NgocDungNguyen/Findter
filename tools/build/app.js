@@ -59,9 +59,20 @@
     if (e.key === 'Escape') { closeSearch(); closePops(); closeDatePicker(); closeThemeModal(); hideTip(); body.classList.remove('nav-open'); }
   });
 
+  /* ---------- sidebar: "View more" reveals Analytics / Pricing, "View less" folds them away again ---------- */
+  const navGroup = $('.sh-appgroup'), moreBtn = $('.sh-item--more');
+  function setNavExpanded(on, save = true) {
+    navGroup.classList.toggle('is-expanded', on);
+    moreBtn.querySelector('.sh-item__label').textContent = on ? 'View less' : 'View more'; moreBtn.setAttribute('aria-expanded', String(on));
+    if (save) { try { localStorage.setItem('findter.navExpanded', on ? '1' : ''); } catch (e) { /* storage blocked */ } }
+  }
+  try { if (localStorage.getItem('findter.navExpanded')) setNavExpanded(true, false); } catch (e) { /* storage blocked */ }
+
   /* ---------- nav links ---------- */
   $$('.sh-nav a, .sh-nav .sh-item--more, .sh-nav .sh-section').forEach(a => a.addEventListener('click', e => {
+    if (a.dataset.nav === 'page') return;                    // real page (filter.html, search.html, ...)
     e.preventDefault();
+    if (a.classList.contains('sh-item--more')) { setNavExpanded(!navGroup.classList.contains('is-expanded')); return; }
     const label = (a.querySelector('.sh-item__label') || a).textContent.trim();
     if (a.getAttribute('aria-current') === 'page') return;
     toast('“' + label + '” is not part of this copy');

@@ -253,3 +253,4 @@ body.nav-collapsed .sh-bottom .sh-item{margin-top:0}
 @media (min-width:768px) and (max-width:799px){
   body:not(.nav-forced-full){--sh-nav-w:60px}
 }
+

@@ -94,7 +94,7 @@ const shellCss = bld('shell.css').replace(/\/\* ===== Icon rail between[\s\S]*$/
 body.nav-collapsed .sh-expanded-only{display:none}
 .sh-expanded-only+.sh-expanded-only{}
 `;
-const allCss = [css.polaris, css.app1, css.app2, css.carousel, css.chart, pruneFlat(cap('flat.css')), appExtra, shellCss, bld('master.css')].join('\n');
+const allCss = [css.polaris, css.app1, css.app2, css.carousel, css.chart, css.extra, pruneFlat(cap('flat.css')), appExtra, shellCss, bld('master.css')].join('\n');
 
 /* ---------- 3. icons & templates ---------- */
 const rootOnly = s => s.replace(/<svg([^>]*)>/, (m, a) => '<svg' + a.replace(/ (width|height)="[^"]*"/g, '') + '>');
@@ -119,6 +119,7 @@ const item = ([label, icon]) => `<a class="sh-item" href="#" ${''}>${ic(icon)}<s
 const appIcon = 'https://cdn.shopify.com/s/files/applications/393b6ef120968ea1931a5ec86b58d041_200x200.png?v=1753934348';
 const smartIcon = 'https://cdn.shopify.com/s/files/applications/f44b43e81ef89598c0de05c8ea6dcf80_200x200.png?v=1543569774';
 const subs = ['Filter', 'Search', 'Metafield', 'Year Make Model', 'Filter & product grid design', 'Advanced features'];
+const PAGE_LINKS = { Filter: 'filter.html', Search: 'search.html', Metafield: 'metafield.html', 'Year Make Model': 'ymm.html', 'Filter & product grid design': 'design.html', 'Advanced features': 'features.html' };
 const alertsData = [
   ['Permissions', 'Sep 7 at 2:34 PM', 'New collaborator request for your store', 'Review collaborator request from collaborator@example.com.', false],
   ['Billing', 'Sep 7 at 2:30 PM', 'Let us know if you’ve registered for a tax number', 'Update your billing settings if you have a tax number for your business.', true],
@@ -177,8 +178,10 @@ const shell = `
     <a class="sh-item sh-only-collapsed sh-appsrail" href="#" aria-current="page">${ic('apps')}</a>
     <div class="sh-appgroup">
       <a class="sh-item" href="#" aria-current="page"><img class="sh-appicon" src="${appIcon}" alt=""><span class="sh-item__label">Findter Filter &amp; Search</span></a>
-      ${subs.map(s => `<a class="sh-item sh-item--sub" href="#"><span class="sh-item__label">${s.replace(/&/g, '&amp;')}</span></a>`).join('')}
-      <button class="sh-item sh-item--more" type="button"><span class="sh-item__label">View more</span></button>
+      ${subs.map(s => PAGE_LINKS[s] ? `<a class="sh-item sh-item--sub" href="${PAGE_LINKS[s]}" data-nav="page"><span class="sh-item__label">${s}</span></a>` : `<a class="sh-item sh-item--sub" href="#"><span class="sh-item__label">${s.replace(/&/g, '&amp;')}</span></a>`).join('')}
+      <a class="sh-item sh-item--sub sh-item--extra" href="#"><span class="sh-item__label">Analytics</span></a>
+      <a class="sh-item sh-item--sub sh-item--extra" href="#"><span class="sh-item__label">Pricing</span></a>
+      <button class="sh-item sh-item--more" type="button" aria-expanded="false"><span class="sh-item__label">View more</span></button>
       <a class="sh-item" href="#">${custom('MS Barcode Labels')}<span class="sh-item__label">MS Barcode Labels</span></a>
       <a class="sh-item" href="#"><img class="sh-appicon" src="${smartIcon}" alt=""><span class="sh-item__label">Smart Filter &amp; Search</span><i class="sh-dot"></i><button class="sh-iconbtn sh-pin" aria-label="Pin to your navigation">${ic('pin')}</button></a>
     </div>

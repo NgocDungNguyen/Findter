@@ -143,3 +143,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .pb-x:hover{background:#000000d9}
 .pb-nav:focus-visible,.pb-x:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
 .mt-tab.has-changes::after{content:"";display:inline-block;width:6px;height:6px;margin-left:6px;border-radius:50%;background:#e8590c;vertical-align:middle}
+
+/* sidebar: Analytics / Pricing stay hidden until "View more" */
+.sh-item--extra{display:none}
+.sh-appgroup.is-expanded .sh-item--extra{display:flex}
