@@ -87,6 +87,8 @@
   $('.chat-bubble').addEventListener('click', () => toggleChat());
   // a visitor message (typed, or sent by a page action such as "Contact us"); the panel opens so the merchant sees it go out
   const sendChat = text => { const m = document.createElement('div'); m.className = 'chat-msg'; m.style.cssText = 'margin:8px 0 0 auto;background:#9b2423;color:#fff'; m.textContent = text; const b = $('.chat-panel__body'); b.appendChild(m); b.scrollTop = b.scrollHeight; };
+  // the support team's answer (left bubble, like the greeting)
+  const replyChat = text => { const m = document.createElement('div'); m.className = 'chat-msg'; m.textContent = text; const b = $('.chat-panel__body'); b.appendChild(m); b.scrollTop = b.scrollHeight; };
   $('.chat-panel__foot input').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.value.trim()) { sendChat(e.target.value); e.target.value = ''; } });
 
   /* ---------- app: collapsibles ---------- */

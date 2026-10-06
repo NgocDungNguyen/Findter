@@ -31,7 +31,7 @@ fs.writeFileSync(path.join(root, 'assets', 'common.css'), css);
 const app = rd('build/app.js'); const cut = app.indexOf('  /* ---------- app: collapsibles');
 if (cut < 0) throw new Error('shell/app split marker not found in build/app.js');
 let shell = app.slice(0, cut).replace("'use strict';", "'use strict';\n  const updateCarousel = () => {}, closeDatePicker = () => {}, hideTip = () => {}, closeThemeModal = () => {};   // home-page features that do not exist on these pages");
-shell += '\n  window.__shell = { toast, closePops, openChatWith: text => { toggleChat(true); sendChat(text); } };\n  applyNav();\n})();\n';
+shell += '\n  window.__shell = { toast, closePops, openChatWith: (text, reply) => { toggleChat(true); sendChat(text); if (reply) setTimeout(() => replyChat(reply), 800); } };\n  applyNav();\n})();\n';
 fs.writeFileSync(path.join(root, 'assets', 'shell.js'), shell);
 fs.writeFileSync(path.join(root, 'assets', 'pages.js'), rd('build/pages.js'));
 
@@ -92,6 +92,7 @@ function contentFor(p) {
   inner.querySelectorAll('[aria-owns]').forEach(e => e.removeAttribute('aria-owns'));
   inner.querySelectorAll('[data-state]').forEach(e => e.removeAttribute('data-state'));
   markTabs(inner);
+  if (p.key === 'search') { const c = [...inner.querySelectorAll('.Polaris-Banner button.Polaris-Link')].find(b => b.textContent.trim() === 'Contact us'); if (!c) throw new Error('search Contact us button not found'); c.setAttribute('data-chat', 'search'); inner.querySelectorAll('.Polaris-Banner a[href*=calendly]').forEach(l => l.setAttribute('href', 'https://calendly.com/flintverse-bsscommerce/30min')); }
   if (p.customFilter) customFilterBanner(doc, inner);
   return `<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack">${inner.innerHTML}</div></div></main></div></div>`;
 }
@@ -103,7 +104,7 @@ function customFilterBanner(doc, root) {
   let html = src;
   const swap = (a, b) => { if (!html.includes(a)) throw new Error('banner text not found: ' + a); html = html.split(a).join(b); };
   swap('custom search solution', 'custom filter solution');
-  swap('<button type="button" class="Polaris-Link Polaris-Link--monochrome">Contact us</button>', '<button type="button" class="Polaris-Link Polaris-Link--monochrome" data-act="custom-filter-request">Contact us</button>');
+  swap('<button type="button" class="Polaris-Link Polaris-Link--monochrome">Contact us</button>', '<button type="button" class="Polaris-Link Polaris-Link--monochrome" data-chat="filter">Contact us</button>');
   swap('30min?month=2026-05', '30min');
   root.querySelectorAll('.Polaris-Banner').forEach(b => (b.closest('.Polaris-Layout__Section') || b).remove());   // the old feedback banner
   const tabsSection = root.querySelector('.fdt-menu-tabs').closest('.Polaris-Layout__Section');

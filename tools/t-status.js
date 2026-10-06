@@ -33,7 +33,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
       ok(pos.bannerTop >= pos.tabsBottom - 1 && pos.bannerTop < pos.cardTop, f + ': banner is directly under the tabs, above the content');
       const href = await p.locator('.Polaris-Banner a').getAttribute('href'); ok(href === 'https://calendly.com/flintverse-bsscommerce/30min', f + ': Book a call -> ' + href);
       await p.locator('.Polaris-Banner a').evaluate(a => a.addEventListener('click', e => e.preventDefault(), { once: true }));
-      await p.click('[data-act=custom-filter-request]'); await p.waitForTimeout(300);
+      await p.click('[data-chat=filter]'); await p.waitForTimeout(300);
       ok(await p.locator('.chat-panel.open').count() === 1, f + ': Contact us opens the chat');
       const msgs = await p.locator('.chat-panel__body .chat-msg').allInnerTexts();
       ok(msgs[msgs.length - 1] === 'Hi, I want to make a custom filter request', f + ': chat got the message "' + msgs[msgs.length - 1] + '"');

@@ -16,10 +16,15 @@
     if (on) { b.removeAttribute('aria-disabled'); b.removeAttribute('tabindex'); } else { b.setAttribute('aria-disabled', 'true'); b.setAttribute('tabindex', '-1'); }
   }
 
+  /* ---------- "Contact us" in info banners -> Crisp-style chat ---------- */
+  const CHAT = { filter: 'Hi, I want to make a custom filter request', search: 'Hi, I want to make a custom search request' };
+  const AUTO_REPLY = "We'd love to hear it! Please describe your idea as specifically as you can, feel free to include sample text, sample images, or reference links, and we'll get back to you shortly.";
+
   /* ---------- clicks (one delegated handler so the markup stays plain) ---------- */
   document.addEventListener('click', e => {
     const t = e.target;
-    if (t.closest('[data-act=custom-filter-request]')) { window.__shell && window.__shell.openChatWith('Hi, I want to make a custom filter request'); return; }   // Filter: "Contact us" starts a chat with the request already sent
+    const chat = t.closest('[data-chat]');                                    // "Contact us" in an info banner: the chat opens with the request already sent + the auto reply
+    if (chat) { const m = CHAT[chat.dataset.chat]; if (m && window.__shell) window.__shell.openChatWith(m, AUTO_REPLY); return; }
     const tab = t.closest('.Polaris-Tabs__Tab');
     if (tab) {
       if (tab.getAttribute('aria-selected') === 'true') return;
