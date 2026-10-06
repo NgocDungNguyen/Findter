@@ -13,6 +13,18 @@ grids.forEach(g => g.classList.add('sp-grid'));
 if (grids[1]) grids[1].setAttribute('style', 'grid-template-columns:minmax(0,966px)');
 const CARDS = { 'Onboarding guide': 'guide', 'Recommended apps': 'rec', 'Data insight': 'data', 'Findter app status': 'status', 'Help & Support': 'help', 'Sync recent updates': 'sync' };
 doc.querySelectorAll('.Polaris-ShadowBevel').forEach(b => { const h = b.querySelector('h2,h3'); const k = h && CARDS[h.textContent.trim()]; if (k && !b.querySelector('[data-card]')) b.setAttribute('data-card', k); });
+// ---- Findter app status: Plan, Expires on / Renew on, Products indexed, App embed, Search suggestion ----
+// The captured card only had Plan / Search & filter core / Search suggestion. Two rows are cloned from the Plan row (same label-left, badge-right line);
+// app.js fills them from one data object (see STATUS there).
+{
+  const rows = [...doc.querySelectorAll('[data-card=status] span.f38')].map(r => r.closest('[data-s=s-stack]'));
+  const [planRow, embedRow, suggestRow] = rows;
+  planRow.setAttribute('data-st', 'plan'); embedRow.setAttribute('data-st', 'embed'); suggestRow.setAttribute('data-st', 'suggest');
+  embedRow.querySelector('p').textContent = 'App embed';
+  const valueRow = (key, label) => { const r = planRow.cloneNode(true); r.setAttribute('data-st', key); r.querySelector('p').textContent = label; r.querySelector('[data-s=s-badge]').outerHTML = '<span class="st-badge"></span>'; return r; };
+  const dateRow = valueRow('date', 'Expires on'), indexedRow = valueRow('indexed', 'Products indexed');
+  planRow.after(dateRow); dateRow.after(indexedRow);
+}
 // The original defaults to all four onboarding steps expanded (my capture was taken after I had toggled some),
 // so normalise: expanded panels + the 'chevron-down' glyph (taken from the one step that was still expanded).
 const steps = [...doc.querySelectorAll('[data-card=guide] .bss-setup-guide')];
@@ -61,6 +73,9 @@ function pruneFlat(c) {
   }).join('\n');
 }
 const appExtra = `
+/* Findter app status: neutral badge (value of Expires on / Renew on, Products indexed and the Inactive state) */
+.st-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:8px;font-size:12px;line-height:16px;font-weight:550;background:#e3e3e3;color:#303030}
+
 .sp-grid{justify-content:center}
 .ft-welcome__title{font-size:clamp(24px,calc(var(--app-w) * .03),30px)}
 @media (max-width:489px){.Polaris-ShadowBevel{--pc-shadow-bevel-border-radius-xs:var(--p-border-radius-0)!important}[data-card=guide] .Polaris-InlineStack:has(>.fdt-progress-bar){flex-wrap:wrap!important}}
@@ -175,12 +190,13 @@ const shell = `
     <a class="sh-item sh-only-collapsed" href="#">${custom('Online Store')}</a>
     <div class="sh-divider"></div>
     <button class="sh-section sh-section--apps" type="button">Apps ${ic('chevron-right')}</button>
-    <a class="sh-item sh-only-collapsed sh-appsrail" href="#" aria-current="page">${ic('apps')}</a>
+    <a class="sh-item sh-only-collapsed sh-appsrail" href="#/" data-nav="page" aria-current="page">${ic('apps')}</a>
     <div class="sh-appgroup">
-      <a class="sh-item" href="#" aria-current="page"><img class="sh-appicon" src="${appIcon}" alt=""><span class="sh-item__label">Findter Filter &amp; Search</span></a>
+      <a class="sh-item sh-item--app" href="#/" data-nav="page" aria-current="page"><img class="sh-appicon" src="${appIcon}" alt=""><span class="sh-item__label">Findter Filter &amp; Search</span></a>
       ${subs.map(s => PAGE_LINKS[s] ? `<a class="sh-item sh-item--sub" href="${PAGE_LINKS[s]}" data-nav="page"><span class="sh-item__label">${s}</span></a>` : `<a class="sh-item sh-item--sub" href="#"><span class="sh-item__label">${s.replace(/&/g, '&amp;')}</span></a>`).join('')}
       <a class="sh-item sh-item--sub sh-item--extra" href="#"><span class="sh-item__label">Analytics</span></a>
       <a class="sh-item sh-item--sub sh-item--extra" href="#"><span class="sh-item__label">Pricing</span></a>
+      <a class="sh-item sh-item--sub sh-item--master" href="#/master" data-nav="page"><span class="sh-item__label">Master</span></a>
       <button class="sh-item sh-item--more" type="button" aria-expanded="false"><span class="sh-item__label">View more</span></button>
       <a class="sh-item" href="#">${custom('MS Barcode Labels')}<span class="sh-item__label">MS Barcode Labels</span></a>
       <a class="sh-item" href="#"><img class="sh-appicon" src="${smartIcon}" alt=""><span class="sh-item__label">Smart Filter &amp; Search</span><i class="sh-dot"></i><button class="sh-iconbtn sh-pin" aria-label="Pin to your navigation">${ic('pin')}</button></a>

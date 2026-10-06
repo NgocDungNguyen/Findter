@@ -19,6 +19,7 @@
   /* ---------- clicks (one delegated handler so the markup stays plain) ---------- */
   document.addEventListener('click', e => {
     const t = e.target;
+    if (t.closest('[data-act=custom-filter-request]')) { window.__shell && window.__shell.openChatWith('Hi, I want to make a custom filter request'); return; }   // Filter: "Contact us" starts a chat with the request already sent
     const tab = t.closest('.Polaris-Tabs__Tab');
     if (tab) {
       if (tab.getAttribute('aria-selected') === 'true') return;

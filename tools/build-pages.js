@@ -6,10 +6,10 @@ const rd = p => fs.readFileSync(path.join(__dirname, p), 'utf8');
 
 // flat: false = plain Polaris capture (wrapped by the pg-* classes); flat: true = Shopify web components flattened from the live app (cap/pages/<key>.flat.html)
 const PAGES = [
-  { key: 'filter', file: 'filter.html', active: 'Filter' },
+  { key: 'filter', file: 'filter.html', active: 'Filter', customFilter: true },
   { key: 'search', file: 'search.html', active: 'Search' },
   { key: 'metafield', file: 'metafield.html', active: 'Metafield' },
-  { key: 'filter-booster', file: 'filter-boost.html', active: 'Filter', flat: true },
+  { key: 'filter-booster', file: 'filter-boost.html', active: 'Filter', flat: true, customFilter: true },
   { key: 'search-booster', file: 'search-boost.html', active: 'Search', flat: true },
   { key: 'ymm', file: 'ymm.html', active: 'Year Make Model', flat: true },
   { key: 'features', file: 'features.html', active: 'Advanced features', flat: true },
@@ -31,7 +31,7 @@ fs.writeFileSync(path.join(root, 'assets', 'common.css'), css);
 const app = rd('build/app.js'); const cut = app.indexOf('  /* ---------- app: collapsibles');
 if (cut < 0) throw new Error('shell/app split marker not found in build/app.js');
 let shell = app.slice(0, cut).replace("'use strict';", "'use strict';\n  const updateCarousel = () => {}, closeDatePicker = () => {}, hideTip = () => {}, closeThemeModal = () => {};   // home-page features that do not exist on these pages");
-shell += '\n  window.__shell = { toast, closePops };\n  applyNav();\n})();\n';
+shell += '\n  window.__shell = { toast, closePops, openChatWith: text => { toggleChat(true); sendChat(text); } };\n  applyNav();\n})();\n';
 fs.writeFileSync(path.join(root, 'assets', 'shell.js'), shell);
 fs.writeFileSync(path.join(root, 'assets', 'pages.js'), rd('build/pages.js'));
 
@@ -48,6 +48,7 @@ function navFor(label) {
   const aside = new JSDOM(`<body>${home.querySelector('aside#nav').outerHTML}</body>`).window.document;
   const parent = aside.querySelector('.sh-appgroup > a[aria-current=page]');
   parent.removeAttribute('aria-current'); parent.classList.add('sh-item--parent'); parent.setAttribute('href', 'index.html'); parent.setAttribute('data-nav', 'page');
+  aside.querySelector('.sh-item--master').setAttribute('href', 'index.html#/master');
   const sub = [...aside.querySelectorAll('.sh-item--sub')].find(a => a.textContent.trim() === label);
   if (!sub) throw new Error('sidebar item not found: ' + label);
   sub.setAttribute('aria-current', 'page');
@@ -80,6 +81,7 @@ function contentFor(p) {
     doc.querySelectorAll('[aria-owns]').forEach(e => e.removeAttribute('aria-owns'));
     doc.querySelectorAll('[data-state]').forEach(e => e.removeAttribute('data-state'));
     markTabs(doc);
+    if (p.customFilter) customFilterBanner(doc, doc.body);
     return doc.querySelector('#app').outerHTML.split(APP_ASSETS).join('assets/img/');
   }
   const doc = new JSDOM(`<body>${rd(`cap/pages/${p.key}.html`)}</body>`).window.document;
@@ -90,9 +92,23 @@ function contentFor(p) {
   inner.querySelectorAll('[aria-owns]').forEach(e => e.removeAttribute('aria-owns'));
   inner.querySelectorAll('[data-state]').forEach(e => e.removeAttribute('data-state'));
   markTabs(inner);
+  if (p.customFilter) customFilterBanner(doc, inner);
   return `<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack">${inner.innerHTML}</div></div></main></div></div>`;
 }
 // the original app mislabels two tabs (aria-label "Search" / "Search booster" on other tabs), so the visible text decides; the label is then corrected
+/* Filter pages (both tabs): the "custom solution" info banner sits right under the tabs, copied from the Search page so the box, icon, fonts and radius are identical.
+   It replaces the old "Got feedback or a feature request?" banner. "Contact us" has the chat send "Hi, I want to make a custom filter request"; "Book a call" is a normal link. */
+function customFilterBanner(doc, root) {
+  const src = new JSDOM(`<body>${rd('cap/pages/search.html')}</body>`).window.document.querySelector('.Polaris-Banner').closest('.Polaris-Layout__Section').outerHTML;
+  let html = src;
+  const swap = (a, b) => { if (!html.includes(a)) throw new Error('banner text not found: ' + a); html = html.split(a).join(b); };
+  swap('custom search solution', 'custom filter solution');
+  swap('<button type="button" class="Polaris-Link Polaris-Link--monochrome">Contact us</button>', '<button type="button" class="Polaris-Link Polaris-Link--monochrome" data-act="custom-filter-request">Contact us</button>');
+  swap('30min?month=2026-05', '30min');
+  root.querySelectorAll('.Polaris-Banner').forEach(b => (b.closest('.Polaris-Layout__Section') || b).remove());   // the old feedback banner
+  const tabsSection = root.querySelector('.fdt-menu-tabs').closest('.Polaris-Layout__Section');
+  const w = doc.createElement('div'); w.innerHTML = html; tabsSection.after(w.firstElementChild);
+}
 function markTabs(root) { root.querySelectorAll('.Polaris-Tabs__Tab').forEach(t => { const lab = t.querySelector('.Polaris-Text--root'), txt = (lab ? lab.textContent : '').replace(/\s+/g, ' ').trim(), href = TAB_PAGES[txt] || TAB_PAGES[t.getAttribute('aria-label')]; if (href) { t.setAttribute('data-href', href); if (TAB_PAGES[txt]) t.setAttribute('aria-label', txt); } }); }
 
 for (const p of PAGES) {

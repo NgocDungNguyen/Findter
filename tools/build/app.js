@@ -85,7 +85,9 @@
   const chatPanel = $('.chat-panel');
   const toggleChat = open => chatPanel.classList.toggle('open', open);
   $('.chat-bubble').addEventListener('click', () => toggleChat());
-  $('.chat-panel__foot input').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.value.trim()) { const m = document.createElement('div'); m.className = 'chat-msg'; m.style.cssText = 'margin:8px 0 0 auto;background:#9b2423;color:#fff'; m.textContent = e.target.value; $('.chat-panel__body').appendChild(m); e.target.value = ''; } });
+  // a visitor message (typed, or sent by a page action such as "Contact us"); the panel opens so the merchant sees it go out
+  const sendChat = text => { const m = document.createElement('div'); m.className = 'chat-msg'; m.style.cssText = 'margin:8px 0 0 auto;background:#9b2423;color:#fff'; m.textContent = text; const b = $('.chat-panel__body'); b.appendChild(m); b.scrollTop = b.scrollHeight; };
+  $('.chat-panel__foot input').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.value.trim()) { sendChat(e.target.value); e.target.value = ''; } });
 
   /* ---------- app: collapsibles ---------- */
   function setCollapsible(el, open) {
@@ -122,6 +124,22 @@
       head.setAttribute('aria-expanded', String(open));
     });
   });
+  /* ---------- Findter app status card ----------
+     In the real app these values come from the Pricing page (plan, trial end / renewal date) and the indexer; here they are fixed sample data.
+     plan 'Trial' shows "Expires on" (trialEndsOn), any other plan name shows "Renew on" (renewsOn). Products indexed = shown on the storefront / active products. */
+  const STATUS = { plan: 'Trial', trialEndsOn: 'Oct 12, 2026', renewsOn: 'Nov 5, 2026', indexed: 1240, totalActive: 1500, appEmbed: true, searchSuggestion: true };
+  (function renderStatus() {
+    const card = $('[data-card=status]'), n = v => v.toLocaleString('en-US'), trial = STATUS.plan === 'Trial';
+    $('[data-st=plan] [data-s=s-badge] span:last-child', card).textContent = STATUS.plan;
+    const date = $('[data-st=date]', card);
+    $('p', date).textContent = trial ? 'Expires on' : 'Renew on';
+    $('.st-badge', date).textContent = trial ? STATUS.trialEndsOn : STATUS.renewsOn;
+    $('[data-st=indexed] .st-badge', card).textContent = n(STATUS.indexed) + ' / ' + n(STATUS.totalActive);
+    [['embed', STATUS.appEmbed], ['suggest', STATUS.searchSuggestion]].forEach(([k, on]) => {
+      const badge = $('[data-st=' + k + '] [data-s=s-badge]', card);
+      if (!on) badge.outerHTML = '<span class="st-badge">Inactive</span>';
+    });
+  })();
   // dismiss (X) buttons — they come back on reload
   const dismiss = card => { card.hidden = true; };
   $('button[aria-label="Close"]', guideCard).addEventListener('click', e => { e.stopPropagation(); dismiss(guideCard); });
@@ -450,6 +468,11 @@
   function route() {
     const m = location.hash.match(/^#\/master(?:\/([\w-]+))?\/?$/);
     appEl.hidden = !!m; masterPage.hidden = !m;
+    // sidebar: on Master the "Master" sub item gets the pill and the Findter item only shows highlighted text (same as the other sub pages)
+    const masterLink = $('.sh-item--master'), appLink = $('.sh-item--app'), rail = $('.sh-appsrail');
+    masterLink.toggleAttribute('aria-current', !!m); if (m) masterLink.setAttribute('aria-current', 'page');
+    [appLink, rail].forEach(a => { a.toggleAttribute('aria-current', !m); if (!m) a.setAttribute('aria-current', 'page'); });
+    appLink.classList.toggle('sh-item--parent', !!m);
     if (m) showTab(m[1] || 'master'); else updatePromos(true);
     scroller.scrollTop = 0; hideTip(); closeDatePicker();
   }

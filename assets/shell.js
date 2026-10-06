@@ -86,9 +86,11 @@
   const chatPanel = $('.chat-panel');
   const toggleChat = open => chatPanel.classList.toggle('open', open);
   $('.chat-bubble').addEventListener('click', () => toggleChat());
-  $('.chat-panel__foot input').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.value.trim()) { const m = document.createElement('div'); m.className = 'chat-msg'; m.style.cssText = 'margin:8px 0 0 auto;background:#9b2423;color:#fff'; m.textContent = e.target.value; $('.chat-panel__body').appendChild(m); e.target.value = ''; } });
+  // a visitor message (typed, or sent by a page action such as "Contact us"); the panel opens so the merchant sees it go out
+  const sendChat = text => { const m = document.createElement('div'); m.className = 'chat-msg'; m.style.cssText = 'margin:8px 0 0 auto;background:#9b2423;color:#fff'; m.textContent = text; const b = $('.chat-panel__body'); b.appendChild(m); b.scrollTop = b.scrollHeight; };
+  $('.chat-panel__foot input').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.value.trim()) { sendChat(e.target.value); e.target.value = ''; } });
 
 
-  window.__shell = { toast, closePops };
+  window.__shell = { toast, closePops, openChatWith: text => { toggleChat(true); sendChat(text); } };
   applyNav();
 })();

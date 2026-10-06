@@ -995,6 +995,9 @@ s-page > s-button[slot="breadcrumb-actions"], s-page > s-internal-button[slot="b
 .f49{display:list-item;color:rgb(48, 48, 48);font-size:13px;font-weight:450;line-height:20px;list-style-type:disc}
 .f50{flex-direction:column;row-gap:16px;column-gap:16px;color:rgb(48, 48, 48);font-size:13px;font-weight:450;line-height:20px;list-style-type:disc}
 
+/* Findter app status: neutral badge (value of Expires on / Renew on, Products indexed and the Inactive state) */
+.st-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:8px;font-size:12px;line-height:16px;font-weight:550;background:#e3e3e3;color:#303030}
+
 .sp-grid{justify-content:center}
 .ft-welcome__title{font-size:clamp(24px,calc(var(--app-w) * .03),30px)}
 @media (max-width:489px){.Polaris-ShadowBevel{--pc-shadow-bevel-border-radius-xs:var(--p-border-radius-0)!important}[data-card=guide] .Polaris-InlineStack:has(>.fdt-progress-bar){flex-wrap:wrap!important}}
@@ -1429,6 +1432,13 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .sh-item--extra{display:none}
 .sh-appgroup.is-expanded .sh-item--extra{display:flex}
 
+/* sidebar: a sub page (or Master) is open, so the parent item shows highlighted text but no pill (the sub item gets the pill) */
+.sh-item--sub[aria-current=page]{background:var(--sh-active);color:#fcfcfc;font-weight:550}
+.sh-item--parent{color:#fcfcfc;font-weight:550}
+.sh-item--parent .sh-appicon{filter:saturate(0) invert(1) brightness(2) contrast(1.5) opacity(.9)}
+.sh-item--parent .ic{color:#fcfcfc}
+
+
 
 /* ===== Extra styles for the stand-alone pages (filter.html / search.html / metafield.html) ===== */
 /* page frame (the s-page + s-stack wrappers of the original, as plain classes) */
@@ -1437,12 +1447,6 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .pg-grid{display:grid;justify-content:center;grid-template-columns:minmax(0,966px);row-gap:16px;column-gap:16px;padding:0 16px}
 .pg-stack{display:flex;flex-direction:column;row-gap:16px;column-gap:16px}
 @media (max-width:767px){.pg-grid{padding-left:0;padding-right:0}}
-
-/* sidebar: a child page is open, so the parent item shows highlighted text but no pill (the sub item gets the pill) */
-.sh-item--sub[aria-current=page]{background:var(--sh-active);color:#fcfcfc;font-weight:550}
-.sh-item--parent{color:#fcfcfc;font-weight:550}
-.sh-item--parent .sh-appicon{filter:saturate(0) invert(1) brightness(2) contrast(1.5) opacity(.9)}
-.sh-item--parent .ic{color:#fcfcfc}
 
 /* search page: the chevron icon inside each row */
 .pg-chevron{display:inline-flex;width:20px;height:20px;color:#4a4a4a}

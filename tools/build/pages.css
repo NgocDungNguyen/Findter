@@ -6,12 +6,6 @@
 .pg-stack{display:flex;flex-direction:column;row-gap:16px;column-gap:16px}
 @media (max-width:767px){.pg-grid{padding-left:0;padding-right:0}}
 
-/* sidebar: a child page is open, so the parent item shows highlighted text but no pill (the sub item gets the pill) */
-.sh-item--sub[aria-current=page]{background:var(--sh-active);color:#fcfcfc;font-weight:550}
-.sh-item--parent{color:#fcfcfc;font-weight:550}
-.sh-item--parent .sh-appicon{filter:saturate(0) invert(1) brightness(2) contrast(1.5) opacity(.9)}
-.sh-item--parent .ic{color:#fcfcfc}
-
 /* search page: the chevron icon inside each row */
 .pg-chevron{display:inline-flex;width:20px;height:20px;color:#4a4a4a}
 .pg-chevron svg{width:100%;height:100%;fill:currentColor;display:block}

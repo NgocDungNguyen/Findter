@@ -147,3 +147,10 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 /* sidebar: Analytics / Pricing stay hidden until "View more" */
 .sh-item--extra{display:none}
 .sh-appgroup.is-expanded .sh-item--extra{display:flex}
+
+/* sidebar: a sub page (or Master) is open, so the parent item shows highlighted text but no pill (the sub item gets the pill) */
+.sh-item--sub[aria-current=page]{background:var(--sh-active);color:#fcfcfc;font-weight:550}
+.sh-item--parent{color:#fcfcfc;font-weight:550}
+.sh-item--parent .sh-appicon{filter:saturate(0) invert(1) brightness(2) contrast(1.5) opacity(.9)}
+.sh-item--parent .ic{color:#fcfcfc}
+
