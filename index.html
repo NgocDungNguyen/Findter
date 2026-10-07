@@ -2059,7 +2059,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   const DEFAULT_LAYOUT = {
     left: ['guide', 'rec', 'data', 'master'],
     right: ['status', 'help', 'sync'],
-    mobile: ['status', 'sync', 'guide', 'help', 'rec', 'data', 'master'],
+    mobile: ['status', 'sync', 'guide', 'help', 'rec', 'promo:default-mobile', 'data', 'master'],   // the default phone banner sits under Recommended apps
   };
   const SECTION_LABEL = { left: 'Desktop · Left column', right: 'Desktop · Right column', mobile: 'Mobile phone' };
   const LS_LAYOUT = 'findter.homeLayout.v2', LS_PROMOS = 'findter.promos.v2';
@@ -2070,14 +2070,22 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 
   /* promotion banner blocks: [{ id, name, target: 'left'|'right'|'mobile', interval (s), banners: [{ url, link }] }]
      A banner belongs to the section it was added in: left/right = desktop only, mobile = phones only. */
-  const isHttp = s => { try { const u = new URL(s); return u.protocol === 'http:' || u.protocol === 'https:'; } catch (e) { return false; } };
+  const asset = n => new URL('assets/img/' + n, location.href).href;
+  const DEFAULT_IMGS = new Set([asset('promo-left-default.jpg'), asset('promo-mobile-default.jpg')]);     // bundled with the app (633.33x160 left column, 370x185 phones)
+  const isHttp = s => { try { const u = new URL(s); return u.protocol === 'http:' || u.protocol === 'https:' || DEFAULT_IMGS.has(s); } catch (e) { return false; } };
+  // shown until the admin saves a banner list of their own (saving an empty list removes them for good)
+  const DEFAULT_PROMOS = [
+    { id: 'default-left', name: 'Default promotion banner', target: 'left', interval: 5, banners: [{ url: asset('promo-left-default.jpg'), link: '' }] },
+    { id: 'default-mobile', name: 'Default promotion banner (mobile)', target: 'mobile', interval: 5, banners: [{ url: asset('promo-mobile-default.jpg'), link: '' }] },
+  ];
   const cleanPromo = p => {
     if (!p || typeof p.id !== 'string' || typeof p.name !== 'string' || !Array.isArray(p.banners)) return null;
     const banners = p.banners.filter(b => b && isHttp(b.url)).map(b => ({ url: b.url, link: isHttp(b.link) ? b.link : '' }));
     if (!banners.length) return null;
     return { id: p.id, name: p.name.slice(0, 40), target: ['left', 'right', 'mobile'].includes(p.target) ? p.target : 'left', interval: Math.min(60, Math.max(1, Math.round(+p.interval) || 5)), banners };
   };
-  let promos = (lsGet(LS_PROMOS) || []).map(cleanPromo).filter(Boolean);
+  const storedPromos = lsGet(LS_PROMOS);
+  let promos = (Array.isArray(storedPromos) ? storedPromos : DEFAULT_PROMOS).map(cleanPromo).filter(Boolean);
   const promoKey = p => 'promo:' + p.id;
   const clonePromos = l => l.map(p => ({ ...p, banners: p.banners.map(b => ({ ...b })) }));
   let draftPromos = clonePromos(promos);
@@ -2095,7 +2103,12 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
       const side = BASE_IDS.includes(id) ? (DEFAULT_LAYOUT.right.includes(id) ? 'right' : 'left') : (pl.find(p => promoKey(p) === id).target === 'right' ? 'right' : 'left');
       out[side].push(id);
     });
-    [...DEFAULT_LAYOUT.mobile, ...pl.filter(p => p.target === 'mobile').map(promoKey)].forEach(id => { if (mobileValid.has(id) && !sm.has(id)) out.mobile.push(id); });
+    DEFAULT_LAYOUT.mobile.forEach((id, i) => {
+      if (!mobileValid.has(id) || sm.has(id)) return;
+      const prev = DEFAULT_LAYOUT.mobile.slice(0, i).reverse().find(k => out.mobile.includes(k));
+      out.mobile.splice(prev ? out.mobile.indexOf(prev) + 1 : out.mobile.length, 0, id); sm.add(id);
+    });
+    pl.filter(p => p.target === 'mobile').map(promoKey).forEach(id => { if (!sm.has(id)) { out.mobile.push(id); sm.add(id); } });
     return out;
   }
   let savedLayout = reconcile(lsGet(LS_LAYOUT) || DEFAULT_LAYOUT);

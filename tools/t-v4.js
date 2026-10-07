@@ -9,6 +9,7 @@ const svg = (n, h, c) => `<svg xmlns="http://www.w3.org/2000/svg" width="1200" h
   const errs = []; const p = await ctx.newPage();
   p.on('dialog', d => d.accept());
   p.on('pageerror', e => errs.push('PAGEERR ' + e.message.slice(0, 200))); p.on('console', m => m.type() === 'error' && errs.push(m.text().slice(0, 200)));
+  await p.addInitScript(() => { try { if (localStorage.getItem('findter.promos.v2') === null) localStorage.setItem('findter.promos.v2', '[]'); } catch (e) {} });   // start without the default banners: this test adds its own
   await p.goto(url + '#/master/home'); await p.waitForTimeout(900);
   const visible = () => p.evaluate(() => [...document.querySelectorAll('[data-card]')].filter(c => c.offsetParent !== null).map(c => c.dataset.card.replace(/^promo:.*/, 'PROMO')).join(','));
   const names = side => p.locator(`.hl-list[data-side=${side}] .hl-name`).allInnerTexts();
