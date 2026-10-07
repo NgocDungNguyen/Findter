@@ -21,7 +21,7 @@ Replicate what is visible when a page first opens. Don't dive into nested settin
 
 - **Draft until Save** (Master → Home): edits go to a draft; the real homepage changes only after Save. Keys: `findter.homeLayout.v2`, `findter.promos.v2`.
 - **Layout editor**: three independent orders (desktop left, desktop right, mobile). Promotion banners are added per area (left, right, mobile) with their own banner lists; desktop banners are not used on mobile.
-- Default mobile order: Findter app status → Sync recent updates → Onboarding guide → Help & Support → Recommended apps → Data insight → Master.
+- Default mobile order: Findter app status → Sync recent updates → Onboarding guide → Help & Support → Data insight → Promotion banner → Recommended apps → Master.
 - Promotion banner: X overlay, arrows when it has more than one image, per-banner interval in seconds.
 - Sidebar "View more" reveals Analytics and Pricing and turns into "View less" (state in `findter.navExpanded`). Analytics/Pricing pages are not built.
 

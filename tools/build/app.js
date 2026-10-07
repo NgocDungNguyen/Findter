@@ -356,9 +356,9 @@
   const BASE_NAMES = { guide: 'Onboarding guide', rec: 'Recommended apps', data: 'Data insight', master: 'Master', status: 'Findter app status', help: 'Help & Support', sync: 'Sync recent updates' };
   const BASE_IDS = Object.keys(BASE_NAMES);
   const DEFAULT_LAYOUT = {
-    left: ['guide', 'rec', 'data', 'master'],
+    left: ['guide', 'data', 'promo:default-left', 'rec', 'master'],                                      // Onboarding, Data insight, Promotion banner, Recommended apps
     right: ['status', 'help', 'sync'],
-    mobile: ['status', 'sync', 'guide', 'help', 'rec', 'promo:default-mobile', 'data', 'master'],   // the default phone banner sits under Recommended apps
+    mobile: ['status', 'sync', 'guide', 'help', 'data', 'promo:default-mobile', 'rec', 'master'],         // ... Data insight, Promotion banner, Recommended apps
   };
   const SECTION_LABEL = { left: 'Desktop · Left column', right: 'Desktop · Right column', mobile: 'Mobile phone' };
   const LS_LAYOUT = 'findter.homeLayout.v2', LS_PROMOS = 'findter.promos.v2';
@@ -400,7 +400,8 @@
     desktopValid.forEach(id => {
       if (sd.has(id)) return;
       const side = BASE_IDS.includes(id) ? (DEFAULT_LAYOUT.right.includes(id) ? 'right' : 'left') : (pl.find(p => promoKey(p) === id).target === 'right' ? 'right' : 'left');
-      out[side].push(id);
+      const def = DEFAULT_LAYOUT[side], at = def.indexOf(id), prev = at > 0 ? def.slice(0, at).reverse().find(k => out[side].includes(k)) : null;
+      out[side].splice(prev ? out[side].indexOf(prev) + 1 : out[side].length, 0, id);
     });
     DEFAULT_LAYOUT.mobile.forEach((id, i) => {
       if (!mobileValid.has(id) || sm.has(id)) return;

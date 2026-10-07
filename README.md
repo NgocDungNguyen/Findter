@@ -41,7 +41,7 @@ All pages except `index.html` share files in `assets/`: `common.css` (all styles
 
 ## Layout rules
 
-- Up to 767px wide the page uses the single-column **mobile layout**, using the order from the *Mobile phone order* list. Default order: Findter app status, Sync recent updates, Onboarding guide, Help & Support, Recommended apps, Data insight, Master.
+- Up to 767px wide the page uses the single-column **mobile layout**, using the order from the *Mobile phone order* list. Default order: Findter app status, Sync recent updates, Onboarding guide, Help & Support, Data insight, Promotion banner, Recommended apps, Master. On desktop the left column is Onboarding guide, Data insight, Promotion banner, Recommended apps, Master and the right column is Findter app status, Help & Support, Sync recent updates.
 - Every block shares one width (10px side margins) on mobile.
 
 ## Tooling
