@@ -154,3 +154,9 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .sh-item--parent .sh-appicon{filter:saturate(0) invert(1) brightness(2) contrast(1.5) opacity(.9)}
 .sh-item--parent .ic{color:#fcfcfc}
 
+
+/* promotion banner size: left column 633.33 x 160, phones 370 x 185 (the image is cropped to fill, so a wrong-sized image still looks tidy) */
+.pb--left .pb-slide{aspect-ratio:633.33/160;min-height:0}
+.pb--mobile .pb-slide{aspect-ratio:370/185;min-height:0}
+.pb--left .pb-slide img,.pb--mobile .pb-slide img{position:absolute;inset:0;width:100%;height:100%}
+.pb--left .pb-link,.pb--mobile .pb-link{position:absolute;inset:0}

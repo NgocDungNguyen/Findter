@@ -17,14 +17,20 @@
   }
 
   /* ---------- "Contact us" in info banners -> Crisp-style chat ---------- */
-  const CHAT = { filter: 'Hi, I want to make a custom filter request', search: 'Hi, I want to make a custom search request' };
-  const AUTO_REPLY = "We'd love to hear it! Please describe your idea as specifically as you can, feel free to include sample text, sample images, or reference links, and we'll get back to you shortly.";
+  const SURE = 'Sure! Please describe your idea and include any examples, images, or reference links.';
+  const CHAT = {
+    filter:    { msg: 'Hi, I want to make a custom filter request', reply: SURE },                // Manage filter set + Collection booster
+    search:    { msg: 'Hi, I want to make a custom search request', reply: SURE },                // Search settings + Search booster
+    metafield: { msg: 'Hi, I would like to have additional metafields', reply: "Sure! How many more metafields would you like to add? We'll review your request and get back to you shortly." },
+    feature:   { msg: 'Hi, I want to make a feature request', reply: SURE },                      // Advanced features, "Contact us now"
+    design:    { msg: 'Hi, I want to make a custom design request', reply: SURE },                // Filter design + Product grid design, "Let us know"
+  };
 
   /* ---------- clicks (one delegated handler so the markup stays plain) ---------- */
   document.addEventListener('click', e => {
     const t = e.target;
     const chat = t.closest('[data-chat]');                                    // "Contact us" in an info banner: the chat opens with the request already sent + the auto reply
-    if (chat) { const m = CHAT[chat.dataset.chat]; if (m && window.__shell) window.__shell.openChatWith(m, AUTO_REPLY); return; }
+    if (chat) { e.preventDefault(); const m = CHAT[chat.dataset.chat]; if (m && window.__shell) window.__shell.openChatWith(m.msg, m.reply); return; }
     const tab = t.closest('.Polaris-Tabs__Tab');
     if (tab) {
       if (tab.getAttribute('aria-selected') === 'true') return;

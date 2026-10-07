@@ -127,20 +127,67 @@
     });
   });
   /* ---------- Findter app status card ----------
-     In the real app these values come from the Pricing page (plan, trial end / renewal date) and the indexer; here they are fixed sample data.
-     plan 'Trial' shows "Expires on" (trialEndsOn), any other plan name shows "Renew on" (renewsOn). Products indexed = shown on the storefront / active products. */
-  const STATUS = { plan: 'Trial', trialEndsOn: 'Oct 12, 2026', renewsOn: 'Nov 5, 2026', indexed: 1240, totalActive: 1500, appEmbed: true, searchSuggestion: true };
-  (function renderStatus() {
-    const card = $('[data-card=status]'), n = v => v.toLocaleString('en-US'), trial = STATUS.plan === 'Trial';
-    $('[data-st=plan] [data-s=s-badge] span:last-child', card).textContent = STATUS.plan;
-    const date = $('[data-st=date]', card);
+     In the real app these values come from the Pricing page (plan, trial end / renewal date) and the indexer. Here the demo bar in the header
+     (Plan / Date / Indexed) fakes them, so every colour rule can be checked:
+       Plan                  Trial / Development = blue #d5ebff, Starter / Free = green #affebf
+       Free, Development     no "Expires on / Renew on" row, not affected by the days-left buttons; limit 300 (Free) / 50,000 (Development)
+       Expires on / Renew on Trial = blue, Starter = green, 7 days or less left = orange #ffd6a4 (same orange as the "In progress" badge)
+       Products indexed      limit = 50,000 (Trial) / 3,000 (Starter); indexed <= limit = green #affebf, over the limit (or while indexing runs) = orange */
+  const PLAN_LIMIT = { Trial: 50000, Starter: 3000, Free: 300, Development: 50000 };
+  const NO_DATE = ['Free', 'Development'];                                    // plans without an expiry / renewal date
+  const DEMO_KEY = 'findter.demoStatus';
+  const DEMO = { plan: 'Trial', days: 14, over: false };
+  try { const s = JSON.parse(localStorage.getItem(DEMO_KEY)); if (s && PLAN_LIMIT[s.plan] && [14, 7, 3, 1].includes(s.days)) Object.assign(DEMO, { plan: s.plan, days: s.days, over: !!s.over }); } catch (e) { /* storage blocked */ }
+  let syncRunning = false;                                                    // set by the Manual sync flow below
+  const TONES = ['st-tone--blue', 'st-tone--green', 'st-tone--orange'];
+  const toneOf = (el, tone) => { el.classList.remove(...TONES); el.classList.add('st-tone--' + tone); };
+  function renderStatus() {
+    const card = $('[data-card=status]'), n = v => v.toLocaleString('en-US'), trial = DEMO.plan === 'Trial', limit = PLAN_LIMIT[DEMO.plan];
+    const planTone = trial || DEMO.plan === 'Development' ? 'blue' : 'green', soon = DEMO.days <= 7;
+    const planBadge = $('[data-st=plan] [data-s=s-badge] > div', card);
+    $('span:last-child', planBadge).textContent = DEMO.plan; toneOf(planBadge, planTone);
+    const date = $('[data-st=date]', card), dateBadge = $('.st-badge', date), end = new Date(Date.now() + DEMO.days * 864e5);
+    date.hidden = NO_DATE.includes(DEMO.plan);                                 // Free / Development: no expiry / renewal date
     $('p', date).textContent = trial ? 'Expires on' : 'Renew on';
-    $('.st-badge', date).textContent = trial ? STATUS.trialEndsOn : STATUS.renewsOn;
-    $('[data-st=indexed] .st-badge', card).textContent = n(STATUS.indexed) + ' / ' + n(STATUS.totalActive);
-    [['embed', STATUS.appEmbed], ['suggest', STATUS.searchSuggestion]].forEach(([k, on]) => {
-      const badge = $('[data-st=' + k + '] [data-s=s-badge]', card);
-      if (!on) badge.outerHTML = '<span class="st-badge">Inactive</span>';
+    dateBadge.textContent = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    toneOf(dateBadge, soon ? 'orange' : planTone);
+    const indexed = DEMO.over ? limit + (limit < 1000 ? 60 : 1240) : Math.min(1595, Math.round(limit * 0.8)), idxBadge = $('[data-st=indexed] .st-badge', card);
+    idxBadge.textContent = n(indexed) + ' / ' + n(limit);
+    toneOf(idxBadge, syncRunning || indexed > limit ? 'orange' : 'green');
+  }
+  renderStatus();
+  [['embed', true], ['suggest', true]].forEach(([k, on]) => {                  // App embed / Search suggestion: Active (green) or Inactive (neutral)
+    const badge = $('[data-card=status] [data-st=' + k + '] [data-s=s-badge]');
+    if (!on) badge.outerHTML = '<span class="st-badge">Inactive</span>';
+  });
+
+  /* ---------- demo bar in the header: fakes plan / days left / products indexed ---------- */
+  (function demoBar() {
+    const top = $('.sh-top'), bar = document.createElement('div'); bar.className = 'demo-bar';
+    const groups = [
+      ['Plan', 'plan', [['Trial', 'Trial'], ['Starter', 'Starter'], ['Free', 'Free'], ['Development', 'Development']]],
+      ['Date', 'days', [[14, '14d'], [7, '7d'], [3, '3d'], [1, '1d']]],
+      ['Indexed', 'over', [[false, 'Normal'], [true, 'Over limit']]],
+    ];
+    bar.innerHTML = '<button type="button" class="demo-toggle" aria-expanded="false" aria-controls="demo-panel">Demo data</button><div class="demo-panel" id="demo-panel" role="group" aria-label="Demo data for the Findter app status box">'
+      + groups.map(([label, key, opts]) => '<div class="demo-group" role="group" aria-label="' + label + '"><span class="demo-label">' + label + '</span>' + opts.map(([v, t]) => '<button type="button" class="demo-btn" data-key="' + key + '" data-val="' + v + '" aria-pressed="false">' + t + '</button>').join('') + '</div>').join('') + '</div>';
+    top.insertBefore(bar, $('.sh-more', top));
+    const paint = () => {
+      $$('.demo-btn', bar).forEach(b => b.setAttribute('aria-pressed', String(String(DEMO[b.dataset.key]) === b.dataset.val)));
+      $$('.demo-btn[data-key=days]', bar).forEach(b => { b.disabled = NO_DATE.includes(DEMO.plan); });   // days left does not apply to Free / Development
+    };
+    bar.addEventListener('click', e => {
+      const b = e.target.closest('.demo-btn');
+      if (b) {
+        DEMO[b.dataset.key] = b.dataset.key === 'days' ? +b.dataset.val : b.dataset.key === 'over' ? b.dataset.val === 'true' : b.dataset.val;
+        try { localStorage.setItem(DEMO_KEY, JSON.stringify(DEMO)); } catch (err) { /* storage blocked */ }
+        paint(); renderStatus(); return;
+      }
+      const t = e.target.closest('.demo-toggle');
+      if (t) { const open = !bar.classList.contains('is-open'); bar.classList.toggle('is-open', open); t.setAttribute('aria-expanded', String(open)); }
     });
+    document.addEventListener('click', e => { if (!bar.contains(e.target) && bar.classList.contains('is-open')) { bar.classList.remove('is-open'); $('.demo-toggle', bar).setAttribute('aria-expanded', 'false'); } });
+    paint();
   })();
   // dismiss (X) buttons — they come back on reload
   const dismiss = card => { card.hidden = true; };
@@ -161,7 +208,6 @@
   btnByText(/^View app$/).forEach(b => b.addEventListener('click', () => ext('https://apps.shopify.com/')));
   btnByText(/^Live chat$/).forEach(b => b.addEventListener('click', () => toggleChat(true)));
   btnByText(/^Book a call with us$/).forEach(b => b.addEventListener('click', () => toast('Opens the booking page')));
-  btnByText(/^Manual sync$/).forEach(b => b.addEventListener('click', () => { b.disabled = true; b.style.opacity = .6; toast('Syncing…'); setTimeout(() => { b.disabled = false; b.style.opacity = ''; toast('Sync completed'); }, 1400); }));
   const chartBtn = $('[data-card=data] button[aria-describedby]:not(.date-picker-activator button)');
 
   /* ---------- carousel ---------- */
@@ -374,9 +420,47 @@
       placeDesktop();
       mobileLayout.hidden = true; mobileLayout.innerHTML = ''; layout.hidden = false;
     }
-    updateCarousel(true); updatePromos(true);
+    placeSyncBanner(); updateCarousel(true); updatePromos(true);
   }
   mq.mobile.addEventListener('change', applyOrder);
+
+  /* ---------- Manual sync (Sync recent updates card) ----------
+     Click -> button disabled, yellow "Collecting data" banner on top of the left column (top of the list on phones), the Sync badge and the
+     Products indexed badge turn to "In progress" (#ffd6a4). When indexing finishes (simulated, SYNC_MS) the green "Data indexing is completed."
+     banner replaces the yellow one, both badges go back to #b4fed2, the button is enabled again and the last-synced time is updated. */
+  const SYNC_MS = 8000;
+  const syncCard = cardEls.sync, syncBtn = $('button.Polaris-Button', syncCard), syncBadge = $('.Polaris-Badge', syncCard), syncBadgeText = $('.Polaris-Text--bodySm', syncBadge), syncBadgeHidden = $('.Polaris-Text--visuallyHidden', syncBadge);
+  const syncTime = $('p.Polaris-Text--semibold', syncCard);
+  const syncHost = document.createElement('div'); syncHost.className = 'Polaris-Layout__Section sy-host';
+  const SVG = d => '<svg viewBox="0 0 20 20" focusable="false" aria-hidden="true">' + d + '</svg>';
+  const SY_ICON = {
+    warn: SVG('<path d="M10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5a.75.75 0 0 1 .75-.75Z"/><path d="M11 13a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/><path fill-rule="evenodd" d="M9.116 3.994c.376-.65 1.33-.65 1.708 0l5.797 10.04c.377.65-.1 1.463-.854 1.463h-11.59c-.754 0-1.23-.813-.854-1.463l5.793-10.04Zm.636 1.164-5.15 8.917c-.12.208.034.465.272.465h10.3c.24 0 .393-.257.273-.465l-5.15-8.917a.314.314 0 0 0-.545 0Z"/>'),
+    ok: SVG('<path d="M13.28 8.78a.75.75 0 0 0-1.06-1.06l-3.47 3.47-1.22-1.22a.75.75 0 0 0-1.06 1.06l1.75 1.75a.75.75 0 0 0 1.06 0l4-4Z"/><path fill-rule="evenodd" d="M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm-5.5 7a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0Z"/>'),
+    x: SVG('<path d="M12.72 13.78a.75.75 0 1 0 1.06-1.06l-2.72-2.72 2.72-2.72a.75.75 0 0 0-1.06-1.06l-2.72 2.72-2.72-2.72a.75.75 0 0 0-1.06 1.06l2.72 2.72-2.72 2.72a.75.75 0 1 0 1.06 1.06l2.72-2.72 2.72 2.72Z"/>'),
+  };
+  function placeSyncBanner() { if (syncHost.firstElementChild) (mq.mobile.matches ? mobileLayout : leftHost).prepend(syncHost); else syncHost.remove(); }
+  function showSyncBanner(kind) {
+    const warn = kind === 'warn';
+    syncHost.innerHTML = '<div class="sy-banner sy-banner--' + kind + '" role="status"><div class="sy-banner__head"><span class="sy-banner__icon">' + SY_ICON[kind] + '</span><span class="sy-banner__title">' + (warn ? 'Collecting data' : 'Data indexing is completed.') + '</span><button type="button" class="sy-banner__x" aria-label="Dismiss">' + SY_ICON.x + '</button></div>'
+      + (warn ? '<div class="sy-banner__body">Up-to-date data are being collected. Please wait until this process is complete before continuing with the app.</div>' : '') + '</div>';
+    $('.sy-banner__x', syncHost).addEventListener('click', () => { syncHost.textContent = ''; placeSyncBanner(); });
+    placeSyncBanner();
+  }
+  const setSyncState = running => {
+    syncBadge.classList.toggle('sy-badge--progress', running); syncBadge.classList.toggle('sy-badge--done', !running);
+    syncRunning = running; renderStatus();                                   // Products indexed turns orange while indexing, then back to its rule colour
+    syncBadgeText.textContent = running ? 'In progress' : 'Completed'; syncBadgeHidden.textContent = running ? 'Warning' : 'Success';
+    syncBtn.disabled = running; syncBtn.classList.toggle('Polaris-Button--disabled', running); syncBtn.setAttribute('aria-disabled', String(running));
+  };
+  setSyncState(false);
+  syncBtn.addEventListener('click', () => {
+    if (syncBtn.disabled) return;
+    setSyncState(true); showSyncBanner('warn');
+    setTimeout(() => {
+      syncTime.textContent = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      setSyncState(false); showSyncBanner('ok');
+    }, SYNC_MS);
+  });
 
   /* ---------- promotion banner blocks on the homepage ---------- */
   const BEVEL_STYLE = cardEls.rec.getAttribute('style'), BOX_STYLE = cardEls.rec.firstElementChild.getAttribute('style');
@@ -386,6 +470,7 @@
   function fillPromoCard(card, p) {
     if (runtimes[card.dataset.card]) clearInterval(runtimes[card.dataset.card].timer);
     card.textContent = '';
+    card.classList.remove('pb--left', 'pb--right', 'pb--mobile'); card.classList.add('pb--' + p.target);   // fixed image ratio per place (see master.css)
     const box = mk('div', 'Polaris-Box pb-box', { style: BOX_STYLE + ';--pc-box-padding-block-start-xs:0;--pc-box-padding-block-end-xs:0;--pc-box-padding-inline-start-xs:0;--pc-box-padding-inline-end-xs:0' });
     const viewport = mk('div', 'pb-viewport', { role: 'group', 'aria-roledescription': 'carousel', 'aria-label': p.name });
     const track = mk('div', 'pb-track');
@@ -596,6 +681,7 @@
     $('#pm-title').textContent = p ? 'Edit promotion banner' : 'Add promotion banner';
     $('#pm-target').textContent = SECTION_LABEL[form.target];
     $('#pm-target-note').textContent = form.target === 'mobile' ? ' Used on phones only. Desktop uses its own banners.' : ' Used on desktop only. Phones use their own banners.';
+    $('#pm-size').textContent = form.target === 'left' ? 'Image size: 633 × 160 px. Leave some free space at the bottom right (or bottom center) for a button.' : form.target === 'mobile' ? 'Image size: 370 × 185 px. Leave some free space at the bottom right (or bottom center) for a button.' : 'The image fills the width of the column.';
     pmName.value = form.name; pmInterval.value = form.interval;
     renderBanners(); syncForm();
     lastFocus = document.activeElement; closePops(); closeDatePicker();

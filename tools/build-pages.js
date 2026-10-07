@@ -6,10 +6,10 @@ const rd = p => fs.readFileSync(path.join(__dirname, p), 'utf8');
 
 // flat: false = plain Polaris capture (wrapped by the pg-* classes); flat: true = Shopify web components flattened from the live app (cap/pages/<key>.flat.html)
 const PAGES = [
-  { key: 'filter', file: 'filter.html', active: 'Filter', customFilter: true },
+  { key: 'filter', file: 'filter.html', active: 'Filter' },
   { key: 'search', file: 'search.html', active: 'Search' },
   { key: 'metafield', file: 'metafield.html', active: 'Metafield' },
-  { key: 'filter-booster', file: 'filter-boost.html', active: 'Filter', flat: true, customFilter: true },
+  { key: 'filter-booster', file: 'filter-boost.html', active: 'Filter', flat: true },
   { key: 'search-booster', file: 'search-boost.html', active: 'Search', flat: true },
   { key: 'ymm', file: 'ymm.html', active: 'Year Make Model', flat: true },
   { key: 'features', file: 'features.html', active: 'Advanced features', flat: true },
@@ -81,7 +81,7 @@ function contentFor(p) {
     doc.querySelectorAll('[aria-owns]').forEach(e => e.removeAttribute('aria-owns'));
     doc.querySelectorAll('[data-state]').forEach(e => e.removeAttribute('data-state'));
     markTabs(doc);
-    if (p.customFilter) customFilterBanner(doc, doc.body);
+    chatWiring(p, doc, doc.body);
     return doc.querySelector('#app').outerHTML.split(APP_ASSETS).join('assets/img/');
   }
   const doc = new JSDOM(`<body>${rd(`cap/pages/${p.key}.html`)}</body>`).window.document;
@@ -92,24 +92,40 @@ function contentFor(p) {
   inner.querySelectorAll('[aria-owns]').forEach(e => e.removeAttribute('aria-owns'));
   inner.querySelectorAll('[data-state]').forEach(e => e.removeAttribute('data-state'));
   markTabs(inner);
-  if (p.key === 'search') { const c = [...inner.querySelectorAll('.Polaris-Banner button.Polaris-Link')].find(b => b.textContent.trim() === 'Contact us'); if (!c) throw new Error('search Contact us button not found'); c.setAttribute('data-chat', 'search'); inner.querySelectorAll('.Polaris-Banner a[href*=calendly]').forEach(l => l.setAttribute('href', 'https://calendly.com/flintverse-bsscommerce/30min')); }
-  if (p.customFilter) customFilterBanner(doc, inner);
+  chatWiring(p, doc, inner);
   return `<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack">${inner.innerHTML}</div></div></main></div></div>`;
 }
 // the original app mislabels two tabs (aria-label "Search" / "Search booster" on other tabs), so the visible text decides; the label is then corrected
-/* Filter pages (both tabs): the "custom solution" info banner sits right under the tabs, copied from the Search page so the box, icon, fonts and radius are identical.
-   It replaces the old "Got feedback or a feature request?" banner. "Contact us" has the chat send "Hi, I want to make a custom filter request"; "Book a call" is a normal link. */
-function customFilterBanner(doc, root) {
-  const src = new JSDOM(`<body>${rd('cap/pages/search.html')}</body>`).window.document.querySelector('.Polaris-Banner').closest('.Polaris-Layout__Section').outerHTML;
-  let html = src;
+/* "Contact us" / "Let us know" links open the chat with the request already sent (pages.js sends the message + the auto reply, keyed by data-chat).
+   Filter and Search pages (both tabs each) show the same info banner right under the tabs, copied from the Search page so box, icon, fonts and radius are identical;
+   The design pages also get it under the tabs (the old "Got feedback..." banner at the bottom is removed). Filter's replaces the old "Got feedback or a feature request?" banner. "Book a call with us" is a normal link that opens a new tab. */
+const CALENDLY = 'https://calendly.com/flintverse-bsscommerce/30min';
+function contactBanner(doc, root, kind) {
+  let html = new JSDOM(`<body>${rd('cap/pages/search.html')}</body>`).window.document.querySelector('.Polaris-Banner').closest('.Polaris-Layout__Section').outerHTML;
   const swap = (a, b) => { if (!html.includes(a)) throw new Error('banner text not found: ' + a); html = html.split(a).join(b); };
-  swap('custom search solution', 'custom filter solution');
-  swap('<button type="button" class="Polaris-Link Polaris-Link--monochrome">Contact us</button>', '<button type="button" class="Polaris-Link Polaris-Link--monochrome" data-chat="filter">Contact us</button>');
-  swap('30min?month=2026-05', '30min');
-  root.querySelectorAll('.Polaris-Banner').forEach(b => (b.closest('.Polaris-Layout__Section') || b).remove());   // the old feedback banner
-  const tabsSection = root.querySelector('.fdt-menu-tabs').closest('.Polaris-Layout__Section');
-  const w = doc.createElement('div'); w.innerHTML = html; tabsSection.after(w.firstElementChild);
+  if (kind === 'filter') swap('custom search solution', 'custom filter solution');
+  if (kind === 'design') swap('a custom search solution?', 'a custom design?');
+  swap('<button type="button" class="Polaris-Link Polaris-Link--monochrome">Contact us</button>', `<button type="button" class="Polaris-Link Polaris-Link--monochrome" data-chat="${kind}">Contact us</button>`);
+  const w = doc.createElement('div'); w.innerHTML = html; const banner = w.firstElementChild;
+  const old = [...root.querySelectorAll('.Polaris-Banner')].map(b => b.closest('.Polaris-Layout__Section') || b);          // the old "Got feedback or a feature request?" banner
+  if (kind === 'design' && old.length !== 1) throw new Error('design: expected 1 old banner, found ' + old.length);
+  if (kind !== 'search') old.forEach(o => o.remove());
+  root.querySelector('.fdt-menu-tabs').closest('.Polaris-Layout__Section').after(banner);                                  // right under the tabs
 }
+function chatWiring(p, doc, root) {
+  const mark = (el, kind) => { if (!el) throw new Error(p.key + ': chat link not found for ' + kind); el.setAttribute('data-chat', kind); };
+  const inBanner = label => [...root.querySelectorAll('.Polaris-Banner button, .Polaris-Banner a')].find(b => b.textContent.trim() === label);
+  switch (p.key) {
+    case 'filter': case 'filter-booster': contactBanner(doc, root, 'filter'); break;
+    case 'search-booster': contactBanner(doc, root, 'search'); break;
+    case 'search': mark(inBanner('Contact us'), 'search'); break;
+    case 'metafield': mark(root.querySelector('a.fdt-header__link:not([href])'), 'metafield'); break;            // "For additional metafields, please contact us"
+    case 'features': mark(root.querySelector('.fdt-contact-us-link').closest('a'), 'feature'); break;            // "Contact us now" in the bottom banner
+    case 'design': case 'design-tab2': contactBanner(doc, root, 'design'); break;                                 // both design tabs: under the tabs (replaces the bottom "Got feedback..." banner)
+  }
+  root.querySelectorAll('a[href*=calendly]').forEach(l => l.setAttribute('href', CALENDLY));
+}
+// the original app mislabels two tabs (aria-label "Search" / "Search booster" on other tabs), so the visible text decides; the label is then corrected
 function markTabs(root) { root.querySelectorAll('.Polaris-Tabs__Tab').forEach(t => { const lab = t.querySelector('.Polaris-Text--root'), txt = (lab ? lab.textContent : '').replace(/\s+/g, ' ').trim(), href = TAB_PAGES[txt] || TAB_PAGES[t.getAttribute('aria-label')]; if (href) { t.setAttribute('data-href', href); if (TAB_PAGES[txt]) t.setAttribute('aria-label', txt); } }); }
 
 for (const p of PAGES) {

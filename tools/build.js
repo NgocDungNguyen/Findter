@@ -73,6 +73,47 @@ function pruneFlat(c) {
   }).join('\n');
 }
 const appExtra = `
+/* Manual sync: banners on top of the left column + badge colours while indexing runs / when it is done */
+.sy-host:empty{display:none}
+.sy-banner{border-radius:12px;overflow:hidden;box-shadow:var(--p-shadow-100);background:#fff;color:#303030}
+.sy-banner__head{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 8px 0 12px;font-size:13px;line-height:20px;font-weight:650}
+.sy-banner--warn .sy-banner__head{background:#ffb800}
+.sy-banner--ok .sy-banner__head{background:#29845a;color:#fff}
+.sy-banner__title{flex:1;min-width:0}
+.sy-banner__icon svg,.sy-banner__x svg{display:block;width:20px;height:20px;fill:currentColor}
+.sy-banner__icon{display:grid;flex:none}
+.sy-banner__x{display:grid;flex:none;padding:4px;border:0;border-radius:8px;background:none;color:inherit;cursor:pointer}
+.sy-banner__x:hover{background:rgba(0,0,0,.08)}.sy-banner--ok .sy-banner__x:hover{background:rgba(255,255,255,.18)}
+.sy-banner__x:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
+.sy-banner__body{padding:12px 16px 16px;font-size:13px;line-height:20px;font-weight:450}
+@media (max-width:489px){.sy-banner{border-radius:0}}
+.sy-badge--progress.sy-badge--progress{background:#ffd6a4;color:#5e4200}
+.sy-badge--done.sy-badge--done{background:#b4fed2;color:#014b40}
+/* Findter app status: badge tones (blue #d5ebff / green #affebf / orange #ffd6a4) */
+.st-tone--blue.st-tone--blue{background:#d5ebff;color:#003a5a}
+.st-tone--green.st-tone--green{background:#affebf;color:#014b40}
+.st-tone--orange.st-tone--orange{background:#ffd6a4;color:#5e4200}
+.st-tone--blue.st-tone--blue *{color:#003a5a}.st-tone--green.st-tone--green *{color:#014b40}.st-tone--orange.st-tone--orange *{color:#5e4200}
+/* demo bar (prototype tool, lives in the header): plan / days left / indexed switches */
+.demo-bar{margin-left:auto;display:flex;align-items:center;min-width:0}
+.demo-bar + .sh-more{margin-left:12px}
+.demo-panel{display:flex;align-items:center;gap:16px}
+.demo-group{display:flex;align-items:center;gap:4px}
+.demo-label{margin-right:2px;font-size:12px;line-height:16px;color:#616161}
+.demo-btn,.demo-toggle{height:24px;padding:0 8px;border:1px solid #e3e3e3;border-radius:8px;background:#fff;color:#303030;font:inherit;font-size:12px;line-height:16px;font-weight:550;cursor:pointer;white-space:nowrap}
+.demo-btn:hover,.demo-toggle:hover{background:#f7f7f7}
+.demo-btn:disabled{opacity:.45;cursor:not-allowed}
+.demo-btn[aria-pressed=true]{background:#303030;border-color:#303030;color:#fff}
+.demo-btn:focus-visible,.demo-toggle:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
+.demo-toggle{display:none}
+@media (max-width:1099px){
+  .demo-toggle{display:inline-block}
+  .demo-panel{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:flex-start;gap:12px;padding:12px 16px;background:#fff;border-top:1px solid #e3e3e3;box-shadow:0 8px 16px rgba(0,0,0,.12)}
+  .demo-bar.is-open .demo-panel{display:flex}
+  .demo-group{flex-wrap:wrap}
+  .demo-label{min-width:56px}
+  .demo-btn{height:32px;padding:0 12px}
+}
 /* Findter app status: neutral badge (value of Expires on / Renew on, Products indexed and the Inactive state) */
 .st-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:8px;font-size:12px;line-height:16px;font-weight:550;background:#e3e3e3;color:#303030}
 
@@ -151,6 +192,7 @@ const promoModals = `
   <div class="pm__head"><h2 id="pm-title">Add promotion banner</h2><button type="button" class="pm__x" data-act="pm-close" aria-label="Close">${xIcon}</button></div>
   <div class="pm__body">
     <div class="pm-card"><h3>Promotion banner</h3><p class="pm-target-row">Shown in <strong id="pm-target"></strong>.<span id="pm-target-note"></span></p>
+      <p class="pm-hint" id="pm-size"></p>
       <label class="pm-field"><span class="pm-label">Name</span><span class="pm-input"><input id="pm-name" maxlength="40" autocomplete="off"><span class="pm-count">0/40</span></span></label>
     </div>
     <div class="pm-card"><h3>Banners</h3>

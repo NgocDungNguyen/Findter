@@ -1,0 +1,43 @@
+const { chromium } = require('playwright'); const path = require('path'); const { pathToFileURL } = require('url');
+const url = pathToFileURL(path.resolve(__dirname, '..', 'index.html')).href;
+let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) fails++; };
+const bg = (p, sel) => p.locator(sel).first().evaluate(e => getComputedStyle(e).backgroundColor);
+(async () => {
+  const b = await chromium.launch(); const errs = [];
+  const p = await (await b.newContext({ viewport: { width: 1440, height: 900 } })).newPage(); p.on('pageerror', e => errs.push(e.message));
+  await p.goto(url); await p.waitForTimeout(500);
+  const SYNC = '[data-card=sync]', IDX = '[data-st=indexed] .st-badge', BTN = SYNC + ' button.Polaris-Button', SB = SYNC + ' .Polaris-Badge';
+  ok(await p.locator('.sy-banner').count() === 0, 'no banner before syncing');
+  ok(await bg(p, SB) === 'rgb(180, 254, 210)' && await bg(p, IDX) === 'rgb(175, 254, 191)', 'idle: Sync badge #b4fed2, Products indexed #affebf');
+  const before = (await p.locator(SYNC + ' p.Polaris-Text--semibold').innerText());
+  await p.click(BTN); await p.waitForTimeout(300);
+  ok(await p.locator(BTN).isDisabled(), 'Manual sync is disabled while indexing');
+  ok((await p.locator(SB).innerText()).includes('In progress'), 'Sync badge says "In progress"');
+  ok(await bg(p, SB) === 'rgb(255, 214, 164)' && await bg(p, IDX) === 'rgb(255, 214, 164)', 'in progress: both badges = #ffd6a4');
+  ok(await p.locator('.sy-banner--warn').count() === 1 && (await p.locator('.sy-banner--warn').innerText()).includes('Collecting data') && (await p.locator('.sy-banner--warn').innerText()).includes('Up-to-date data are being collected.'), 'yellow "Collecting data" banner is shown');
+  const pos = await p.evaluate(() => { const b = document.querySelector('.sy-banner').getBoundingClientRect(), g = document.querySelector('[data-card=guide]').getBoundingClientRect(), s = document.querySelector('[data-card=status]').getBoundingClientRect(); return { above: b.bottom <= g.top + 1, sameColumn: Math.abs(b.left - g.left) < 2, topAligned: Math.abs(b.top - s.top) < 3 }; });
+  ok(pos.above && pos.sameColumn, 'banner is on top of the left column (above Onboarding guide)');
+  await p.screenshot({ path: 'test/sync-progress.png' });
+  await p.waitForTimeout(8500);
+  ok(await p.locator('.sy-banner--warn').count() === 0 && await p.locator('.sy-banner--ok').count() === 1 && (await p.locator('.sy-banner').innerText()).includes('Data indexing is completed.'), 'green "Data indexing is completed." replaces the yellow banner (only one banner)');
+  ok(await bg(p, SB) === 'rgb(180, 254, 210)' && await bg(p, IDX) === 'rgb(175, 254, 191)' && (await p.locator(SB).innerText()).includes('Completed'), 'done: both badges back to #b4fed2, Sync says Completed');
+  ok(await p.locator(BTN).isEnabled(), 'Manual sync is enabled again');
+  ok((await p.locator(SYNC + ' p.Polaris-Text--semibold').innerText()) !== before, 'last synced time updated');
+  await p.screenshot({ path: 'test/sync-done.png' });
+  await p.click('.sy-banner__x'); await p.waitForTimeout(200);
+  ok(await p.locator('.sy-banner').count() === 0, 'X closes the banner');
+  // dismissing the yellow banner mid-run still ends with the green one
+  await p.click(BTN); await p.waitForTimeout(200); await p.click('.sy-banner__x'); await p.waitForTimeout(200);
+  ok(await p.locator('.sy-banner').count() === 0 && await p.locator(BTN).isDisabled(), 'yellow banner dismissed, sync keeps running');
+  // phone: banner on top of the list, survives a resize while it is shown
+  await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(400);
+  await p.waitForTimeout(8500);
+  ok(await p.locator('.sy-banner--ok').count() === 1, 'phone: green banner appears when the run finishes');
+  const mob = await p.evaluate(() => { const b = document.querySelector('.sy-banner').getBoundingClientRect(), first = document.querySelector('.mobile-layout > .Polaris-Layout__Section:not(.sy-host) [data-card]').getBoundingClientRect(); const w = [...document.querySelectorAll('.mobile-layout > .Polaris-Layout__Section')].map(s => Math.round(s.getBoundingClientRect().width)); return { above: b.bottom <= first.top + 1, widths: [...new Set(w)] }; });
+  ok(mob.above && mob.widths.length === 1, 'phone: banner above the first block, same width as the other blocks (' + mob.widths + ')');
+  await p.click(BTN); await p.waitForTimeout(300);
+  await p.screenshot({ path: 'test/sync-mobile.png' });
+  await p.setViewportSize({ width: 1440, height: 900 }); await p.waitForTimeout(500);
+  ok(await p.locator('.sy-banner--warn').count() === 1 && (await p.evaluate(() => document.querySelector('.sy-host').nextElementSibling !== null && document.querySelector('.sy-host').parentElement.contains(document.querySelector('[data-card=guide]')))), 'resize back to desktop: banner is back on top of the left column');
+  console.log('page errors:', errs.length ? errs.join('|') : 'none'); console.log(fails ? fails + ' FAILED' : 'all passed'); await b.close();
+})();
