@@ -219,7 +219,7 @@ const shell = `
       <a class="sh-item sh-item--app" href="#/" data-nav="page" aria-current="page"><img class="sh-appicon" src="${appIcon}" alt=""><span class="sh-item__label">Findter Filter &amp; Search</span></a>
       ${subs.map(s => PAGE_LINKS[s] ? `<a class="sh-item sh-item--sub" href="${PAGE_LINKS[s]}" data-nav="page"><span class="sh-item__label">${s}</span></a>` : `<a class="sh-item sh-item--sub" href="#"><span class="sh-item__label">${s.replace(/&/g, '&amp;')}</span></a>`).join('')}
       <a class="sh-item sh-item--sub sh-item--extra" href="#"><span class="sh-item__label">Analytics</span></a>
-      <a class="sh-item sh-item--sub sh-item--extra" href="#"><span class="sh-item__label">Pricing</span></a>
+      <a class="sh-item sh-item--sub sh-item--extra" href="pricing.html" data-nav="page"><span class="sh-item__label">Pricing</span></a>
       <a class="sh-item sh-item--sub sh-item--master" href="#/master" data-nav="page"><span class="sh-item__label">Master</span></a>
       <button class="sh-item sh-item--more" type="button" aria-expanded="false"><span class="sh-item__label">View more</span></button>
       <a class="sh-item" href="#">${custom('MS Barcode Labels')}<span class="sh-item__label">MS Barcode Labels</span></a>
@@ -323,6 +323,9 @@ ${allCss}
 <body>
 ${shell}
 <script>window.__TPL=${JSON.stringify(T)};</script>
+<script>
+${bld('code-notice.js')}
+</script>
 <script>
 ${(() => { const [dataPart, uiPart] = bld('promotion.js').split('/*--UI--*/'); return bld('app.js').replace('/*PROMOTION_DATA*/', () => dataPart).replace('/*PROMOTION_MODULE*/', () => uiPart); })()}
 </script>

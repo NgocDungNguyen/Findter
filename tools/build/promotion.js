@@ -25,8 +25,12 @@
     { sku: 'promo-bfcm', name: 'BFCM', deadline: '2026-12-03T23:59', enabled: true, desktop: BFCM_IMG + 'Desktop.png?v=1791510617', mobile: BFCM_IMG + 'Mobile.png?v=1791510710',
       types: ['Development store', 'Trial', 'Free'], action: 'code', code: 'BFCM2025', link: '/pricing' },                  // "Copy and apply": copies the code, then goes to /pricing
   ];
+  const CN = window.__codeNotice;                  // shortcuts + "Code: … copied successfully" notice (build/code-notice.js)
+  const SHORTCUTS = Object.keys(CN.routes).filter(r => r !== '/home' && r !== '/');
   const isPath = s => /^\/(?!\/)/.test(s);
-  const isLink = s => isPath(s) || /^https?:\/\/\S+$/i.test(s);
+  const isShortcut = s => !!CN.resolve(s);
+  const isLink = s => isShortcut(s) || /^https?:\/\/\S+$/i.test(s);
+  const LINK_ERR = 'Use a shortcut (' + SHORTCUTS.join(', ') + ') or a link that starts with https://';
   const cleanPromotion = p => {
     if (!p || typeof p.sku !== 'string' || !p.sku) return null;
     return {
@@ -56,20 +60,13 @@
   };
   const BTN2 = 'Polaris-Button Polaris-Button--pressable Polaris-Button--variantSecondary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter';
   const PR_ICON = { prev: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12 5-5 5 5 5"/></svg>', next: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5"/></svg>', x: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>' };
-  function showCodeNotice(code) {                 // "Code: … copied successfully" on top of the page the merchant lands on
-    $('.pr-notice') && $('.pr-notice').remove();
-    const n = document.createElement('div'); n.className = 'sy-banner sy-banner--ok pr-notice'; n.setAttribute('role', 'status');
-    n.innerHTML = `<div class="sy-banner__head"><span class="sy-banner__icon">${SY_ICON.ok}</span><span class="sy-banner__title">Code: ${escHtml(code)} copied successfully</span><button type="button" class="sy-banner__x" aria-label="Dismiss">${SY_ICON.x}</button></div>`;
-    $('.sy-banner__x', n).addEventListener('click', () => n.remove());
-    scroller.prepend(n); scroller.scrollTop = 0;
-  }
   async function copyText(t) {
     try { await navigator.clipboard.writeText(t); return true; } catch (e) { /* not allowed here: fall back */ }
     const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'; document.body.appendChild(ta); ta.select();
     let ok = false; try { ok = document.execCommand('copy'); } catch (e) { /* ignore */ } ta.remove(); return ok;
   }
-  function goTo(link) {                            // external -> new tab, "/path" -> inside the app (the copy has no such pages)
-    if (isPath(link)) toast('Opens ' + link + ' inside the app (not part of this copy)'); else window.open(link, '_blank', 'noopener,noreferrer');
+  function goTo(link, code) {                      // "/shortcut" -> same tab, the "Code: … copied successfully" pill shows on the landing page; https:// -> new tab
+    if (CN.go(link, code) === 'unknown') toast('“' + link + '” is not a page in this copy');
   }
   function renderPromotion() {
     const list = promotionsForShop(), mobile = mq.mobile.matches;
@@ -79,7 +76,7 @@
     const many = list.length > 1;
     promoSlot.innerHTML = '<div class="pr-viewport"><div class="pr-track" style="transform:translateX(' + (-prIdx * 100) + '%)">' + list.map((p, i) => {
       const img = escHtml(mobile && p.mobile ? p.mobile : p.desktop);
-      const hit = p.action === 'link' ? `<a class="pr-hit" data-pr="open" data-i="${i}" href="${escHtml(p.link)}"${isPath(p.link) ? '' : ' target="_blank" rel="noopener noreferrer"'} aria-label="${escHtml(p.name)}"></a>` : '';
+      const hit = p.action === 'link' ? `<a class="pr-hit" data-pr="open" data-i="${i}" href="${escHtml(CN.resolve(p.link) || p.link)}"${isPath(p.link) ? '' : ' target="_blank" rel="noopener noreferrer"'} aria-label="${escHtml(p.name)}"></a>` : '';
       const foot = p.action === 'code' ? `<div class="pr-foot"><span class="pr-code">Promo code: <strong>${escHtml(p.code)}</strong></span><button type="button" class="${BTN2}" data-pr="copy" data-i="${i}"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">${p.link ? 'Copy and apply' : 'Copy code'}</span></button></div>` : '';
       return `<div class="pr-slide" data-sku="${escHtml(p.sku)}" role="group" aria-roledescription="slide" aria-label="${i + 1} of ${list.length}"${i === prIdx ? '' : ' aria-hidden="true" inert'}><div class="pr-media"><img class="pr-bg" src="${img}" alt="" aria-hidden="true" referrerpolicy="no-referrer"><img class="pr-img" src="${img}" alt="${escHtml(p.name)}" referrerpolicy="no-referrer" draggable="false"></div>${hit}${foot}</div>`;
     }).join('') + '</div><div class="pr-ctl">'
@@ -108,13 +105,13 @@
       if (!p.code && !isPath(p.link)) return;                // plain external link: the anchor opens its own tab
       e.preventDefault();
       const ok = p.code ? await copyText(p.code) : false;    // copy while this page still has focus, then go
-      goTo(p.link); if (ok) showCodeNotice(p.code);
+      goTo(p.link, ok ? p.code : '');
       return;
     }
     if (act === 'copy') {
       const ok = await copyText(p.code);
-      if (p.link) { goTo(p.link); if (ok) showCodeNotice(p.code); return; }             // "Copy and apply"
-      const label = $('.Polaris-Text--root', el), old = label.textContent; label.textContent = ok ? 'Copied' : 'Copy failed'; toast(ok ? `Code: ${p.code} copied successfully` : 'Could not copy the code. Select it and copy it by hand.');
+      if (p.link) { goTo(p.link, ok ? p.code : ''); return; }                           // "Copy and apply"
+      const label = $('.Polaris-Text--root', el), old = label.textContent; label.textContent = ok ? 'Copied' : 'Copy failed'; if (ok) CN.show(p.code); else toast('Could not copy the code. Select it and copy it by hand.');
       setTimeout(() => { label.textContent = old; }, 1800);                              // "Copy code": only copies
     }
   });
@@ -200,7 +197,7 @@
       + SHOP_TYPES.map(([n, d]) => `<div class="prm-check"><label><input type="checkbox" data-type="${escHtml(n)}"${prForm.types.includes(n) ? ' checked' : ''}> <span>${n}</span></label><span class="prm-hint">${d}</span></div>`).join('')
       + `<span class="pm-err prm-err" data-err="types"></span><p class="prm-note">Each shop counts as exactly one type, checked in the order above. A shop with a paid plan is always “Subscription”, even if it is also a development store or bought a service.</p></div>`
       + `<div class="prm-card"><h2>Action</h2><div class="prm-label">When the merchant uses the banner</div>`
-      + `<div class="prm-radio"><label><input type="radio" name="pr-action" data-f="action" value="link"${prForm.action === 'link' ? ' checked' : ''}> <span>Open a link</span></label><span class="prm-hint">Clicking the banner opens the link. Paths starting with / open inside the app. Add a promo code if the merchant should get it copied on the way.</span></div>`
+      + `<div class="prm-radio"><label><input type="radio" name="pr-action" data-f="action" value="link"${prForm.action === 'link' ? ' checked' : ''}> <span>Open a link</span></label><span class="prm-hint">Clicking the banner opens the link. A shortcut such as /filter, /search or /pricing opens that page in the same tab; an https:// link opens in a new tab. Add a promo code if the merchant should get it copied on the way.</span></div>`
       + `<div class="prm-radio"><label><input type="radio" name="pr-action" data-f="action" value="code"${prForm.action === 'code' ? ' checked' : ''}> <span>Copy a promo code</span></label><span class="prm-hint">A “Copy code” button is shown under the banner. Add a link and it becomes “Copy and apply”: it copies the code, then opens the link.</span></div>`
       + field('link', '<span data-label="link"></span>', text('link', prForm.link, 500, '/pricing or https://…'), '<span data-hint="link"></span>')
       + field('code', '<span data-label="code"></span>', text('code', prForm.code, 60, 'BFCM2025'), '<span data-hint="code"></span>') + `</div>`
@@ -225,16 +222,16 @@
     if (!isHttp(f.mobile.trim())) e.mobile = 'Enter a link that starts with https://';
     if (!f.types.length) e.types = 'Pick at least one shop type';
     const link = f.link.trim(), code = f.code.trim();
-    if (f.action === 'link') { if (!link) e.link = 'Enter a link'; else if (!isLink(link)) e.link = 'Use a path that starts with / or a link that starts with https://'; }
-    else { if (!code) e.code = 'Enter a promo code'; if (link && !isLink(link)) e.link = 'Use a path that starts with / or a link that starts with https://'; }
+    if (f.action === 'link') { if (!link) e.link = 'Enter a link'; else if (!isLink(link)) e.link = LINK_ERR; }
+    else { if (!code) e.code = 'Enter a promo code'; if (link && !isLink(link)) e.link = LINK_ERR; }
     return e;
   }
   function syncPromoForm() {
     const f = prForm, link = f.action === 'link';
     $('[data-label=link]', panelPromo).textContent = link ? 'Link' : 'Link (optional)';
     $('[data-label=code]', panelPromo).textContent = link ? 'Promo code (optional)' : 'Promo code';
-    $('[data-hint=link]', panelPromo).textContent = link ? 'Where the banner goes. Use / for a page inside the app (for example /pricing) or https:// for another site, which opens in a new tab.' : 'Optional. With a link the button reads “Copy and apply”; without one it only copies the code.';
-    $('[data-hint=code]', panelPromo).textContent = link ? 'Optional. Copied when the merchant clicks the banner, and a “Code: … copied successfully” note appears on the page they land on.' : 'Shown under the banner and copied by the button.';
+    $('[data-hint=link]', panelPromo).textContent = link ? 'Where the banner goes. Shortcuts: ' + SHORTCUTS.join(', ') + ' (same tab), or https:// for another site (new tab).' : 'Optional. With a link the button reads “Copy and apply” and opens the link; without one it only copies the code. Same shortcuts as above.';
+    $('[data-hint=code]', panelPromo).textContent = link ? 'Optional. Copied when the merchant clicks the banner, and a “Code: … copied successfully” note appears at the top of the page they land on.' : 'Shown under the banner and copied by the button.';
     $('[data-count=name]', panelPromo).textContent = `${f.name.length}/100`; $('[data-count=sku]', panelPromo).textContent = `${f.sku.length}/80`;
     const errs = promoErrors(f);
     $$('[data-field]', panelPromo).forEach(el => { const id = el.dataset.field, msg = prTouched.has(id) ? errs[id] : ''; el.classList.toggle('is-error', !!msg); $('.prm-err', el).textContent = msg || ''; });

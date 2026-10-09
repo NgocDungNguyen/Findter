@@ -28,8 +28,11 @@ Open [`index.html`](index.html) in a browser. There is no build step and no serv
 | Advanced features | `features.html` | grid of feature cards with preview images and toggles (hover plays the preview video) |
 | Filter design | `design.html` | "Filter & product grid design", first tab: layout choices, toggles, Save |
 | Product grid design | `design-product-grid.html` | same page, second tab |
+| Pricing | `pricing.html` | current plan, product-count slider, Free / Starter plans, FAQ (static; built from the app's own page, inside this copy's sidebar) |
 
-Analytics and Pricing are not built: they only appear in the sidebar after **View more** (the button turns into **View less**).
+Analytics is not built. It and Pricing sit in the sidebar under **View more** (the button turns into **View less**).
+
+Promotion banners (Master → Promotion) can link to these pages with shortcuts: `/filter`, `/filter-booster`, `/search`, `/search-booster`, `/metafield`, `/ymm`, `/features`, `/design`, `/product-grid`, `/pricing`. A shortcut opens in the same tab; an `https://` link opens a new tab. With a promo code, "Code: … copied successfully" shows under the header of the page that opens (`tools/build/code-notice.js`).
 
 The sidebar and the sub-page tabs link between all of these pages. They copy only what you see when they first open: buttons that would open settings, nested options and modals show a short "not part of this copy" message. The status toggles, the search-field checkboxes + Save, the design toggles/layout choices and the phone-width table scroller do work.
 

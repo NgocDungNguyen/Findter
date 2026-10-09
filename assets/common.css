@@ -1503,8 +1503,6 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .pr-ctl{position:absolute;left:0;right:0;top:0;aspect-ratio:var(--ar);pointer-events:none}
 .pr-ctl > *{pointer-events:auto}
 .pr-ctl .pb-dots{pointer-events:none}
-.pr-notice{position:sticky;top:8px;z-index:6;margin:8px auto 0;width:min(966px,calc(100% - 32px))}
-@media (max-width:767px){.pr-notice{width:calc(100% - 20px)}}
 
 /* ===== Master -> Promotion ===== */
 .mp-editing .mp-title,.mp-editing .mp-hero,.mp-editing .mt-tabs{display:none}
