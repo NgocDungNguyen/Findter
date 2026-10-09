@@ -60,7 +60,7 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
   const order = await p.evaluate(() => [...document.querySelectorAll('#app .Polaris-Layout:not(.mobile-layout) [data-card]')].filter(c => c.offsetParent !== null).map(c => c.dataset.card).join(','));
   ok(order === 'guide,data,promotion,rec,master,status,help,sync', 'desktop order: guide, data insight, promotion, recommended apps, master | status, help, sync  (' + order + ')');
   const sz = await box('.pr-media'); ok(sz && Math.abs(sz.w - 633.33) < 1 && Math.abs(sz.h - 160) < 1, 'desktop banner 633.33 x 160 (' + sz.w + ' x ' + sz.h + ')');
-  ok((await p.locator('.pr-foot .Polaris-Text--root').innerText()) === 'Copy and apply' && (await p.locator('.pr-foot').innerText()).includes('Promo code: BFCM2025'), 'code + link -> "Copy and apply" button under the banner');
+  ok(await p.locator('.pr-foot').count() === 0 && await p.locator('.pr-hit').count() === 1, 'the banner itself is the link; there is no button under it');
   ok(await p.locator('.pr-ctl [data-pr=prev]').count() === 0, 'a single promotion has no arrows');
   ok(await p.locator('.pr-img').getAttribute('alt') === 'BFCM', 'name is the banner alt text');
   await p.screenshot({ path: 'test/prm-home.png' });
@@ -70,11 +70,11 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
     await plan(name); ok((await promoVisible()) === shown && (await recVisible()), `plan "${name}" (${name === 'Starter' ? 'Subscription' : name === 'Development' ? 'Development store' : name}): promotion ${shown ? 'shown' : 'hidden'}, Recommended apps always shown`);
   }
 
-  // ---------------------------------------------------------------- Copy and apply (code + in-app path)
+  // ---------------------------------------------------------------- banner click with a promo code + an in-app shortcut
   const tabs0 = popups; await p.evaluate(() => { navigator.clipboard.writeText = async t => { sessionStorage.setItem('__copied', t); }; });
-  await p.click('.pr-foot button'); await p.waitForURL(/pricing\.html/).catch(() => {}); await p.waitForTimeout(400);
+  await p.click('.pr-hit'); await p.waitForURL(/pricing\.html/).catch(() => {}); await p.waitForTimeout(400);
   ok(p.url().includes('pricing.html') && popups === tabs0, '"/pricing" opens pricing.html in the same tab (no new tab)');
-  ok(await p.evaluate(() => sessionStorage.getItem('__copied')) === 'BFCM2025', 'Copy and apply: the code is copied');
+  ok(await p.evaluate(() => sessionStorage.getItem('__copied')) === 'BFCM2025', 'banner click: the code is copied');
   ok(await p.locator('.cn-pill.is-on').innerText().then(t => t === 'Code: BFCM2025 copied successfully'), 'notice on the landing page: "Code: BFCM2025 copied successfully"');
   const nt = await box('.cn-pill'); ok(nt && nt.top >= 54 && nt.top < 90, 'the notice sits right under the header');
   await goHome();
@@ -85,7 +85,6 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
     await p.fill('#pr-name', cfg.name); await p.fill('#pr-sku', cfg.sku); await p.fill('#pr-deadline', '2026-12-31T23:59');
     await p.fill('#pr-desktop', cfg.desktop || 'https://img.test/d.svg'); await p.fill('#pr-mobile', cfg.mobile || 'https://img.test/m.svg');
     for (const t of cfg.types || ['Trial']) await p.check(`[data-type="${t}"]`);
-    await p.check(`[data-f=action][value=${cfg.action}]`);
     if (cfg.link !== undefined) await p.fill('#pr-link', cfg.link); if (cfg.code !== undefined) await p.fill('#pr-code', cfg.code);
     await p.waitForTimeout(450);
   };
@@ -93,10 +92,7 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
   await p.goto(url + '#/master/promotion/new'); await p.waitForTimeout(300);
   ok(await p.locator('.prm-titlebar h1').innerText() === 'Add promotion' && await p.locator('[data-prm=save]').isDisabled(), 'Add promotion page: Save disabled while empty');
   ok(await p.locator('.prm-hint', { hasText: '1266 × 320 px (shown at 633 × 160)' }).count() === 1 && await p.locator('.prm-hint', { hasText: '740 × 370 px (shown at 370 × 185)' }).count() === 1, 'image size hints match the spec');
-  ok(await p.locator('[data-label=link]').innerText() === 'Link' && await p.locator('[data-label=code]').innerText() === 'Promo code (optional)', 'Open a link: "Link" required, "Promo code (optional)"');
-  await p.check('[data-f=action][value=code]');
-  ok(await p.locator('[data-label=link]').innerText() === 'Link (optional)' && await p.locator('[data-label=code]').innerText() === 'Promo code', 'Copy a promo code: "Link (optional)", "Promo code" required');
-  await p.check('[data-f=action][value=link]');
+  ok(await p.locator('[data-field=link] .prm-label').innerText() === 'Link' && await p.locator('[data-field=code] .prm-label').innerText() === 'Promo code (optional)' && await p.locator('[data-f=action]').count() === 0 && !(await p.locator('body').innerText()).includes('Copy a promo code'), 'only the open-a-link action is left: "Link" required, "Promo code (optional)", no action choice');
   await p.fill('#pr-name', 'x'); await p.fill('#pr-sku', 'Bad SKU'); await p.fill('#pr-link', 'not a link'); await p.click('#pr-desktop'); await p.fill('#pr-desktop', 'nope'); await p.click('#pr-mobile'); await p.click('#pr-name'); await p.waitForTimeout(200);
   const errTxt = (await p.locator('.prm-err').allInnerTexts()).filter(Boolean).join(' | '); console.log('   errors:', errTxt);
   ok(/lowercase/i.test(errTxt) && /https:\/\//.test(errTxt), 'invalid SKU / link / image show inline errors');
@@ -106,15 +102,14 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
   await p.click('[data-prm=upload]'); ok(await p.locator('#toast').innerText().then(t => /Upload is not part/.test(t)), 'Upload button explains it is not in this copy');
   await p.click('[data-prm=cancel]'); ok(p.url().endsWith('#/master/promotion'), 'Cancel goes back to the list');
 
-  await addPromo({ name: 'Link only', sku: 'promo-link', action: 'link', link: 'https://example.com/offer' });
+  await addPromo({ name: 'Link only', sku: 'promo-link', link: 'https://example.com/offer' });
   ok(await p.locator('[data-prm=save]').isEnabled(), 'valid form -> Save enabled'); await p.click('[data-prm=save]'); await p.waitForTimeout(300);
-  await addPromo({ name: 'Link and code', sku: 'promo-linkcode', action: 'link', link: 'https://example.com/code', code: 'SAVE10' }); await p.click('[data-prm=save]'); await p.waitForTimeout(300);
-  await addPromo({ name: 'Code only', sku: 'promo-codeonly', action: 'code', code: 'ONLYCODE' }); await p.click('[data-prm=save]'); await p.waitForTimeout(300);
+  await addPromo({ name: 'Link and code', sku: 'promo-linkcode', link: 'https://example.com/code', code: 'SAVE10' }); await p.click('[data-prm=save]'); await p.waitForTimeout(300);
+  await addPromo({ name: 'Second', sku: 'promo-second', link: 'https://example.com/second', code: 'ONLYCODE' }); await p.click('[data-prm=save]'); await p.waitForTimeout(300);
   ok(await p.locator('.prm-row').count() === 4, 'three promotions added (4 in the list)');
   const needLink = await (async () => { await p.goto(url + '#/master/promotion/new'); await p.waitForTimeout(250); await p.fill('#pr-name', 'n'); await p.fill('#pr-sku', 'promo-x'); await p.fill('#pr-desktop', 'https://img.test/d.svg'); await p.fill('#pr-mobile', 'https://img.test/m.svg'); await p.check('[data-type="Trial"]'); await p.waitForTimeout(300); return p.locator('[data-prm=save]').isDisabled(); })();
   ok(needLink, 'Open a link without a link -> cannot save');
-  await p.check('[data-f=action][value=code]'); await p.waitForTimeout(200); ok(await p.locator('[data-prm=save]').isDisabled(), 'Copy a code without a code -> cannot save');
-  await p.fill('#pr-code', 'ONLY'); await p.waitForTimeout(200); ok(await p.locator('[data-prm=save]').isEnabled(), 'code only (link optional) -> can save');
+  await p.fill('#pr-link', 'https://example.com/x'); await p.waitForTimeout(200); ok(await p.locator('[data-prm=save]').isEnabled(), 'a link without a promo code can be saved (the code is optional)');
 
   // ---------------------------------------------------------------- each mode on the homepage (one at a time)
   const only = async sku => {                       // keep just one live promotion for Trial by closing the others
@@ -134,18 +129,11 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
   await p.evaluate(() => { window.__opened.length = 0; window.__copies.length = 0; }); await p.click('.pr-hit'); await p.waitForTimeout(400);
   ok((await copies()).join() === 'SAVE10' && (await p.evaluate(() => window.__opened.join())) === 'https://example.com/code', 'clicking the banner copies SAVE10 and opens the link');
   ok(await p.locator('.cn-pill.is-on').innerText().then(t => /Code: SAVE10 copied successfully/.test(t)), 'and shows "Code: SAVE10 copied successfully"');
-  // code only: button copies, no navigation
-  await only('promo-codeonly');
-  ok(await p.locator('.pr-hit').count() === 0, 'Copy a code: the banner itself is not a link');
-  ok((await p.locator('.pr-foot .Polaris-Text--root').innerText()) === 'Copy code', 'code without link -> "Copy code"');
-  await p.evaluate(() => { window.__opened.length = 0; window.__copies.length = 0; }); await p.click('.pr-foot button'); await p.waitForTimeout(300);
-  ok((await copies()).join() === 'ONLYCODE' && (await p.evaluate(() => window.__opened.length)) === 0, 'it only copies (no navigation)');
-  ok((await p.locator('.pr-foot .Polaris-Text--root').innerText()) === 'Copied' && await p.locator('.cn-pill.is-on').innerText().then(t => /Code: ONLYCODE copied successfully/.test(t)), 'button says "Copied" and the notice confirms');
   await p.evaluate(() => localStorage.removeItem('findter.promotionsDismissed.v1'));
 
   // ---------------------------------------------------------------- carousel with mixed actions: the height must not jump
-  await p.goto(url + '#/master/promotion'); await p.evaluate(() => localStorage.setItem('findter.promotionsDismissed.v1', JSON.stringify(['promo-linkcode', 'promo-codeonly']))); await goHome();
-  const slides = await p.locator('.pr-slide').count(); ok(slides === 2, 'two live promotions (Copy and apply + Open a link) -> two slides');
+  await p.goto(url + '#/master/promotion'); await p.evaluate(() => localStorage.setItem('findter.promotionsDismissed.v1', JSON.stringify(['promo-linkcode', 'promo-second']))); await goHome();
+  const slides = await p.locator('.pr-slide').count(); ok(slides === 2, 'two live promotions -> two slides');
   ok(await p.locator('.pr-ctl [data-pr=prev]').isVisible() && await p.locator('.pr-ctl [data-pr=next]').isVisible() && await p.locator('.pb-dot').count() === 2, 'arrows and dots appear');
   const measure = () => p.evaluate(() => ({ viewport: document.querySelector('.pr-viewport').getBoundingClientRect().height, slides: [...document.querySelectorAll('.pr-slide')].map(s => +s.getBoundingClientRect().height.toFixed(1)), card: document.querySelector('[data-card=promotion]').getBoundingClientRect().height, idx: [...document.querySelectorAll('.pr-slide')].findIndex(s => !s.hasAttribute('inert')) }));
   const m0 = await measure(); await p.click('[data-pr=next]'); await p.waitForTimeout(500); const m1 = await measure(); await p.click('[data-pr=next]'); await p.waitForTimeout(500); const m2 = await measure(); await p.click('[data-pr=prev]'); await p.waitForTimeout(500); const m3 = await measure();
@@ -160,13 +148,13 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
   // ---------------------------------------------------------------- priority: drag / keyboard + Save priority
   await p.goto(url + '#/master/promotion'); await p.waitForTimeout(300);
   const names = () => p.locator('.prm-row').evaluateAll(els => els.map(e => e.dataset.sku).join());
-  ok(await names() === 'promo-bfcm,promo-link,promo-linkcode,promo-codeonly', 'list order = priority order');
+  ok(await names() === 'promo-bfcm,promo-link,promo-linkcode,promo-second', 'list order = priority order');
   await p.locator('.prm-row[data-sku=promo-link]').focus(); await p.keyboard.press('Shift+ArrowUp'); await p.waitForTimeout(150);
-  ok(await names() === 'promo-link,promo-bfcm,promo-linkcode,promo-codeonly' && await p.locator('[data-prm=save-order]').isEnabled(), 'Shift+ArrowUp moves a row up and enables Save priority');
+  ok(await names() === 'promo-link,promo-bfcm,promo-linkcode,promo-second' && await p.locator('[data-prm=save-order]').isEnabled(), 'Shift+ArrowUp moves a row up and enables Save priority');
   await goHome(); ok((await p.locator('.pr-slide').first().getAttribute('data-sku')) === 'promo-bfcm', 'the homepage keeps the old order until Save priority');
   await p.goto(url + '#/master/promotion'); await p.waitForTimeout(300);
-  await p.locator('.prm-row[data-sku=promo-codeonly]').dragTo(p.locator('.prm-row[data-sku=promo-bfcm]'), { targetPosition: { x: 200, y: 5 } }); await p.waitForTimeout(250);
-  const afterDrag = await names(); console.log('   after drag:', afterDrag); ok(afterDrag.split(',')[0] === 'promo-codeonly', 'dragging a row to the top works');
+  await p.locator('.prm-row[data-sku=promo-second]').dragTo(p.locator('.prm-row[data-sku=promo-bfcm]'), { targetPosition: { x: 200, y: 5 } }); await p.waitForTimeout(250);
+  const afterDrag = await names(); console.log('   after drag:', afterDrag); ok(afterDrag.split(',')[0] === 'promo-second', 'dragging a row to the top works');
   await p.locator('.prm-row[data-sku=promo-link]').focus(); // keep it deterministic for the save check below
   await p.click('[data-prm=save-order]'); await p.waitForTimeout(250);
   ok(await p.locator('[data-prm=save-order]').isDisabled(), 'Save priority saves and disables itself');
@@ -187,23 +175,23 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
   await p.goto(url + '#/master/promotion/edit/promo-bfcm'); await p.waitForTimeout(400);
   ok(await p.locator('.prm-titlebar h1').innerText() === 'Edit promotion' && await p.locator('#pr-sku').isDisabled() && (await p.locator('#pr-sku').inputValue()) === 'promo-bfcm', 'Edit promotion: SKU is locked');
   ok(await p.locator('[data-prm=save]').isDisabled(), 'Save is disabled until something changes');
-  ok(await p.locator('[data-type="Trial"]').isChecked() && !(await p.locator('[data-type="Subscription"]').isChecked()) && await p.locator('[data-f=action][value=code]').isChecked() && (await p.locator('#pr-link').inputValue()) === '/pricing' && (await p.locator('#pr-code').inputValue()) === 'BFCM2025', 'form is filled from the promotion (types, action, link /pricing, code BFCM2025)');
+  ok(await p.locator('[data-type="Trial"]').isChecked() && !(await p.locator('[data-type="Subscription"]').isChecked()) && (await p.locator('#pr-link').inputValue()) === '/pricing' && (await p.locator('#pr-code').inputValue()) === 'BFCM2025', 'form is filled from the promotion (types, action, link /pricing, code BFCM2025)');
   await p.screenshot({ path: 'test/prm-edit.png', fullPage: true });
   await p.uncheck('[data-f=enabled]'); await p.waitForTimeout(150); ok(await p.locator('[data-prm=save]').isEnabled(), 'changing Enabled enables Save');
   await p.click('[data-prm=save]'); await p.waitForTimeout(300);
   ok((await p.locator('.prm-row[data-sku=promo-bfcm] .prm-badge').innerText()) === 'Disabled', 'disabled promotion -> status "Disabled"');
-  await p.evaluate(() => localStorage.setItem('findter.promotionsDismissed.v1', JSON.stringify(['promo-link', 'promo-linkcode', 'promo-codeonly']))); await goHome(); ok(!(await promoVisible()), 'a disabled promotion is not shown');
+  await p.evaluate(() => localStorage.setItem('findter.promotionsDismissed.v1', JSON.stringify(['promo-link', 'promo-linkcode', 'promo-second']))); await goHome(); ok(!(await promoVisible()), 'a disabled promotion is not shown');
   await p.goto(url + '#/master/promotion/edit/promo-bfcm'); await p.check('[data-f=enabled]'); await p.fill('#pr-deadline', '2020-01-01T00:00'); await p.waitForTimeout(150); await p.click('[data-prm=save]'); await p.waitForTimeout(300);
   ok((await p.locator('.prm-row[data-sku=promo-bfcm] .prm-badge').innerText()) === 'Expired', 'past deadline -> status "Expired"');
   await goHome(); ok(!(await promoVisible()), 'an expired promotion is not shown');
   await p.goto(url + '#/master/promotion/edit/promo-bfcm'); await p.fill('#pr-deadline', '2026-12-03T23:59'); await p.click('[data-prm=save]'); await p.waitForTimeout(300);
 
   // ---------------------------------------------------------------- delete
-  await p.locator('.prm-row[data-sku=promo-codeonly] [data-prm=delete]').click(); await p.waitForTimeout(200);
+  await p.locator('.prm-row[data-sku=promo-second] [data-prm=delete]').click(); await p.waitForTimeout(200);
   ok(await p.locator('#dm-title').innerText() === 'Delete promotion?', 'delete asks for confirmation');
-  await p.click('[data-act=dm-cancel]'); ok(await p.locator('.prm-row[data-sku=promo-codeonly]').count() === 1, 'Cancel keeps it');
-  await p.locator('.prm-row[data-sku=promo-codeonly] [data-prm=delete]').click(); await p.click('[data-act=dm-delete]'); await p.waitForTimeout(200);
-  ok(await p.locator('.prm-row[data-sku=promo-codeonly]').count() === 0, 'Delete removes it');
+  await p.click('[data-act=dm-cancel]'); ok(await p.locator('.prm-row[data-sku=promo-second]').count() === 1, 'Cancel keeps it');
+  await p.locator('.prm-row[data-sku=promo-second] [data-prm=delete]').click(); await p.click('[data-act=dm-delete]'); await p.waitForTimeout(200);
+  ok(await p.locator('.prm-row[data-sku=promo-second]').count() === 0, 'Delete removes it');
 
   // ---------------------------------------------------------------- instant: delete everything, then create one promotion
   await p.goto(url + '#/master/promotion'); await p.waitForTimeout(300);
@@ -211,7 +199,7 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
   await p.goto(url + '#/master/home'); await p.waitForTimeout(400);
   ok(await side('left') === 'guide,data,rec,master' && await side('mobile') === 'status,sync,guide,help,data,rec,master', 'no promotion left -> the Promotion block is gone from the Home lists');
   await goHome(); ok(await p.locator('[data-card=promotion]').count() === 1 && !(await promoVisible()), 'and nothing is left on the homepage');
-  await addPromo({ name: 'Brand new', sku: 'promo-new', action: 'link', link: 'https://example.com/new', types: ['Trial', 'Free'] }); await p.click('[data-prm=save]'); await p.waitForTimeout(300);
+  await addPromo({ name: 'Brand new', sku: 'promo-new', link: 'https://example.com/new', types: ['Trial', 'Free'] }); await p.click('[data-prm=save]'); await p.waitForTimeout(300);
   await goHome(); ok(await promoVisible(), 'a promotion is on the homepage right after it is created (no Save anywhere else)');
   ok((await p.evaluate(() => [...document.querySelectorAll('#app .Polaris-Layout:not(.mobile-layout) [data-card]')].filter(c => c.offsetParent !== null).map(c => c.dataset.card).slice(0, 4).join())) === 'guide,data,promotion,rec', 'the new block lands between Data insight and Recommended apps');
   await p.goto(url + '#/master/home'); await p.waitForTimeout(400);

@@ -22,7 +22,7 @@ Replicate what is visible when a page first opens. Don't dive into nested settin
 - **Draft until Save** (Master → Home): edits go to a draft; the real homepage changes only after Save. Keys: `findter.homeLayout.v2`, `findter.promos.v2`.
 - **Layout editor**: three independent orders (desktop left, desktop right, mobile). The Promotion block can be placed in the left column and the phone order only; promotions are created in Master → Promotion and are live at once.
 - Default mobile order: Findter app status → Sync recent updates → Onboarding guide → Help & Support → Data insight → Promotion banner → Recommended apps → Master.
-- Promotion block: one banner block with the live promotions that target the shop (arrows + dots when several, equal height for every slide), X closes one promotion for good (stored per SKU), banner = link or "Copy code" / "Copy and apply" button underneath, depending on the promotion action.
+- Promotion block: one banner block with the live promotions that target the shop (arrows + dots when several, equal height for every slide), X closes one promotion for good (stored per SKU), the whole banner is the link (required); an optional promo code is copied on the click. There is no button under the banner.
 - Sidebar "View more" reveals Analytics and Pricing and turns into "View less" (state in `findter.navExpanded`). Pricing is built (`pricing.html`, from the iframe of a raw capture kept in git-ignored `tools/cap/pages/pricing.raw.html`); Analytics is not.
 - Promotion links use shortcuts (`/filter`, `/pricing`, ...): same tab, and the "Code: … copied successfully" pill is shown on the landing page (`tools/build/code-notice.js`, loaded by every page). `https://` links open a new tab.
 

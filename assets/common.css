@@ -1499,7 +1499,6 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .pr-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;user-select:none}
 .pr-hit{position:absolute;left:0;right:0;top:0;display:block;aspect-ratio:var(--ar);cursor:pointer}
 .pr-hit:focus-visible{outline:2px solid #005bd3;outline-offset:-2px}
-.pr-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;font-size:13px;line-height:20px;color:#303030}
 .pr-ctl{position:absolute;left:0;right:0;top:0;aspect-ratio:var(--ar);pointer-events:none}
 .pr-ctl > *{pointer-events:auto}
 .pr-ctl .pb-dots{pointer-events:none}
@@ -1559,10 +1558,10 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .prm-prev{margin-top:8px;border-radius:8px;overflow:hidden;background:#ececec}
 .prm-prev img{display:block;width:100%;height:auto}
 .prm-prev.is-broken{padding:14px;color:#8a8a8a;font-size:12px;text-align:center}
-.prm-check,.prm-radio{margin-top:10px}
-.prm-check label,.prm-radio label{display:flex;align-items:center;gap:8px;font-size:13px;line-height:20px;cursor:pointer}
-.prm-check input,.prm-radio input{width:16px;height:16px;margin:0;accent-color:#303030}
-.prm-check .prm-hint,.prm-radio .prm-hint{margin:0 0 0 24px}
+.prm-check{margin-top:10px}
+.prm-check label{display:flex;align-items:center;gap:8px;font-size:13px;line-height:20px;cursor:pointer}
+.prm-check input{width:16px;height:16px;margin:0;accent-color:#303030}
+.prm-check .prm-hint{margin:0 0 0 24px}
 .prm-note{margin:14px 0 0;color:#616161;font-size:13px;line-height:20px}
 .prm-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:24px}
 
