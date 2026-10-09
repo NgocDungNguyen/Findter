@@ -71,12 +71,13 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
   }
 
   // ---------------------------------------------------------------- Copy and apply (code + in-app path)
-  await p.click('.pr-foot button'); await p.waitForTimeout(300);
-  ok((await copies()).includes('BFCM2025'), 'Copy and apply: the code is copied');
-  ok(await p.locator('.pr-notice').innerText().then(t => /Code: BFCM2025 copied successfully/.test(t)), 'note on top of the page: "Code: BFCM2025 copied successfully"');
-  ok(await p.locator('#toast').innerText().then(t => /\/pricing/.test(t)), '"/pricing" opens inside the app (the copy only toasts it)');
-  const nt = await box('.pr-notice'); ok(nt && nt.top < 120, 'the note sits at the top of the page');
-  await p.click('.pr-notice .sy-banner__x'); ok(await p.locator('.pr-notice').count() === 0, 'the note can be dismissed');
+  const tabs0 = popups; await p.evaluate(() => { navigator.clipboard.writeText = async t => { sessionStorage.setItem('__copied', t); }; });
+  await p.click('.pr-foot button'); await p.waitForURL(/pricing\.html/).catch(() => {}); await p.waitForTimeout(400);
+  ok(p.url().includes('pricing.html') && popups === tabs0, '"/pricing" opens pricing.html in the same tab (no new tab)');
+  ok(await p.evaluate(() => sessionStorage.getItem('__copied')) === 'BFCM2025', 'Copy and apply: the code is copied');
+  ok(await p.locator('.cn-pill.is-on').innerText().then(t => t === 'Code: BFCM2025 copied successfully'), 'notice on the landing page: "Code: BFCM2025 copied successfully"');
+  const nt = await box('.cn-pill'); ok(nt && nt.top >= 54 && nt.top < 90, 'the notice sits right under the header');
+  await goHome();
 
   // ---------------------------------------------------------------- add promotions in Master (the three other modes + validation)
   const addPromo = async (cfg) => {
@@ -126,20 +127,20 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
   ok(await p.locator('.pr-hit').getAttribute('href') === 'https://example.com/offer' && await p.locator('.pr-hit').getAttribute('target') === '_blank' && (await p.locator('.pr-hit').getAttribute('rel')).includes('noopener'), 'Open a link: the banner is a link that opens in a new tab');
   ok(await p.locator('.pr-foot').count() === 0, 'Open a link without a code: nothing under the banner');
   const before = popups; await p.click('.pr-hit'); await p.waitForTimeout(400);
-  ok(popups === before + 1 && (await copies()).filter(c => c !== 'BFCM2025').length === 0 && await p.locator('.pr-notice').count() === 0, 'clicking it opens the tab, copies nothing, shows no code note');
+  ok(popups === before + 1 && (await copies()).filter(c => c !== 'BFCM2025').length === 0 && await p.locator('.cn-pill.is-on').count() === 0, 'clicking it opens the tab, copies nothing, shows no code note');
   // link + code: copy, then go, note on the page
   await only('promo-linkcode');
   ok(await p.locator('.pr-foot').count() === 0, 'Open a link + code: still no button under the banner');
   await p.evaluate(() => { window.__opened.length = 0; window.__copies.length = 0; }); await p.click('.pr-hit'); await p.waitForTimeout(400);
   ok((await copies()).join() === 'SAVE10' && (await p.evaluate(() => window.__opened.join())) === 'https://example.com/code', 'clicking the banner copies SAVE10 and opens the link');
-  ok(await p.locator('.pr-notice').innerText().then(t => /Code: SAVE10 copied successfully/.test(t)), 'and shows "Code: SAVE10 copied successfully"');
+  ok(await p.locator('.cn-pill.is-on').innerText().then(t => /Code: SAVE10 copied successfully/.test(t)), 'and shows "Code: SAVE10 copied successfully"');
   // code only: button copies, no navigation
   await only('promo-codeonly');
   ok(await p.locator('.pr-hit').count() === 0, 'Copy a code: the banner itself is not a link');
   ok((await p.locator('.pr-foot .Polaris-Text--root').innerText()) === 'Copy code', 'code without link -> "Copy code"');
   await p.evaluate(() => { window.__opened.length = 0; window.__copies.length = 0; }); await p.click('.pr-foot button'); await p.waitForTimeout(300);
   ok((await copies()).join() === 'ONLYCODE' && (await p.evaluate(() => window.__opened.length)) === 0, 'it only copies (no navigation)');
-  ok((await p.locator('.pr-foot .Polaris-Text--root').innerText()) === 'Copied' && await p.locator('#toast').innerText().then(t => /Code: ONLYCODE copied successfully/.test(t)), 'button says "Copied" and a toast confirms');
+  ok((await p.locator('.pr-foot .Polaris-Text--root').innerText()) === 'Copied' && await p.locator('.cn-pill.is-on').innerText().then(t => /Code: ONLYCODE copied successfully/.test(t)), 'button says "Copied" and the notice confirms');
   await p.evaluate(() => localStorage.removeItem('findter.promotionsDismissed.v1'));
 
   // ---------------------------------------------------------------- carousel with mixed actions: the height must not jump

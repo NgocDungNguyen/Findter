@@ -1511,8 +1511,6 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .pr-ctl{position:absolute;left:0;right:0;top:0;aspect-ratio:var(--ar);pointer-events:none}
 .pr-ctl > *{pointer-events:auto}
 .pr-ctl .pb-dots{pointer-events:none}
-.pr-notice{position:sticky;top:8px;z-index:6;margin:8px auto 0;width:min(966px,calc(100% - 32px))}
-@media (max-width:767px){.pr-notice{width:calc(100% - 20px)}}
 
 /* ===== Master -> Promotion ===== */
 .mp-editing .mp-title,.mp-editing .mp-hero,.mp-editing .mt-tabs{display:none}
@@ -1602,7 +1600,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
       <a class="sh-item sh-item--app" href="#/" data-nav="page" aria-current="page"><img class="sh-appicon" src="https://cdn.shopify.com/s/files/applications/393b6ef120968ea1931a5ec86b58d041_200x200.png?v=1753934348" alt=""><span class="sh-item__label">Findter Filter &amp; Search</span></a>
       <a class="sh-item sh-item--sub" href="filter.html" data-nav="page"><span class="sh-item__label">Filter</span></a><a class="sh-item sh-item--sub" href="search.html" data-nav="page"><span class="sh-item__label">Search</span></a><a class="sh-item sh-item--sub" href="metafield.html" data-nav="page"><span class="sh-item__label">Metafield</span></a><a class="sh-item sh-item--sub" href="ymm.html" data-nav="page"><span class="sh-item__label">Year Make Model</span></a><a class="sh-item sh-item--sub" href="design.html" data-nav="page"><span class="sh-item__label">Filter & product grid design</span></a><a class="sh-item sh-item--sub" href="features.html" data-nav="page"><span class="sh-item__label">Advanced features</span></a>
       <a class="sh-item sh-item--sub sh-item--extra" href="#"><span class="sh-item__label">Analytics</span></a>
-      <a class="sh-item sh-item--sub sh-item--extra" href="#"><span class="sh-item__label">Pricing</span></a>
+      <a class="sh-item sh-item--sub sh-item--extra" href="pricing.html" data-nav="page"><span class="sh-item__label">Pricing</span></a>
       <a class="sh-item sh-item--sub sh-item--master" href="#/master" data-nav="page"><span class="sh-item__label">Master</span></a>
       <button class="sh-item sh-item--more" type="button" aria-expanded="false"><span class="sh-item__label">View more</span></button>
       <a class="sh-item" href="#"><span class="ic ic--20 ic--fill" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M4.89 10.05h-.008a.342.342 0 0 0-.332.35v.01a.388.388 0 0 0 .005.05.378.378 0 0 0 .006.03l.004.017.006.016.005.015a.417.417 0 0 0 .008.018l.006.012.01.018c.003.003.004.007.006.01l.01.013.01.014c.02.025.043.048.07.067l.026.017.015.008.013.007.014.005.017.006a.4.4 0 0 0 .016.005l.014.004.018.003.016.003.014.001.014.001h.009a.315.315 0 0 0 .085-.012c.004 0 .01-.002.013-.004l.021-.007.009-.004a.399.399 0 0 0 .018-.01l.011-.005.013-.008.026-.017.014-.012a.308.308 0 0 0 .045-.047l.01-.014a.388.388 0 0 0 .026-.04l.007-.015a.36.36 0 0 0 .007-.016l.006-.016a.468.468 0 0 0 .005-.015l.004-.016.005-.018a.35.35 0 0 0 .003-.017l.002-.017v-.02l.002-.01v-.01a.364.364 0 0 0-.026-.135l-.007-.017-.006-.014-.007-.011-.01-.018-.008-.01-.01-.016-.01-.01-.012-.016-.009-.008-.014-.014-.01-.007a.373.373 0 0 0-.016-.013l-.01-.007a.306.306 0 0 0-.017-.01l-.012-.007-.016-.008a.296.296 0 0 0-.016-.007l-.014-.005a.299.299 0 0 0-.018-.005c-.004-.002-.009-.002-.013-.003a.315.315 0 0 0-.02-.004l-.013-.002-.017-.002-.012-.001Zm2.494 0h.012l.018.003a.591.591 0 0 1 .045.008.296.296 0 0 1 .019.006l.012.005.018.007.013.007.015.008.016.01.01.007.015.011.012.01.01.009a.49.49 0 0 1 .026.028l.008.01.006.008c.01.014.02.03.029.047l.007.014.008.018a.356.356 0 0 1 .025.134v.01l-.001.01-.002.02-.002.017a.35.35 0 0 1-.003.017l-.005.02-.003.012a.37.37 0 0 1-.011.033l-.008.016-.007.014-.008.015c-.002.005-.006.01-.009.014l-.007.011-.012.015a.327.327 0 0 1-.01.013l-.01.011a.456.456 0 0 1-.011.011l-.013.012a.342.342 0 0 1-.02.016l-.005.003-.016.01-.013.009-.005.002a.322.322 0 0 1-.053.023l-.013.004a.314.314 0 0 1-.086.012h-.008l-.03-.002-.032-.006-.016-.005-.015-.004a.386.386 0 0 1-.018-.006l-.013-.005-.013-.007-.015-.009a.34.34 0 0 1-.114-.11l-.008-.011a.365.365 0 0 1-.024-.047l-.005-.015-.005-.016-.008-.033-.003-.018-.003-.016-.001-.02-.001-.01v-.01c0-.193.149-.35.332-.35h.009Zm2.493 0h.013l.017.003a.6.6 0 0 1 .065.014l.014.006.014.005.017.009a.224.224 0 0 1 .028.017l.01.007.015.011a.273.273 0 0 1 .012.01l.009.008a.33.33 0 0 1 .015.015l.02.024.01.014.01.012.006.013.01.017.006.013.007.016.006.017.007.019a.374.374 0 0 1 .013.1v.02l-.002.02-.003.016-.003.02a.292.292 0 0 1-.003.012l-.005.02-.005.015-.006.016-.007.015-.007.015-.009.015-.007.014-.01.011-.01.015a.376.376 0 0 1-.031.034l-.014.013a.36.36 0 0 1-.02.016l-.02.013-.013.008-.01.006a.502.502 0 0 1-.019.009c-.003 0-.006.002-.009.004a.321.321 0 0 1-.042.013l-.01.003a.323.323 0 0 1-.067.007H9.86l-.029-.002a.286.286 0 0 1-.018-.003c-.005 0-.01-.002-.014-.003-.007-.001-.014-.004-.02-.006-.004 0-.007-.002-.01-.003l-.02-.006-.012-.005-.015-.008a.34.34 0 0 1-.138-.134l-.007-.012-.006-.013-.008-.017-.005-.015a.36.36 0 0 1-.006-.017l-.003-.013a.368.368 0 0 1-.005-.02l-.002-.013a.396.396 0 0 1-.003-.02l-.002-.02v-.02c0-.193.149-.35.332-.35h.008Zm-6.242-3.3c.176 0 .32.148.325.333V10.4a.334.334 0 0 1-.325.342.334.334 0 0 1-.324-.342V7.083a.333.333 0 0 1 .324-.333Zm2.494 0c.176 0 .32.148.324.333l.001.01V10.4a.334.334 0 0 1-.325.342.334.334 0 0 1-.325-.342V7.083a.334.334 0 0 1 .325-.333Zm2.493 0a.334.334 0 0 0-.325.333V10.4c0 .19.146.342.325.342.18 0 .325-.153.325-.342V7.083a.334.334 0 0 0-.325-.333Zm2.493 0c.177 0 .32.148.325.333V10.4a.334.334 0 0 1-.325.342.334.334 0 0 1-.325-.342V7.093l.001-.01a.333.333 0 0 1 .324-.333Zm-6.233 0c.176 0 .32.148.325.333v2.041a.335.335 0 0 1-.325.343.335.335 0 0 1-.325-.343V7.083a.334.334 0 0 1 .325-.333Zm2.493 0c.177 0 .32.148.325.333v2.041a.335.335 0 0 1-.325.343.335.335 0 0 1-.325-.343V7.083a.333.333 0 0 1 .325-.333Zm2.495 0c.176 0 .319.148.323.333v2.041a.334.334 0 0 1-.324.343.335.335 0 0 1-.325-.343V7.083a.334.334 0 0 1 .325-.333Z"/><path d="M16 16H0V0h16v16ZM2.875 5a1 1 0 0 0-1 1v5.5a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-9Zm1.987-1.25a.24.24 0 0 0-.237.241.24.24 0 0 0 .237.241h8.075a.72.72 0 0 1 .713.725v5.552a.24.24 0 0 0 .238.241.24.24 0 0 0 .237-.241V4.957c0-.667-.532-1.207-1.188-1.207H4.863Z"/></svg></span><span class="sh-item__label">MS Barcode Labels</span></a>
@@ -1760,6 +1758,59 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 </div>
 <div class="toast" id="toast" role="status"></div>
 <script>window.__TPL={"check":"<svg viewBox=\"0 0 20 20\" class=\"Polaris-Icon__Svg\" focusable=\"false\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M15.78 5.97a.75.75 0 0 1 0 1.06l-6.5 6.5a.75.75 0 0 1-1.06 0l-3.25-3.25a.75.75 0 1 1 1.06-1.06l2.72 2.72 5.97-5.97a.75.75 0 0 1 1.06 0Z\"></path></svg>","tipChevron":"<svg class=\"Polaris-Tooltip-TooltipOverlay__Tail\" width=\"19\" height=\"11\" fill=\"none\"><path d=\"M18.829 8.171 11.862.921A3 3 0 0 0 7.619.838L0 8.171h1.442l6.87-6.612a2 2 0 0 1 2.83.055l6.3 6.557h1.387Z\" fill=\"var(--p-color-tooltip-tail-up-border-experimental)\"></path><path d=\"M17.442 10.171h-16v-2l6.87-6.612a2 2 0 0 1 2.83.055l6.3 6.557v2Z\" fill=\"var(--p-color-bg-surface)\"></path></svg>","prev":"<svg viewBox=\"0 0 20 20\" class=\"Polaris-Icon__Svg\" focusable=\"false\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M16.5 10a.75.75 0 0 1-.75.75h-9.69l2.72 2.72a.75.75 0 0 1-1.06 1.06l-4-4a.75.75 0 0 1 0-1.06l4-4a.75.75 0 1 1 1.06 1.06l-2.72 2.72h9.69a.75.75 0 0 1 .75.75Z\"></path></svg>","next":"<svg viewBox=\"0 0 20 20\" class=\"Polaris-Icon__Svg\" focusable=\"false\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M3.5 10a.75.75 0 0 1 .75-.75h9.69l-2.72-2.72a.75.75 0 1 1 1.06-1.06l4 4a.75.75 0 0 1 0 1.06l-4 4a.75.75 0 0 1-1.06-1.06l2.72-2.72h-9.69a.75.75 0 0 1-.75-.75Z\"></path></svg>"};</script>
+<script>
+/* Promotion shortcuts + the "Code: … copied successfully" notice.
+   Stand-alone on purpose: index.html inlines it, every other page loads assets/code-notice.js, so the notice can be shown on whichever page a promotion lands on.
+   - routes: the "/shortcut" links an admin can type in a promotion (Master -> Promotion). They open inside the app, in the SAME tab.
+   - go(link, code): opens a link for a promotion. Shortcut -> same tab (the notice is queued and shown on the landing page, near the header);
+     https:// link -> new tab (that site is not ours, so the notice is shown here); unknown shortcut -> nothing opens, the notice is shown here.
+   In the real app the landing page is the app's own route and the queue is a query flag; here it is sessionStorage. */
+(() => {
+  'use strict';
+  const KEY = 'findter.codeNotice', SHOW_MS = 4500, MAX_AGE = 30000;
+  const routes = {
+    '/': 'index.html', '/home': 'index.html',
+    '/filter': 'filter.html', '/filter-booster': 'filter-boost.html',
+    '/search': 'search.html', '/search-booster': 'search-boost.html',
+    '/metafield': 'metafield.html', '/ymm': 'ymm.html', '/features': 'features.html',
+    '/design': 'design.html', '/product-grid': 'design-product-grid.html',
+    '/pricing': 'pricing.html',
+  };
+  const resolve = link => {                                   // "/Filter/?x=1" -> "filter.html" (or '' when it is not a known shortcut)
+    const p = String(link || '').trim().split(/[?#]/)[0].toLowerCase().replace(/(.)\/+$/, '$1');
+    return Object.prototype.hasOwnProperty.call(routes, p) ? routes[p] : '';
+  };
+
+  const css = document.createElement('style');
+  css.textContent = '.cn-pill{position:fixed;top:62px;left:50%;z-index:2147483000;transform:translate(-50%,-8px);max-width:calc(100vw - 32px);box-sizing:border-box;padding:10px 24px;border-radius:999px;background:#1a1a1a;color:#fff;font:550 14px/20px -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}'
+    + '.cn-pill.is-on{opacity:1;transform:translate(-50%,0)}@media (prefers-reduced-motion:reduce){.cn-pill{transition:none}}';
+  document.head.appendChild(css);
+
+  let pill, timer;
+  const show = code => {
+    if (!code) return;
+    if (!pill) { pill = document.createElement('div'); pill.className = 'cn-pill'; pill.setAttribute('role', 'status'); document.body.appendChild(pill); }
+    pill.textContent = 'Code: ' + code + ' copied successfully';
+    void pill.offsetWidth; pill.classList.add('is-on');
+    clearTimeout(timer); timer = setTimeout(() => pill.classList.remove('is-on'), SHOW_MS);
+  };
+  const queue = code => { try { sessionStorage.setItem(KEY, JSON.stringify({ code, at: Date.now() })); } catch (e) { /* storage blocked: the notice is simply not carried over */ } };
+  const takeQueued = () => {
+    try { const q = JSON.parse(sessionStorage.getItem(KEY) || 'null'); sessionStorage.removeItem(KEY); return q && q.code && Date.now() - q.at < MAX_AGE ? q.code : ''; } catch (e) { return ''; }
+  };
+  // returns 'same-tab' | 'new-tab' | 'unknown'
+  const go = (link, code) => {
+    const file = resolve(link);
+    if (file) { if (code) queue(code); location.assign(file); return 'same-tab'; }
+    if (/^\/(?!\/)/.test(link)) { show(code); return 'unknown'; }
+    window.open(link, '_blank', 'noopener,noreferrer'); show(code); return 'new-tab';
+  };
+
+  window.__codeNotice = { routes, resolve, show, go };
+  const queued = takeQueued(); if (queued) show(queued);      // we just landed from a promotion
+})();
+
+</script>
 <script>
 (() => {
   'use strict';
@@ -2158,8 +2209,12 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     { sku: 'promo-bfcm', name: 'BFCM', deadline: '2026-12-03T23:59', enabled: true, desktop: BFCM_IMG + 'Desktop.png?v=1791510617', mobile: BFCM_IMG + 'Mobile.png?v=1791510710',
       types: ['Development store', 'Trial', 'Free'], action: 'code', code: 'BFCM2025', link: '/pricing' },                  // "Copy and apply": copies the code, then goes to /pricing
   ];
+  const CN = window.__codeNotice;                  // shortcuts + "Code: … copied successfully" notice (build/code-notice.js)
+  const SHORTCUTS = Object.keys(CN.routes).filter(r => r !== '/home' && r !== '/');
   const isPath = s => /^\/(?!\/)/.test(s);
-  const isLink = s => isPath(s) || /^https?:\/\/\S+$/i.test(s);
+  const isShortcut = s => !!CN.resolve(s);
+  const isLink = s => isShortcut(s) || /^https?:\/\/\S+$/i.test(s);
+  const LINK_ERR = 'Use a shortcut (' + SHORTCUTS.join(', ') + ') or a link that starts with https://';
   const cleanPromotion = p => {
     if (!p || typeof p.sku !== 'string' || !p.sku) return null;
     return {
@@ -2436,20 +2491,13 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   };
   const BTN2 = 'Polaris-Button Polaris-Button--pressable Polaris-Button--variantSecondary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter';
   const PR_ICON = { prev: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12 5-5 5 5 5"/></svg>', next: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5"/></svg>', x: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>' };
-  function showCodeNotice(code) {                 // "Code: … copied successfully" on top of the page the merchant lands on
-    $('.pr-notice') && $('.pr-notice').remove();
-    const n = document.createElement('div'); n.className = 'sy-banner sy-banner--ok pr-notice'; n.setAttribute('role', 'status');
-    n.innerHTML = `<div class="sy-banner__head"><span class="sy-banner__icon">${SY_ICON.ok}</span><span class="sy-banner__title">Code: ${escHtml(code)} copied successfully</span><button type="button" class="sy-banner__x" aria-label="Dismiss">${SY_ICON.x}</button></div>`;
-    $('.sy-banner__x', n).addEventListener('click', () => n.remove());
-    scroller.prepend(n); scroller.scrollTop = 0;
-  }
   async function copyText(t) {
     try { await navigator.clipboard.writeText(t); return true; } catch (e) { /* not allowed here: fall back */ }
     const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'; document.body.appendChild(ta); ta.select();
     let ok = false; try { ok = document.execCommand('copy'); } catch (e) { /* ignore */ } ta.remove(); return ok;
   }
-  function goTo(link) {                            // external -> new tab, "/path" -> inside the app (the copy has no such pages)
-    if (isPath(link)) toast('Opens ' + link + ' inside the app (not part of this copy)'); else window.open(link, '_blank', 'noopener,noreferrer');
+  function goTo(link, code) {                      // "/shortcut" -> same tab, the "Code: … copied successfully" pill shows on the landing page; https:// -> new tab
+    if (CN.go(link, code) === 'unknown') toast('“' + link + '” is not a page in this copy');
   }
   function renderPromotion() {
     const list = promotionsForShop(), mobile = mq.mobile.matches;
@@ -2459,7 +2507,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     const many = list.length > 1;
     promoSlot.innerHTML = '<div class="pr-viewport"><div class="pr-track" style="transform:translateX(' + (-prIdx * 100) + '%)">' + list.map((p, i) => {
       const img = escHtml(mobile && p.mobile ? p.mobile : p.desktop);
-      const hit = p.action === 'link' ? `<a class="pr-hit" data-pr="open" data-i="${i}" href="${escHtml(p.link)}"${isPath(p.link) ? '' : ' target="_blank" rel="noopener noreferrer"'} aria-label="${escHtml(p.name)}"></a>` : '';
+      const hit = p.action === 'link' ? `<a class="pr-hit" data-pr="open" data-i="${i}" href="${escHtml(CN.resolve(p.link) || p.link)}"${isPath(p.link) ? '' : ' target="_blank" rel="noopener noreferrer"'} aria-label="${escHtml(p.name)}"></a>` : '';
       const foot = p.action === 'code' ? `<div class="pr-foot"><span class="pr-code">Promo code: <strong>${escHtml(p.code)}</strong></span><button type="button" class="${BTN2}" data-pr="copy" data-i="${i}"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">${p.link ? 'Copy and apply' : 'Copy code'}</span></button></div>` : '';
       return `<div class="pr-slide" data-sku="${escHtml(p.sku)}" role="group" aria-roledescription="slide" aria-label="${i + 1} of ${list.length}"${i === prIdx ? '' : ' aria-hidden="true" inert'}><div class="pr-media"><img class="pr-bg" src="${img}" alt="" aria-hidden="true" referrerpolicy="no-referrer"><img class="pr-img" src="${img}" alt="${escHtml(p.name)}" referrerpolicy="no-referrer" draggable="false"></div>${hit}${foot}</div>`;
     }).join('') + '</div><div class="pr-ctl">'
@@ -2488,13 +2536,13 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
       if (!p.code && !isPath(p.link)) return;                // plain external link: the anchor opens its own tab
       e.preventDefault();
       const ok = p.code ? await copyText(p.code) : false;    // copy while this page still has focus, then go
-      goTo(p.link); if (ok) showCodeNotice(p.code);
+      goTo(p.link, ok ? p.code : '');
       return;
     }
     if (act === 'copy') {
       const ok = await copyText(p.code);
-      if (p.link) { goTo(p.link); if (ok) showCodeNotice(p.code); return; }             // "Copy and apply"
-      const label = $('.Polaris-Text--root', el), old = label.textContent; label.textContent = ok ? 'Copied' : 'Copy failed'; toast(ok ? `Code: ${p.code} copied successfully` : 'Could not copy the code. Select it and copy it by hand.');
+      if (p.link) { goTo(p.link, ok ? p.code : ''); return; }                           // "Copy and apply"
+      const label = $('.Polaris-Text--root', el), old = label.textContent; label.textContent = ok ? 'Copied' : 'Copy failed'; if (ok) CN.show(p.code); else toast('Could not copy the code. Select it and copy it by hand.');
       setTimeout(() => { label.textContent = old; }, 1800);                              // "Copy code": only copies
     }
   });
@@ -2580,7 +2628,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
       + SHOP_TYPES.map(([n, d]) => `<div class="prm-check"><label><input type="checkbox" data-type="${escHtml(n)}"${prForm.types.includes(n) ? ' checked' : ''}> <span>${n}</span></label><span class="prm-hint">${d}</span></div>`).join('')
       + `<span class="pm-err prm-err" data-err="types"></span><p class="prm-note">Each shop counts as exactly one type, checked in the order above. A shop with a paid plan is always “Subscription”, even if it is also a development store or bought a service.</p></div>`
       + `<div class="prm-card"><h2>Action</h2><div class="prm-label">When the merchant uses the banner</div>`
-      + `<div class="prm-radio"><label><input type="radio" name="pr-action" data-f="action" value="link"${prForm.action === 'link' ? ' checked' : ''}> <span>Open a link</span></label><span class="prm-hint">Clicking the banner opens the link. Paths starting with / open inside the app. Add a promo code if the merchant should get it copied on the way.</span></div>`
+      + `<div class="prm-radio"><label><input type="radio" name="pr-action" data-f="action" value="link"${prForm.action === 'link' ? ' checked' : ''}> <span>Open a link</span></label><span class="prm-hint">Clicking the banner opens the link. A shortcut such as /filter, /search or /pricing opens that page in the same tab; an https:// link opens in a new tab. Add a promo code if the merchant should get it copied on the way.</span></div>`
       + `<div class="prm-radio"><label><input type="radio" name="pr-action" data-f="action" value="code"${prForm.action === 'code' ? ' checked' : ''}> <span>Copy a promo code</span></label><span class="prm-hint">A “Copy code” button is shown under the banner. Add a link and it becomes “Copy and apply”: it copies the code, then opens the link.</span></div>`
       + field('link', '<span data-label="link"></span>', text('link', prForm.link, 500, '/pricing or https://…'), '<span data-hint="link"></span>')
       + field('code', '<span data-label="code"></span>', text('code', prForm.code, 60, 'BFCM2025'), '<span data-hint="code"></span>') + `</div>`
@@ -2605,16 +2653,16 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     if (!isHttp(f.mobile.trim())) e.mobile = 'Enter a link that starts with https://';
     if (!f.types.length) e.types = 'Pick at least one shop type';
     const link = f.link.trim(), code = f.code.trim();
-    if (f.action === 'link') { if (!link) e.link = 'Enter a link'; else if (!isLink(link)) e.link = 'Use a path that starts with / or a link that starts with https://'; }
-    else { if (!code) e.code = 'Enter a promo code'; if (link && !isLink(link)) e.link = 'Use a path that starts with / or a link that starts with https://'; }
+    if (f.action === 'link') { if (!link) e.link = 'Enter a link'; else if (!isLink(link)) e.link = LINK_ERR; }
+    else { if (!code) e.code = 'Enter a promo code'; if (link && !isLink(link)) e.link = LINK_ERR; }
     return e;
   }
   function syncPromoForm() {
     const f = prForm, link = f.action === 'link';
     $('[data-label=link]', panelPromo).textContent = link ? 'Link' : 'Link (optional)';
     $('[data-label=code]', panelPromo).textContent = link ? 'Promo code (optional)' : 'Promo code';
-    $('[data-hint=link]', panelPromo).textContent = link ? 'Where the banner goes. Use / for a page inside the app (for example /pricing) or https:// for another site, which opens in a new tab.' : 'Optional. With a link the button reads “Copy and apply”; without one it only copies the code.';
-    $('[data-hint=code]', panelPromo).textContent = link ? 'Optional. Copied when the merchant clicks the banner, and a “Code: … copied successfully” note appears on the page they land on.' : 'Shown under the banner and copied by the button.';
+    $('[data-hint=link]', panelPromo).textContent = link ? 'Where the banner goes. Shortcuts: ' + SHORTCUTS.join(', ') + ' (same tab), or https:// for another site (new tab).' : 'Optional. With a link the button reads “Copy and apply” and opens the link; without one it only copies the code. Same shortcuts as above.';
+    $('[data-hint=code]', panelPromo).textContent = link ? 'Optional. Copied when the merchant clicks the banner, and a “Code: … copied successfully” note appears at the top of the page they land on.' : 'Shown under the banner and copied by the button.';
     $('[data-count=name]', panelPromo).textContent = `${f.name.length}/100`; $('[data-count=sku]', panelPromo).textContent = `${f.sku.length}/80`;
     const errs = promoErrors(f);
     $$('[data-field]', panelPromo).forEach(el => { const id = el.dataset.field, msg = prTouched.has(id) ? errs[id] : ''; el.classList.toggle('is-error', !!msg); $('.prm-err', el).textContent = msg || ''; });

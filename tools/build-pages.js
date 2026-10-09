@@ -14,6 +14,7 @@ const PAGES = [
   { key: 'ymm', file: 'ymm.html', active: 'Year Make Model', flat: true },
   { key: 'features', file: 'features.html', active: 'Advanced features', flat: true },
   { key: 'design', file: 'design.html', active: 'Filter & product grid design', flat: true },
+  { key: 'pricing', file: 'pricing.html', active: 'Pricing', srcdoc: true },
   { key: 'design-tab2', file: 'design-product-grid.html', active: 'Filter & product grid design', flat: true },
 ];
 // tabs that are separate pages
@@ -34,6 +35,7 @@ let shell = app.slice(0, cut).replace("'use strict';", "'use strict';\n  const u
 shell += '\n  window.__shell = { toast, closePops, openChatWith: (text, reply) => { toggleChat(true); sendChat(text); if (reply) setTimeout(() => replyChat(reply), 800); } };\n  applyNav();\n})();\n';
 fs.writeFileSync(path.join(root, 'assets', 'shell.js'), shell);
 fs.writeFileSync(path.join(root, 'assets', 'pages.js'), rd('build/pages.js'));
+fs.writeFileSync(path.join(root, 'assets', 'code-notice.js'), rd('build/code-notice.js'));
 
 /* ---------- shell pieces copied from index.html so every page stays in sync with it ---------- */
 const pick = sel => [...home.querySelectorAll(sel)].map(e => e.outerHTML).join('\n');
@@ -52,6 +54,9 @@ function navFor(label) {
   const sub = [...aside.querySelectorAll('.sh-item--sub')].find(a => a.textContent.trim() === label);
   if (!sub) throw new Error('sidebar item not found: ' + label);
   sub.setAttribute('aria-current', 'page');
+  if (sub.classList.contains('sh-item--extra')) {                           // Pricing lives under "View more": open it so the active item is visible
+    aside.querySelector('.sh-appgroup').classList.add('is-expanded'); const more = aside.querySelector('.sh-item--more'); more.setAttribute('aria-expanded', 'true'); more.querySelector('.sh-item__label').textContent = 'View less';
+  }
   const rail = aside.querySelector('.sh-appsrail'); rail.setAttribute('href', 'index.html'); rail.setAttribute('data-nav', 'page');
   return aside.querySelector('aside#nav').outerHTML;
 }
@@ -74,7 +79,21 @@ function pruneFlat(c) {
 }
 
 /* ---------- page content ---------- */
+// Pricing: the capture is the whole admin; the app itself is the iframe's srcdoc (Shopify web components as declarative shadow DOM, so it renders as it is).
+// Only the app is kept: the admin chrome (and its staging-app menu links) is replaced by this copy's own shell.
+const pricingDoc = () => { const raw = new JSDOM(rd('cap/pages/pricing.raw.html')).window.document; return new JSDOM(raw.querySelector('main iframe').getAttribute('srcdoc')).window.document; };
+function pricingCss() {
+  const f = pricingDoc(), own = [...f.querySelectorAll('head style')].map(s => s.textContent).filter(t => !/^@font-face|^\.crisp-client|^\.sf-hidden/.test(t));
+  const tail = f.querySelector('body > style'); if (tail) own.push(tail.textContent.replace(/:root\{--shopify-safe-area-inset-bottom:66px\}body::after\{[^}]*\}/, ''));
+  return own.join(String.fromCharCode(10));
+}
+function pricingContent() {
+  const app = pricingDoc().querySelector('#app'); if (!app) throw new Error('pricing: #app not found in the capture');
+  app.querySelectorAll('a[href]').forEach(a => { a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener noreferrer'); });      // the only link is the public docs page
+  return app.outerHTML;
+}
 function contentFor(p) {
+  if (p.srcdoc) return pricingContent();
   if (p.flat) {
     const doc = new JSDOM(`<body>${rd(`cap/pages/${p.key}.flat.html`)}</body>`).window.document;
     doc.querySelectorAll('#PolarisPortalsContainer, .Polaris-Tabs__TabsMeasurer, .Polaris-Tabs__DisclosureTab').forEach(e => e.remove());
@@ -129,7 +148,11 @@ function chatWiring(p, doc, root) {
 function markTabs(root) { root.querySelectorAll('.Polaris-Tabs__Tab').forEach(t => { const lab = t.querySelector('.Polaris-Text--root'), txt = (lab ? lab.textContent : '').replace(/\s+/g, ' ').trim(), href = TAB_PAGES[txt] || TAB_PAGES[t.getAttribute('aria-label')]; if (href) { t.setAttribute('data-href', href); if (TAB_PAGES[txt]) t.setAttribute('aria-label', txt); } }); }
 
 for (const p of PAGES) {
-  const flatCss = p.flat ? `<style>\n/* generated classes for this page (flattened Shopify web components) */\n${pruneFlat(rd(`cap/pages/${p.key}.flat.css`)).split(APP_ASSETS).join('assets/img/')}\n</style>\n` : '';
+  const flatCss = p.srcdoc ? `<style>
+/* Pricing app (from the capture) */
+${pricingCss()}
+</style>
+` : p.flat ? `<style>\n/* generated classes for this page (flattened Shopify web components) */\n${pruneFlat(rd(`cap/pages/${p.key}.flat.css`)).split(APP_ASSETS).join('assets/img/')}\n</style>\n` : '';
   const html = `<!doctype html>
 <html lang="en" class="p-theme-light">
 <head>
@@ -154,6 +177,7 @@ ${parts.chat}
 ${parts.pops}
 ${parts.search}
 ${parts.toast}
+<script src="assets/code-notice.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/pages.js"></script>
 </body>
