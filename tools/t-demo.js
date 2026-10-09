@@ -1,4 +1,4 @@
-// Demo bar in the header (Plan / Date / Indexed) -> badge colours of the Findter app status box + banner sizes of the promotion banners
+// Demo bar in the header (Plan / Date / Indexed) -> badge colours of the Findter app status box
 const { chromium } = require('playwright'); const path = require('path'); const { pathToFileURL } = require('url');
 const url = pathToFileURL(path.resolve(__dirname, '..', 'index.html')).href;
 let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) fails++; };
@@ -14,7 +14,7 @@ const BLUE = 'rgb(213, 235, 255)', GREEN = 'rgb(175, 254, 191)', ORANGE = 'rgb(2
     return { plan: pl.textContent.trim(), planBg: bg(pl), label: dt.querySelector('p').textContent.trim(), date: dt.querySelector('.st-badge').textContent.trim(), dateBg: bg(dt.querySelector('.st-badge')), idx: ix.textContent.trim(), idxBg: bg(ix) };
   });
   const bar = await p.evaluate(() => { const h = document.querySelector('.sh-top'), d = document.querySelector('.demo-bar').getBoundingClientRect(), m = document.querySelector('.sh-more').getBoundingClientRect(), t = document.querySelector('.sh-top__title').getBoundingClientRect(); return { fits: d.left >= t.right && d.right <= m.left && h.scrollWidth <= h.clientWidth, buttons: document.querySelectorAll('.demo-btn').length }; });
-  ok(bar.fits && bar.buttons === 10, 'demo bar sits in the header between the title and the menu (10 buttons)');
+  ok(bar.fits && bar.buttons === 12, 'demo bar sits in the header between the title and the menu (12 buttons)');
   // ---- Trial
   await pick('plan', 'Trial'); await pick('days', 14); await pick('over', false);
   let s = await state(); console.log('   Trial/14d/normal ->', JSON.stringify(s));
@@ -80,25 +80,6 @@ const BLUE = 'rgb(213, 235, 255)', GREEN = 'rgb(175, 254, 191)', ORANGE = 'rgb(2
   const ph = await p.evaluate(() => { const r = document.querySelector('.demo-panel').getBoundingClientRect(); return { fits: r.right <= innerWidth + 1 && r.left >= -1, over: document.documentElement.scrollWidth > innerWidth }; });
   ok(ph.fits && !ph.over, 'phone: panel fits the screen, page does not scroll sideways');
   await p.screenshot({ path: 'test/demo-390.png' });
-  // ---- promotion banner sizes (left column 633.33 x 160, phone 370 x 185)
-  const IMG = 'https://img.test/banner.svg';   // served by the test browser: a square 800x800 image, so the cover-crop is visible
-  await p.route('https://img.test/**', r => r.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800"><rect width="800" height="800" fill="#7aa7ff"/></svg>' }));
-  const promo = (id, target) => ({ id, name: id, target, interval: 5, banners: [{ url: IMG, link: '' }] });
-  await p.setViewportSize({ width: 1440, height: 900 });
-  await p.evaluate(promos => { localStorage.setItem('findter.promos.v2', JSON.stringify(promos)); }, [promo('pl', 'left'), promo('pr', 'right'), promo('pm', 'mobile')]);
-  await p.reload(); await p.waitForTimeout(600);
-  const size = sel => p.evaluate(s => { const e = document.querySelector(s); if (!e) return null; const r = e.getBoundingClientRect(); return { w: +r.width.toFixed(2), h: +r.height.toFixed(2) }; }, sel);
-  const L = await size('[data-card="promo:pl"] .pb-slide'); console.log('   left banner', JSON.stringify(L));
-  ok(L && Math.abs(L.w - 633.33) < 1 && Math.abs(L.h - 160) < 1, 'desktop left banner = 633.33 x 160');
-  await p.setViewportSize({ width: 1200, height: 900 }); await p.waitForTimeout(300);
-  const L2 = await size('[data-card="promo:pl"] .pb-slide'); ok(L2 && Math.abs(L2.w / L2.h - 633.33 / 160) < 0.02, 'narrower desktop keeps the same ratio (' + L2.w + ' x ' + L2.h + ')');
-  await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(500);
-  const M = await size('[data-card="promo:pm"] .pb-slide'); console.log('   mobile banner', JSON.stringify(M));
-  ok(M && Math.abs(M.w - 370) < 1 && Math.abs(M.h - 185) < 1, 'phone banner = 370 x 185');
-  await p.screenshot({ path: 'test/promo-mobile.png' });
-  await p.setViewportSize({ width: 1440, height: 900 }); await p.waitForTimeout(400);
-  await p.screenshot({ path: 'test/promo-desktop.png' });
-  const img = await p.evaluate(() => { const i = document.querySelector('[data-card="promo:pl"] img'); return getComputedStyle(i).objectFit; }); ok(img === 'cover', 'image fills the banner (cover)');
   await p.evaluate(() => localStorage.clear());
   console.log('page errors:', errs.length ? errs.join('|') : 'none'); console.log(fails ? fails + ' FAILED' : 'all passed'); await b.close();
 })();

@@ -51,10 +51,12 @@ const mpCard = (inner, boxExtra = '') => '<div class="Polaris-ShadowBevel" style
 const masterCard = '<div class="Polaris-ShadowBevel" data-card="master" style="' + BEVEL + '"><div class="Polaris-Box" style="' + BOX + '"><div class="Polaris-BlockStack" style="--pc-block-stack-order: column; --pc-block-stack-gap-xs: var(--p-space-300);"><div class="Polaris-InlineStack" style="--pc-inline-stack-align: space-between; --pc-inline-stack-block-align: center; --pc-inline-stack-wrap: nowrap; --pc-inline-stack-gap-xs: var(--p-space-200); --pc-inline-stack-flex-direction-xs: row;"><h2 class="Polaris-Text--root Polaris-Text--headingMd">Master</h2>' + xBtn.outerHTML + '</div><div class="Polaris-InlineStack" style="--pc-inline-stack-wrap: wrap; --pc-inline-stack-flex-direction-xs: row;">' + btn('Secondary', 'Master', 'data-act="open-master"') + '</div></div></div></div>';
 const dataSec = doc.querySelector('[data-card=data]').closest('.Polaris-Layout__Section');
 const masterSec = doc.createElement('div'); masterSec.className = 'Polaris-Layout__Section'; masterSec.innerHTML = masterCard; dataSec.after(masterSec);
-const colHTML = (side, title, group, sub) => '<div class="hl-col hl-col--' + side + '" data-group="' + group + '"><h3>' + title + '<span class="hl-count" data-side="' + side + '"></span></h3><p class="hl-sub">' + sub + '</p><div class="hl-list" role="list" data-side="' + side + '"></div><button type="button" class="hl-add" data-target="' + side + '">+ Add promotion banner</button></div>';
+const promoSec = doc.createElement('div'); promoSec.className = 'Polaris-Layout__Section'; promoSec.innerHTML = '<div class="Polaris-ShadowBevel" data-card="promotion" style="' + BEVEL + '" hidden><div class="pr-slot"></div></div>'; dataSec.after(promoSec);
+const colHTML = (side, title, group, sub) => '<div class="hl-col hl-col--' + side + '" data-group="' + group + '"><h3>' + title + '<span class="hl-count" data-side="' + side + '"></span></h3><p class="hl-sub">' + sub + '</p><div class="hl-list" role="list" data-side="' + side + '"></div></div>';
 const masterPageHtml = '<div id="master-page" hidden><div class="mp-wrap"><h1 class="mp-title">Master UI</h1><div class="ft-welcome mp-hero"><h1 class="ft-welcome__title">\u{1F44B} Master Control \u{1F44B}</h1><p class="ft-welcome__subtitle">Internal devops console \u2014 manage indexing, features, server tiers, and payments across every shop.</p></div><div class="mt-tabs"></div><div class="mp-panels">'
   + '<div data-panel="load">' + mpCard('<div class="mp-load">' + btn('Primary', 'Load', 'data-act="load"') + '</div>', ';--pc-box-padding-block-start-xs: 0;--pc-box-padding-block-end-xs: 0') + '</div>'
-  + '<div data-panel="home" hidden>' + mpCard('<div class="hl-head"><div><h2 class="Polaris-Text--root Polaris-Text--headingMd">Homepage layout</h2><p class="Polaris-Text--root Polaris-Text--bodyMd Polaris-Text--subdued">Drag and drop blocks to set their order. Desktop has a left and a right column, and phones have their own order and their own banners. Add a promotion banner under the section it should appear in. Everything you change here is a draft until you click Save.</p></div><div class="hl-head__side"><span class="hl-status" hidden>Unsaved changes</span></div></div><div class="hl-grid" id="hl">' + colHTML('left', 'Left column', 'desktop', 'Desktop only. Banners added here are not shown on phones') + colHTML('right', 'Right column', 'desktop', 'Desktop only. Banners added here are not shown on phones') + colHTML('mobile', 'Mobile phone order', 'mobile', 'Phones only, up to 767px wide. Banners added here are not shown on desktop') + '</div><div class="hl-foot"><span class="hl-hint">Nothing changes on the homepage until you click Save. Keyboard: focus a block, then Shift + arrow keys to move it.</span><div class="hl-actions">' + btn('Tertiary', 'Reset to default', 'data-act="hl-reset"') + btn('Secondary', 'Discard changes', 'data-act="hl-discard"') + btn('Primary', 'Save', 'data-act="hl-save"') + '</div></div>') + '</div>'
+  + '<div data-panel="promotion" hidden></div>'
+  + '<div data-panel="home" hidden>' + mpCard('<div class="hl-head"><div><h2 class="Polaris-Text--root Polaris-Text--headingMd">Homepage layout</h2><p class="Polaris-Text--root Polaris-Text--bodyMd Polaris-Text--subdued">Drag and drop blocks to set their order. Desktop has a left and a right column, and phones have their own order. The Promotion block appears here once a promotion exists: create promotions in the Promotion tab. The block can sit in the left column or in the phone order. Everything you change here is a draft until you click Save.</p></div><div class="hl-head__side"><span class="hl-status" hidden>Unsaved changes</span></div></div><div class="hl-grid" id="hl">' + colHTML('left', 'Left column', 'desktop', 'Desktop only. The Promotion block can sit here too') + colHTML('right', 'Right column', 'desktop', 'Desktop only. The Promotion block cannot go here: the banner is 633 px wide') + colHTML('mobile', 'Mobile phone order', 'mobile', 'Phones only, up to 767px wide') + '</div><div class="hl-foot"><span class="hl-hint">Nothing changes on the homepage until you click Save. Keyboard: focus a block, then Shift + arrow keys to move it.</span><div class="hl-actions">' + btn('Tertiary', 'Reset to default', 'data-act="hl-reset"') + btn('Secondary', 'Discard changes', 'data-act="hl-discard"') + btn('Primary', 'Save', 'data-act="hl-save"') + '</div></div>') + '</div>'
 
   + '</div></div></div>';
 
@@ -106,7 +108,7 @@ const appExtra = `
 .demo-btn[aria-pressed=true]{background:#303030;border-color:#303030;color:#fff}
 .demo-btn:focus-visible,.demo-toggle:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
 .demo-toggle{display:none}
-@media (max-width:1099px){
+@media (max-width:1279px){
   .demo-toggle{display:inline-block}
   .demo-panel{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:flex-start;gap:12px;padding:12px 16px;background:#fff;border-top:1px solid #e3e3e3;box-shadow:0 8px 16px rgba(0,0,0,.12)}
   .demo-bar.is-open .demo-panel{display:flex}
@@ -187,26 +189,6 @@ const alertsData = [
 const xIcon = ic('x');
 const field = (label, id, extra) => '<label class="pm-field"><span class="pm-label">' + label + '</span>' + extra + '</label>';
 const promoModals = `
-<div class="scrim scrim--modal" id="scrim-promo"></div>
-<div class="pm" id="promo-modal" role="dialog" aria-modal="true" aria-labelledby="pm-title" hidden>
-  <div class="pm__head"><h2 id="pm-title">Add promotion banner</h2><button type="button" class="pm__x" data-act="pm-close" aria-label="Close">${xIcon}</button></div>
-  <div class="pm__body">
-    <div class="pm-card"><h3>Promotion banner</h3><p class="pm-target-row">Shown in <strong id="pm-target"></strong>.<span id="pm-target-note"></span></p>
-      <p class="pm-hint" id="pm-size"></p>
-      <label class="pm-field"><span class="pm-label">Name</span><span class="pm-input"><input id="pm-name" maxlength="40" autocomplete="off"><span class="pm-count">0/40</span></span></label>
-    </div>
-    <div class="pm-card"><h3>Banners</h3>
-      <div id="pm-banners"></div>
-      <button type="button" class="Polaris-Button Polaris-Button--pressable Polaris-Button--variantSecondary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter pm-add" data-act="pm-add"><span class="Polaris-Button__Icon"><span class="Polaris-Icon">${ic('plus')}</span></span><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">Add more banner</span></button>
-    </div>
-    <div class="pm-card"><h3>Slideshow</h3>
-      
-      <label class="pm-field"><span class="pm-label">Seconds between slides</span><span class="pm-input pm-input--short"><input id="pm-interval" type="number" min="1" max="60" step="1" inputmode="numeric" value="5"><span class="pm-suffix">sec</span></span><span class="pm-err">Enter a whole number between 1 and 60</span></label>
-      <p class="pm-hint pm-hint-slide"></p>
-    </div>
-  </div>
-  <div class="pm__foot"><button type="button" class="Polaris-Button Polaris-Button--pressable Polaris-Button--variantSecondary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter" data-act="pm-cancel"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">Cancel</span></button><button type="button" class="Polaris-Button Polaris-Button--pressable Polaris-Button--variantPrimary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter Polaris-Button--disabled" data-act="pm-save" disabled><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">Save banner</span></button></div>
-</div>
 <div class="scrim scrim--modal" id="scrim-confirm"></div>
 <div class="modal" id="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="dm-title" hidden style="z-index:110">
   <div class="modal__head"><span id="dm-title">Delete promotion banner?</span><button class="sh-iconbtn" style="color:#616161;width:24px;height:24px" data-act="dm-close" aria-label="Close">${xIcon}</button></div>
@@ -342,7 +324,7 @@ ${allCss}
 ${shell}
 <script>window.__TPL=${JSON.stringify(T)};</script>
 <script>
-${bld('app.js')}
+${(() => { const [dataPart, uiPart] = bld('promotion.js').split('/*--UI--*/'); return bld('app.js').replace('/*PROMOTION_DATA*/', () => dataPart).replace('/*PROMOTION_MODULE*/', () => uiPart); })()}
 </script>
 </body>
 </html>

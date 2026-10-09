@@ -10,7 +10,7 @@ Open [`index.html`](index.html) in a browser. There is no build step and no serv
 - **Master UI** (`#/master`, via the **Master** card): tabs, and a **Home** tab where you
   - drag and drop blocks between the desktop left / right columns,
   - set a separate order for phones,
-  - add, edit and delete **promotion banners** under each section (desktop banners and phone banners are separate; a block with several banners gets arrows and an auto-slide timer).
+  - move the **Promotion** block (left column and phone order only). Promotions themselves are created in the **Promotion** tab of Master: a promotion goes live on the homepage as soon as it is saved, and the block shows every live promotion that targets the shop (arrows switch between them). A promotion has a name, SKU, deadline, desktop (633×160) and mobile (370×185) image, the shop types that see it, and an action: open a link (optional promo code is copied on the way) or copy a promo code (with an optional link: "Copy and apply"). The header **demo bar** (Plan / Date / Indexed) fakes the shop type and plan so targeting can be tested.
 - All Master changes are a **draft until you click Save**. Saved data lives in the browser's `localStorage`; nothing is sent to a server.
 - Dismissing a block with its **X** only lasts until the page is reloaded.
 
@@ -41,7 +41,7 @@ All pages except `index.html` share files in `assets/`: `common.css` (all styles
 
 ## Layout rules
 
-- Up to 767px wide the page uses the single-column **mobile layout**, using the order from the *Mobile phone order* list. Default order: Findter app status, Sync recent updates, Onboarding guide, Help & Support, Data insight, Promotion banner, Recommended apps, Master. On desktop the left column is Onboarding guide, Data insight, Promotion banner, Recommended apps, Master and the right column is Findter app status, Help & Support, Sync recent updates.
+- Up to 767px wide the page uses the single-column **mobile layout**, using the order from the *Mobile phone order* list. Default order: Findter app status, Sync recent updates, Onboarding guide, Help & Support, Data insight, Promotion, Recommended apps, Master. On desktop the left column is Onboarding guide, Data insight, Promotion, Recommended apps, Master and the right column is Findter app status, Help & Support, Sync recent updates.
 - Every block shares one width (10px side margins) on mobile.
 
 ## Tooling
