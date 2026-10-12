@@ -1655,7 +1655,5 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .mf-panel{padding:12px 8px 4px 24px}
 .mf-lock{margin-top:8px}
 .mf-pill--kind{margin-left:4px;background:#f1f1f1;color:#616161}
-.mf-row--off .Polaris-Text--root{color:#616161}
-.mf-row--off > div{cursor:default!important}
 @media (max-width:767px){.mf-panel{padding-left:8px}}
 @media (prefers-reduced-motion:reduce){.pg-chevron{transition:none}}
