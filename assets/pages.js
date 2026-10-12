@@ -193,10 +193,12 @@
 
     const iconBtn = (label, id, kind, icon) => `<button class="Polaris-Button Polaris-Button--pressable Polaris-Button--variantSecondary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter" aria-label="${esc(label)}" data-id="${id}" data-act="${kind}" type="button"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium"><span class="Polaris-Icon Polaris-Icon--toneBase">${icon}</span></span></button>`;
     const cell = html => `<td class="Polaris-DataTable__Cell Polaris-DataTable__Cell--verticalAlignMiddle">${html}</td>`;
+    /* Search is locked for a metafield whose own row in Search settings exists and is switched off; no row yet (still indexing) = not locked */
+    const searchLocked = id => { const f = (parse(MFF_KEY, {}) || {})[id]; return idxLoad().indexed.includes(id) && !!f && f.enabled === false; };
     function renderTable() {
       tbody.innerHTML = rows.map(row => {
         const m = mfMeta(row.id);
-        const tags = ['search', 'filter'].filter(a => row.applies.includes(a)).map(a => `<span class="mf-pill">${a === 'search' ? 'Search' : 'Filter'}</span>`).join('');
+        const tags = ['search', 'filter'].filter(a => row.applies.includes(a) && (a !== 'search' || !searchLocked(row.id))).map(a => `<span class="mf-pill">${a === 'search' ? 'Search' : 'Filter'}</span>`).join('');
         return `<tr class="Polaris-DataTable__TableRow Polaris-DataTable--hoverable"><th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--verticalAlignMiddle Polaris-DataTable__Cell--firstColumn" scope="row">${esc(m.label)}</th>`
           + cell(MF_TYPE_LABEL[m.type]) + cell(tags ? `<span class="mf-pills">${tags}</span>` : '-')
           + cell(`<div class="filter-set-table-action-column">${iconBtn('Edit ' + m.label, row.id, 'edit', ICON_EDIT)}${iconBtn('Delete ' + m.label, row.id, 'delete', ICON_DELETE)}</div>`) + '</tr>';
@@ -254,11 +256,13 @@
       if (back) back.focus(); opener = null;
     };
     function fillEdit() {
-      const m = current, nonText = !MF_TEXT_TYPES.includes(mfMeta(m.id).type);
+      const m = current, nonText = !MF_TEXT_TYPES.includes(mfMeta(m.id).type), locked = !nonText && searchLocked(m.id), searchOff = nonText || locked;
       body.innerHTML = `
         <p class="mf-modal__sub">Apply to</p>
         <label class="mf-check"><input type="checkbox" class="pg-check" id="mf-a-filter"${m.filter ? ' checked' : ''}><span>Filter</span></label>
-        <div class="mf-check-row"><label class="mf-check${nonText ? ' is-disabled' : ''}"><input type="checkbox" class="pg-check" id="mf-a-search"${!nonText && m.search ? ' checked' : ''}${nonText ? ' disabled' : ''}><span>Search</span></label>${nonText ? `<span class="mf-tip" tabindex="0" role="img" aria-label="Search is only available for text fields."><span class="Polaris-Icon Polaris-Icon--toneSubdued">${ICON_INFO}</span><span class="mf-tip__bubble" role="tooltip">Search is only available for text fields.</span></span>` : ''}</div>`;
+        <div class="mf-check-row"><label class="mf-check${searchOff ? ' is-disabled' : ''}"><input type="checkbox" class="pg-check" id="mf-a-search"${!nonText && m.search ? ' checked' : ''}${searchOff ? ' disabled' : ''}><span>Search</span></label>${nonText ? `<span class="mf-tip" tabindex="0" role="img" aria-label="Search is only available for text fields."><span class="Polaris-Icon Polaris-Icon--toneSubdued">${ICON_INFO}</span><span class="mf-tip__bubble" role="tooltip">Search is only available for text fields.</span></span>` : ''}</div>
+        ${locked ? '<p class="mf-help" id="mf-a-note">You need to enable this field in <a class="Polaris-Link Polaris-Link--monochrome" href="search.html">Search settings</a></p>' : ''}`;
+      if (locked) $('#mf-a-search', body).setAttribute('aria-describedby', 'mf-a-note');
     }
     function openEdit(id, from) {
       const row = rows.find(r => r.id === id); opener = from;
@@ -276,7 +280,8 @@
       if (!current) return;
       if (current.kind === 'delete') { rows = rows.filter(r => r.id !== current.id); opener = input; closeModal(); renderTable(); return; }
       const row = rows.find(r => r.id === current.id), nonText = !MF_TEXT_TYPES.includes(mfMeta(current.id).type);
-      row.applies = ['search', 'filter'].filter(a => (a === 'filter' ? current.filter : (!nonText && current.search)));
+      const keepSearch = nonText ? false : searchLocked(current.id) ? row.applies.includes('search') : current.search;   // while Search is locked, what was stored stays
+      row.applies = ['search', 'filter'].filter(a => (a === 'filter' ? current.filter : keepSearch));
       closeModal(); renderTable();
     }
     wrap.addEventListener('click', e => {
@@ -311,7 +316,7 @@
       if (addedMetafield || searchChanged) { idxSave({ indexed: index.indexed, target: searchIdsOf(rows), pendingUntil: Date.now() + INDEX_MS, notice: null }); hidePending = false; }
       renderBanner(); return true;
     });
-    window.addEventListener('pageshow', () => { renderBanner(); });
+    window.addEventListener('pageshow', () => { renderBanner(); renderTable(); });                  // back from Search settings: re-read what is switched on there
     renderTable(); renderBanner();
   }
   if ($('.fdt-metafield-table')) initMetafieldPage();
