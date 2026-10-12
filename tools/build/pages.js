@@ -25,14 +25,15 @@
   const PARTIAL_KEY = 'findter.partialSearch';                                  // Advanced features > Partial search switch (on by default, as captured)
   const partialOn = () => store.get(PARTIAL_KEY) !== '0';
 
-  /* ---------- Metafield page: Apply to + (with Advanced Search) Search type and Weight per metafield ----------
-     Everything lives on the Metafield page. Search settings has no metafield rows.
-     The table has Title, Type, Apply to, Type-weight, Actions. "Type-weight" shows e.g. "Any part of a word - 10" for a text metafield that
-     has Search applied while Advanced Search is on (the Partial search switch on Advanced features, on by default in the demo), and "-"
-     for everything else. In the edit window, Search type and Weight appear under the Search tick when Advanced Search is on.
-     Saving a new metafield, a changed Search selection or a changed Search type / Weight starts an index (a few seconds here).
-     State in localStorage:  findter.metafields.v1  [{ id, applies, type, weight }]   findter.mfIndex.v1  { pendingUntil, notice } */
-  const MFS_KEY = 'findter.metafields.v1', MFI_KEY = 'findter.mfIndex.v1', MF_LIMIT = 10, INDEX_MS = 6000;
+  /* ---------- Metafield search: every text metafield chosen on the Metafield page is its own search field in Search settings ----------
+     Metafield page: pick product metafields and set Apply to (Filter / Search; Search only for text types).
+     Search settings: every chosen TEXT metafield (Text, Text List, Multi Line Text) is a row of its own, after Vendor, tagged "Metafield".
+       - Apply to has Search      -> the row is ticked, and it has its own Search type + Weight (editable while Partial search is on)
+       - Filter only / nothing    -> the row is shown disabled (greyed, cannot be ticked); tick Search on the Metafield page to enable it
+       - ticked row unticked here -> the metafield's Search tick on the Metafield page is locked (note + link back here)
+     Saving on the Metafield page starts an index when a metafield is added or the Search selection changes (yellow, then green banner).
+     State in localStorage:  findter.metafields.v1  [{ id, applies }]   findter.mfFields.v1  { [id]: { enabled, type, weight } }   findter.mfIndex.v1  { pendingUntil, notice } */
+  const MFS_KEY = 'findter.metafields.v1', MFI_KEY = 'findter.mfIndex.v1', MFF_KEY = 'findter.mfFields.v1', MF_LIMIT = 10, INDEX_MS = 6000;
   const MF_TYPES = {
     standard: 'Whole words',
     standard_edge_ngram: 'Word beginnings',
@@ -51,24 +52,20 @@
   const MF_TYPE_LABEL = { single_line_text_field: 'Text', 'list.single_line_text_field': 'Text List', multi_line_text_field: 'Multi Line Text', number_decimal: 'Decimal', file_reference: 'File', color: 'Color' };
   const MF_TEXT_TYPES = ['single_line_text_field', 'list.single_line_text_field', 'multi_line_text_field'];   // the only types Search works for
   const MF_SEED = [                                                            // what the demo store has selected the first time
-    { id: 'snowboard', applies: ['search'], type: 'standard_ngram', weight: 10 }, { id: 'multi', applies: ['filter'] }, { id: 'height', applies: ['filter'] },
-    { id: 'sale', applies: ['search', 'filter'], type: 'standard', weight: 3 }, { id: 'year', applies: ['filter'] },
+    { id: 'snowboard', applies: ['search'] }, { id: 'multi', applies: ['filter'] }, { id: 'height', applies: ['filter'] },
+    { id: 'sale', applies: ['search', 'filter'] }, { id: 'year', applies: ['filter'] },
   ];
   const WEIGHT_ERROR = 'Enter a whole number, 0 or higher.';
   const isWhole = v => /^\d+$/.test(String(v).trim());
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   const mfMeta = id => MF_CATALOG.find(c => c.id === id);
-  const parse = (key, fallback) => { try { const v = JSON.parse(store.get(key) || 'null'); return v == null ? fallback : v; } catch (e) { return fallback; } };
-  const mfsLoad = () => {
-    const rows = parse(MFS_KEY, null);
-    return (Array.isArray(rows) ? rows : MF_SEED).filter(r => r && mfMeta(r.id)).map(r => ({
-      id: r.id, applies: ['search', 'filter'].filter(a => (r.applies || []).includes(a)),
-      type: MF_TYPES[r.type] ? r.type : 'standard', weight: Number.isInteger(r.weight) && r.weight >= 0 ? r.weight : 1,
-    }));
-  };
   const isText = id => MF_TEXT_TYPES.includes(mfMeta(id).type);
+  const parse = (key, fallback) => { try { const v = JSON.parse(store.get(key) || 'null'); return v == null ? fallback : v; } catch (e) { return fallback; } };
+  const mfsLoad = () => {                                                      // the saved Metafield page selection
+    const rows = parse(MFS_KEY, null);
+    return (Array.isArray(rows) ? rows : MF_SEED).filter(r => r && mfMeta(r.id)).map(r => ({ id: r.id, applies: ['search', 'filter'].filter(a => (r.applies || []).includes(a)) }));
+  };
   const searchIdsOf = rows => rows.filter(r => r.applies.includes('search') && isText(r.id)).map(r => r.id);
-  const searchCfgOf = rows => JSON.stringify(rows.filter(r => r.applies.includes('search') && isText(r.id)).map(r => [r.id, r.type, r.weight]).sort());
   const idxLoad = () => { const s = parse(MFI_KEY, null) || {}; return { pendingUntil: Number(s.pendingUntil) || 0, notice: s.notice === 'done' ? 'done' : null }; };
   const idxSave = i => store.set(MFI_KEY, JSON.stringify(i));
   const idxTick = () => {                                                      // finishes a pending index once its time is up; true when something changed
@@ -80,29 +77,91 @@
     setInterval(() => { if (idxTick()) idxWatchers.forEach(fn => fn()); }, 1000);
     idxTick();
   }
+  /* a Search tick that was switched off in Search settings (the metafield's own row, saved) is locked on the Metafield page */
+  const searchLocked = id => { const f = (parse(MFF_KEY, {}) || {})[id]; return !!f && f.enabled === false; };
 
   const mfLabel = (id, label) => `<div class="Polaris-Labelled__LabelWrapper"><div class="Polaris-Label"><label id="${id}-label" for="${id}" class="Polaris-Label__Text"><span class="Polaris-Text--root Polaris-Text--bodyMd">${label}</span></label></div></div>`;
-  const mfSelect = (id, label, options, value) => `
+  const mfSelect = (id, label, options, value, disabled) => `
     <div class="mf-field">
       ${mfLabel(id, label)}
-      <div class="Polaris-Select">
-        <select id="${id}" class="Polaris-Select__Input">${Object.entries(options).map(([v, name]) => `<option value="${v}"${v === value ? ' selected' : ''}>${name}</option>`).join('')}</select>
+      <div class="Polaris-Select${disabled ? ' Polaris-Select--disabled' : ''}">
+        <select id="${id}" class="Polaris-Select__Input"${disabled ? ' disabled' : ''}>${Object.entries(options).map(([v, name]) => `<option value="${v}"${v === value ? ' selected' : ''}>${name}</option>`).join('')}</select>
         <div class="Polaris-Select__Content" aria-hidden="true"><span class="Polaris-Select__SelectedOption">${options[value]}</span><span class="Polaris-Select__Icon"><span class="Polaris-Icon"><svg viewBox="0 0 20 20" class="Polaris-Icon__Svg" focusable="false" aria-hidden="true"><path d="M10.884 4.323a1.25 1.25 0 0 0-1.768 0l-2.646 2.647a.75.75 0 0 0 1.06 1.06l2.47-2.47 2.47 2.47a.75.75 0 1 0 1.06-1.06z"></path><path d="m13.53 13.03-2.47 2.47-2.47-2.47a.75.75 0 0 0-1.06 1.06l2.646 2.647a1.25 1.25 0 0 0 1.768 0l2.646-2.647a.75.75 0 0 0-1.06-1.06"></path></svg></span></span></div>
         <div class="Polaris-Select__Backdrop"></div>
       </div>
     </div>`;
-  const mfWeight = (id, value) => `
+  const mfWeight = (id, value, disabled) => `
     <div class="mf-field">
       ${mfLabel(id, 'Weight')}
-      <input id="${id}" class="mf-input" type="number" min="0" step="1" inputmode="numeric" autocomplete="off" value="${esc(value)}" aria-describedby="${id}-help">
+      <input id="${id}" class="mf-input" type="number" min="0" step="1" inputmode="numeric" autocomplete="off" value="${esc(value)}" aria-describedby="${id}-help"${disabled ? ' disabled' : ''}>
       <p class="mf-help" id="${id}-help"></p>
     </div>`;
   const paintWeight = (input, valid) => {                                      // inline error under the field, red only for the error
     const p = $('#' + input.id + '-help'); input.classList.toggle('mf-input--error', !valid);
     input.setAttribute('aria-invalid', String(!valid)); p.classList.toggle('mf-help--error', !valid); p.textContent = valid ? '' : WEIGHT_ERROR;
   };
+  const PARTIAL_NOTE = '<p class="mf-help mf-lock">Search type and weight need Partial search. Turn it on in <a class="Polaris-Link Polaris-Link--monochrome" href="features.html">Advanced features</a>.</p>';
 
-  /* --- Metafield page: picker + table (Title, Type, Apply to, Type-weight, Actions) + Apply to window + index banner --- */
+  /* --- Search settings: one row per chosen text metafield, with its own Search type + Weight --- */
+  function initMetafieldFields() {
+    const list = $('.ss-table > div'); const proto = list && list.lastElementChild; if (!proto) return;
+    const template = proto.cloneNode(true);                                    // same row as the other search fields
+    const stored = parse(MFF_KEY, {}) || {};
+    const draft = {}; const open = new Set(); const touched = new Set();
+    const field = id => draft[id] || (draft[id] = (s => ({ enabled: s.enabled !== false, type: MF_TYPES[s.type] ? s.type : 'standard', weight: String(Number.isInteger(s.weight) && s.weight >= 0 ? s.weight : 1) }))(stored[id] || {}));
+    const applied = id => (mfsLoad().find(r => r.id === id) || { applies: [] }).applies.includes('search');   // Apply to has Search on the Metafield page
+
+    function paint(row, id) {                                                  // (re)draws one row
+      const f = field(id), on = applied(id), panel = $('.mf-panel', row), chev = $('[role=button]', row), box = $('input.ft-checkbox', row);
+      row.classList.toggle('mf-row--off', !on);
+      box.disabled = !on; box.checked = on && f.enabled;                       // not applied: shown unticked and disabled
+      box.setAttribute('aria-label', on ? mfMeta(id).label : `${mfMeta(id).label} (apply Search on the Metafield page to enable)`);
+      const expandable = on && f.enabled;                                      // the options only exist for a ticked field
+      chev.style.display = expandable ? 'inline-flex' : 'none';
+      const show = expandable && open.has(id);
+      chev.setAttribute('aria-expanded', String(show)); row.classList.toggle('mf-open', show); panel.hidden = !show;
+      if (!show) return;
+      const locked = !partialOn();                                             // Partial search off: options stay visible but disabled, with a way to unlock them
+      panel.innerHTML = `<div class="mf-grid">${mfSelect('mf-type-' + id, 'Search type', MF_TYPES, f.type, locked)}${mfWeight('mf-weight-' + id, f.weight, locked)}</div>${locked ? PARTIAL_NOTE : ''}`;
+      if (touched.has(id) && !locked) paintWeight($('#mf-weight-' + id, panel), isWhole(f.weight));
+    }
+    function buildRow(id) {
+      const row = template.cloneNode(true); row.setAttribute('data-mf', ''); row.setAttribute('data-mf-id', id);
+      const label = $('.Polaris-Text--root', row); label.textContent = mfMeta(id).label;
+      label.insertAdjacentHTML('afterend', '<span class="mf-pill mf-pill--kind">Metafield</span>');
+      const chev = $('[role=button]', row); chev.setAttribute('aria-controls', 'mf-panel-' + id); chev.setAttribute('aria-label', 'Options for ' + mfMeta(id).label); chev.tabIndex = 0;
+      const box = $('input.ft-checkbox', row);
+      const panel = document.createElement('div'); panel.id = 'mf-panel-' + id; panel.className = 'mf-panel'; panel.hidden = true;
+      $('.Polaris-Collapsible', row).replaceWith(panel);
+      const toggle = () => { if (!applied(id) || !field(id).enabled) return; open.has(id) ? open.delete(id) : open.add(id); paint(row, id); };
+      row.addEventListener('click', e => { if (e.target.closest('.mf-panel') || e.target.closest('input')) return; toggle(); });
+      chev.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+      box.addEventListener('change', () => { if (!applied(id)) return; field(id).enabled = box.checked; box.checked ? open.add(id) : open.delete(id); paint(row, id); });
+      panel.addEventListener('change', e => {
+        if (e.target.id === 'mf-type-' + id) { field(id).type = e.target.value; setSave(true); paint(row, id); const again = $('#mf-type-' + id, row); if (again) again.focus(); }
+      });
+      panel.addEventListener('input', e => { if (e.target.id === 'mf-weight-' + id) { field(id).weight = e.target.value; setSave(true); if (touched.has(id)) paintWeight(e.target, isWhole(e.target.value)); } });
+      panel.addEventListener('focusout', e => { if (e.target.id === 'mf-weight-' + id && !e.target.disabled) { touched.add(id); paintWeight(e.target, isWhole(field(id).weight)); } });
+      paint(row, id);
+      return row;
+    }
+    const textIds = () => mfsLoad().filter(r => isText(r.id)).map(r => r.id);   // every chosen text metafield, in the Metafield page order
+    const render = () => { $$('[data-mf]', list).forEach(r => r.remove()); textIds().forEach(id => list.appendChild(buildRow(id))); };
+    savers.push(() => {
+      const bad = textIds().find(id => applied(id) && field(id).enabled && partialOn() && !isWhole(field(id).weight));
+      if (bad) {                                                               // a bad weight blocks Save; the error shows next to the field
+        open.add(bad); touched.add(bad); const row = $(`[data-mf-id="${bad}"]`, list); paint(row, bad); const w = $('#mf-weight-' + bad, row); if (w) w.focus(); return false;
+      }
+      const out = {}; Object.keys(stored).forEach(k => { out[k] = stored[k]; });
+      Object.keys(draft).forEach(k => { out[k] = { enabled: draft[k].enabled, type: draft[k].type, weight: isWhole(draft[k].weight) ? Number(draft[k].weight) : 1 }; });
+      store.set(MFF_KEY, JSON.stringify(out)); return true;
+    });
+    window.addEventListener('pageshow', render);
+    render();
+  }
+  if ($('.ss-table')) initMetafieldFields();
+
+  /* --- Metafield page: picker + table (Title, Type, Apply to, Actions) + Apply to window + index banner --- */
   const ICON_EDIT = '<svg viewBox="0 0 20 20" class="Polaris-Icon__Svg" focusable="false" aria-hidden="true"><path fill-rule="evenodd" d="M15.655 4.344a2.695 2.695 0 0 0-3.81 0l-.599.599-.009-.009-1.06 1.06.008.01-5.88 5.88a2.75 2.75 0 0 0-.805 1.944v1.922a.75.75 0 0 0 .75.75h1.922a2.75 2.75 0 0 0 1.944-.806l7.54-7.539a2.695 2.695 0 0 0 0-3.81Zm-4.409 2.72-5.88 5.88a1.25 1.25 0 0 0-.366.884v1.172h1.172c.331 0 .65-.132.883-.366l5.88-5.88-1.689-1.69Zm2.75.629.599-.599a1.195 1.195 0 1 0-1.69-1.689l-.598.599 1.69 1.689Z"></path></svg>';
   const ICON_DELETE = '<svg viewBox="0 0 20 20" class="Polaris-Icon__Svg" focusable="false" aria-hidden="true"><path d="M11.5 8.25a.75.75 0 0 1 .75.75v4.25a.75.75 0 0 1-1.5 0v-4.25a.75.75 0 0 1 .75-.75Z"></path><path d="M9.25 9a.75.75 0 0 0-1.5 0v4.25a.75.75 0 0 0 1.5 0v-4.25Z"></path><path fill-rule="evenodd" d="M7.25 5.25a2.75 2.75 0 0 1 5.5 0h3a.75.75 0 0 1 0 1.5h-.75v5.45c0 1.68 0 2.52-.327 3.162a3 3 0 0 1-1.311 1.311c-.642.327-1.482.327-3.162.327h-.4c-1.68 0-2.52 0-3.162-.327a3 3 0 0 1-1.311-1.311c-.327-.642-.327-1.482-.327-3.162v-5.45h-.75a.75.75 0 0 1 0-1.5h3Zm1.5 0a1.25 1.25 0 1 1 2.5 0h-2.5Zm-2.25 1.5h7v5.45c0 .865-.001 1.423-.036 1.848-.033.408-.09.559-.128.633a1.5 1.5 0 0 1-.655.655c-.074.038-.225.095-.633.128-.425.035-.983.036-1.848.036h-.4c-.865 0-1.423-.001-1.848-.036-.408-.033-.559-.09-.633-.128a1.5 1.5 0 0 1-.656-.655c-.037-.074-.094-.225-.127-.633-.035-.425-.036-.983-.036-1.848v-5.45Z"></path></svg>';
   const ICON_INFO = '<svg viewBox="0 0 20 20" class="Polaris-Icon__Svg" focusable="false" aria-hidden="true"><path d="M10 14a.75.75 0 0 1-.75-.75v-3.5a.75.75 0 0 1 1.5 0v3.5a.75.75 0 0 1-.75.75Z"></path><path d="M9 7a1 1 0 1 1 2 0 1 1 0 0 1-2 0Z"></path><path fill-rule="evenodd" d="M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Zm-1.5 0a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z"></path></svg>';
@@ -116,14 +175,14 @@
     let rows = mfsLoad(), activeIndex = -1, opener = null, skipOpen = false, hidePending = false;
     const dirty = () => JSON.stringify(rows) !== savedJson;
     wrap.setAttribute('data-mfp', '');
-    const thead = $('thead tr', wrap);
+    $('thead tr', wrap).innerHTML = ['Title', 'Type', 'Apply to', 'Actions'].map(h => `<th data-polaris-header-cell="true" class="Polaris-DataTable__Cell Polaris-DataTable__Cell--verticalAlignTop Polaris-DataTable__Cell--header" scope="col"><strong class="Polaris-Text--root">${h}</strong></th>`).join('');
 
     /* --- index banner: yellow while the app collects the values, green when it is done --- */
     const section = $('.Polaris-Layout__Section > .Polaris-BlockStack'); const bannerBox = document.createElement('div'); bannerBox.setAttribute('data-mfp', ''); if (section) section.prepend(bannerBox);
     function renderBanner() {
       const i = idxLoad(), pending = i.pendingUntil > Date.now();
       if (pending && !hidePending) bannerBox.innerHTML = `<div class="mf-banner mf-banner--warn" role="status"><div class="mf-banner__head"><span class="mf-banner__icon">${ICON_ALERT}</span><strong>Collecting data</strong><button type="button" class="mf-banner__x" data-banner="hide" aria-label="Dismiss">${ICON_CLOSE}</button></div><p class="mf-banner__body">We are collecting metafield values, please wait.</p></div>`;
-      else if (!pending && i.notice === 'done') bannerBox.innerHTML = `<div class="mf-banner mf-banner--ok" role="status"><span class="mf-banner__icon">${ICON_OK}</span><span class="mf-banner__text">Data indexing is completed. You can use selected metafields in <a href="filter.html">filter</a> now.</span><button type="button" class="mf-banner__x" data-banner="done" aria-label="Dismiss">${ICON_CLOSE}</button></div>`;
+      else if (!pending && i.notice === 'done') bannerBox.innerHTML = `<div class="mf-banner mf-banner--ok" role="status"><span class="mf-banner__icon">${ICON_OK}</span><span class="mf-banner__text">Data indexing is completed. You can use selected metafields in <a href="filter.html">filter</a> and <a href="search.html">search</a> now.</span><button type="button" class="mf-banner__x" data-banner="done" aria-label="Dismiss">${ICON_CLOSE}</button></div>`;
       else bannerBox.innerHTML = '';
     }
     bannerBox.addEventListener('click', e => {
@@ -135,17 +194,12 @@
 
     const iconBtn = (label, id, kind, icon) => `<button class="Polaris-Button Polaris-Button--pressable Polaris-Button--variantSecondary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter" aria-label="${esc(label)}" data-id="${id}" data-act="${kind}" type="button"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium"><span class="Polaris-Icon Polaris-Icon--toneBase">${icon}</span></span></button>`;
     const cell = html => `<td class="Polaris-DataTable__Cell Polaris-DataTable__Cell--verticalAlignMiddle">${html}</td>`;
-    /* the Type-weight column exists only while Advanced Search is on; its cell shows "Search type - weight" for a text metafield with Search applied, "-" for the rest */
-    const typeWeight = row => (isText(row.id) && row.applies.includes('search')) ? `${MF_TYPES[row.type]} - ${row.weight}` : '-';
     function renderTable() {
-      const tw = partialOn();
-      wrap.classList.toggle('mf-tw', tw);
-      thead.innerHTML = ['Title', 'Type', 'Apply to', ...(tw ? ['Type-weight'] : []), 'Actions'].map(h => `<th data-polaris-header-cell="true" class="Polaris-DataTable__Cell Polaris-DataTable__Cell--verticalAlignTop Polaris-DataTable__Cell--header" scope="col"><strong class="Polaris-Text--root">${h}</strong></th>`).join('');
       tbody.innerHTML = rows.map(row => {
         const m = mfMeta(row.id);
-        const tags = ['search', 'filter'].filter(a => row.applies.includes(a)).map(a => `<span class="mf-pill">${a === 'search' ? 'Search' : 'Filter'}</span>`).join('');
+        const tags = ['search', 'filter'].filter(a => row.applies.includes(a) && (a !== 'search' || !searchLocked(row.id))).map(a => `<span class="mf-pill">${a === 'search' ? 'Search' : 'Filter'}</span>`).join('');   // Search is hidden while its Search settings row is switched off
         return `<tr class="Polaris-DataTable__TableRow Polaris-DataTable--hoverable"><th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--verticalAlignMiddle Polaris-DataTable__Cell--firstColumn" scope="row">${esc(m.label)}</th>`
-          + cell(MF_TYPE_LABEL[m.type]) + cell(tags ? `<span class="mf-pills">${tags}</span>` : '-') + (tw ? cell(esc(typeWeight(row))) : '')
+          + cell(MF_TYPE_LABEL[m.type]) + cell(tags ? `<span class="mf-pills">${tags}</span>` : '-')
           + cell(`<div class="filter-set-table-action-column">${iconBtn('Edit ' + m.label, row.id, 'edit', ICON_EDIT)}${iconBtn('Delete ' + m.label, row.id, 'delete', ICON_DELETE)}</div>`) + '</tr>';
       }).join('');
       footer.textContent = `${rows.length}/${MF_LIMIT} selected`;
@@ -170,7 +224,7 @@
     const closePop = () => { pop.hidden = true; input.setAttribute('aria-expanded', 'false'); activeIndex = -1; input.removeAttribute('aria-activedescendant'); };
     function pick(id) {
       const i = rows.findIndex(r => r.id === id);
-      if (i >= 0) rows.splice(i, 1); else if (rows.length < MF_LIMIT) rows.push({ id, applies: ['filter'], type: 'standard', weight: 1 });   // a new metafield starts as Filter, like the app
+      if (i >= 0) rows.splice(i, 1); else if (rows.length < MF_LIMIT) rows.push({ id, applies: ['filter'] });   // a new metafield starts as Filter, like the app
       renderTable(); renderPop();
     }
     input.addEventListener('focus', () => { if (skipOpen) { skipOpen = false; return; } openPop(); });
@@ -188,47 +242,45 @@
     document.addEventListener('click', e => { if (!pop.hidden && !field.contains(e.target)) closePop(); });
     input.addEventListener('blur', () => setTimeout(() => { if (!field.contains(document.activeElement)) closePop(); }, 0));
 
-    /* --- window (Apply to + Search type + Weight, or confirm a delete); Esc / X / outside click close it --- */
+    /* --- window (Apply to, or confirm a delete); Esc / X / outside click close it --- */
     const scrim = document.createElement('div'); scrim.className = 'mf-scrim'; scrim.hidden = true; scrim.setAttribute('data-mfp', '');
     scrim.innerHTML = `<div class="mf-modal" role="dialog" aria-modal="true" aria-labelledby="mf-m-title"><div class="mf-modal__head"><h2 class="mf-modal__title" id="mf-m-title"></h2><button type="button" class="mf-modal__x" aria-label="Close">${ICON_CLOSE}</button></div><div class="mf-modal__body" id="mf-m-body"></div><div class="mf-modal__foot"><button type="button" class="mf-btn" data-m="cancel">Cancel</button><button type="button" class="mf-btn mf-btn--primary" data-m="ok">Save</button></div></div>`;
     document.body.appendChild(scrim);
     const dlg = $('.mf-modal', scrim), title = $('#mf-m-title', scrim), body = $('#mf-m-body', scrim), okBtn = $('[data-m=ok]', scrim);
-    let current = null;                                                         // { kind, id, filter, search, type, weight, touched }
+    let current = null;                                                         // { kind, id, filter, search }
     const closeModal = () => {
       scrim.hidden = true; current = null;
       const back = opener && document.contains(opener) ? opener : (opener && opener.dataset && $(`[data-id="${opener.dataset.id}"][data-act="${opener.dataset.act}"]`, tbody)) || input;
       if (back === input) skipOpen = true;                                      // returning focus to the search box must not pop the list open
       if (back) back.focus(); opener = null;
     };
-    const showConfig = m => partialOn() && isText(m.id) && m.search;            // Search type + Weight: Advanced Search on, text metafield, Search ticked
     function fillEdit() {
-      const m = current, nonText = !isText(m.id);
+      const m = current, nonText = !isText(m.id), locked = !nonText && searchLocked(m.id), searchOff = nonText || locked;
       body.innerHTML = `
         <p class="mf-modal__sub">Apply to</p>
         <label class="mf-check"><input type="checkbox" class="pg-check" id="mf-a-filter"${m.filter ? ' checked' : ''}><span>Filter</span></label>
-        <div class="mf-check-row"><label class="mf-check${nonText ? ' is-disabled' : ''}"><input type="checkbox" class="pg-check" id="mf-a-search"${!nonText && m.search ? ' checked' : ''}${nonText ? ' disabled' : ''}><span>Search</span></label>${nonText ? `<span class="mf-tip" tabindex="0" role="img" aria-label="Search is only available for text fields."><span class="Polaris-Icon Polaris-Icon--toneSubdued">${ICON_INFO}</span><span class="mf-tip__bubble" role="tooltip">Search is only available for text fields.</span></span>` : ''}</div>
-        ${showConfig(m) ? `<div class="mf-grid mf-modal__config">${mfSelect('mf-a-type', 'Search type', MF_TYPES, m.type)}${mfWeight('mf-a-weight', m.weight)}</div>` : ''}`;
-      const w = $('#mf-a-weight', body); if (w && m.touched) paintWeight(w, isWhole(m.weight));
+        <div class="mf-check-row"><label class="mf-check${searchOff ? ' is-disabled' : ''}"><input type="checkbox" class="pg-check" id="mf-a-search"${!nonText && m.search ? ' checked' : ''}${searchOff ? ' disabled' : ''}><span>Search</span></label>${nonText ? `<span class="mf-tip" tabindex="0" role="img" aria-label="Search is only available for text fields."><span class="Polaris-Icon Polaris-Icon--toneSubdued">${ICON_INFO}</span><span class="mf-tip__bubble" role="tooltip">Search is only available for text fields.</span></span>` : ''}</div>
+        ${locked ? '<p class="mf-help" id="mf-a-note">You need to enable this field in <a class="Polaris-Link Polaris-Link--monochrome" href="search.html">Search settings</a></p>' : ''}`;
+      if (locked) $('#mf-a-search', body).setAttribute('aria-describedby', 'mf-a-note');
     }
     function openEdit(id, from) {
       const row = rows.find(r => r.id === id); opener = from;
-      current = { kind: 'edit', id, filter: row.applies.includes('filter'), search: row.applies.includes('search'), type: row.type, weight: String(row.weight), touched: false };
+      current = { kind: 'edit', id, filter: row.applies.includes('filter'), search: row.applies.includes('search') };
       title.textContent = mfMeta(id).label; okBtn.textContent = 'Save'; okBtn.classList.remove('mf-btn--critical'); okBtn.classList.add('mf-btn--primary');
       fillEdit(); scrim.hidden = false; const first = $('#mf-a-filter', body); if (first) first.focus();
     }
     function openDelete(id, from) {
       opener = from; current = { kind: 'delete', id };
       title.textContent = 'Delete this metafield?'; okBtn.textContent = 'Delete'; okBtn.classList.remove('mf-btn--primary'); okBtn.classList.add('mf-btn--critical');
-      body.innerHTML = '<p class="mf-modal__text">After saving, deleted metafields will no longer appear in the filter.</p>';
+      body.innerHTML = '<p class="mf-modal__text">After saving, deleted metafields will no longer appear in the filter or in Search settings.</p>';
       scrim.hidden = false; $('[data-m=cancel]', scrim).focus();
     }
     function confirmModal() {
       if (!current) return;
       if (current.kind === 'delete') { rows = rows.filter(r => r.id !== current.id); opener = input; closeModal(); renderTable(); return; }
-      const row = rows.find(r => r.id === current.id), nonText = !isText(current.id), cfg = showConfig(current);
-      if (cfg && !isWhole(current.weight)) { current.touched = true; fillEdit(); $('#mf-a-weight', body).focus(); return; }   // a bad weight blocks Save; the error shows under the field
-      row.applies = ['search', 'filter'].filter(a => (a === 'filter' ? current.filter : (!nonText && current.search)));
-      if (cfg) { row.type = current.type; row.weight = Number(current.weight); }
+      const row = rows.find(r => r.id === current.id), nonText = !isText(current.id);
+      const keepSearch = nonText ? false : searchLocked(current.id) ? row.applies.includes('search') : current.search;   // while Search is locked, what was stored stays
+      row.applies = ['search', 'filter'].filter(a => (a === 'filter' ? current.filter : keepSearch));
       closeModal(); renderTable();
     }
     wrap.addEventListener('click', e => {
@@ -242,16 +294,13 @@
     scrim.addEventListener('change', e => {
       if (!current) return;
       if (e.target.id === 'mf-a-filter') current.filter = e.target.checked;
-      if (e.target.id === 'mf-a-search') { current.search = e.target.checked; fillEdit(); const s = $('#mf-a-search', body); if (s) s.focus(); }   // the config fields appear / disappear with the tick
-      if (e.target.id === 'mf-a-type') { current.type = e.target.value; fillEdit(); const t = $('#mf-a-type', body); if (t) t.focus(); }
+      if (e.target.id === 'mf-a-search') current.search = e.target.checked;
     });
-    scrim.addEventListener('input', e => { if (current && e.target.id === 'mf-a-weight') { current.weight = e.target.value; if (current.touched) paintWeight(e.target, isWhole(e.target.value)); } });
-    scrim.addEventListener('focusout', e => { if (current && e.target.id === 'mf-a-weight') { current.touched = true; paintWeight(e.target, isWhole(e.target.value)); } });
     document.addEventListener('keydown', e => {
       if (scrim.hidden) return;
       if (e.key === 'Escape') { e.preventDefault(); closeModal(); return; }
       if (e.key === 'Tab') {                                                    // keep the keyboard inside the window while it is open
-        const f = $$('button, input:not([disabled]), select, a[href], [tabindex="0"]', dlg).filter(x => x.offsetParent !== null);
+        const f = $$('button, input:not([disabled]), a[href], [tabindex="0"]', dlg).filter(x => x.offsetParent !== null);
         if (!f.length) return; const first = f[0], last = f[f.length - 1];
         if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
@@ -259,13 +308,16 @@
     });
 
     savers.push(() => {
-      const added = rows.some(r => !saved.some(s => s.id === r.id));                      // a new metafield, a changed Search selection or a changed Search type / Weight needs an index
-      const searchChanged = JSON.stringify(searchIdsOf(rows).sort()) !== JSON.stringify(searchIdsOf(saved).sort()) || searchCfgOf(rows) !== searchCfgOf(saved);
+      const added = rows.some(r => !saved.some(s => s.id === r.id));                      // a new metafield or a changed Search selection needs an index
+      const searchChanged = JSON.stringify(searchIdsOf(rows).sort()) !== JSON.stringify(searchIdsOf(saved).sort());
+      const cfg = parse(MFF_KEY, {}) || {}; let cleaned = false;                          // a removed metafield loses its Search settings: adding it again starts from the defaults
+      Object.keys(cfg).forEach(id => { if (!rows.some(r => r.id === id)) { delete cfg[id]; cleaned = true; } });
+      if (cleaned) store.set(MFF_KEY, JSON.stringify(cfg));
       savedJson = JSON.stringify(rows); saved = JSON.parse(savedJson); store.set(MFS_KEY, savedJson);
       if (added || searchChanged) { idxSave({ pendingUntil: Date.now() + INDEX_MS, notice: null }); hidePending = false; }
       renderBanner(); return true;
     });
-    window.addEventListener('pageshow', () => { renderBanner(); renderTable(); });   // back from Advanced features: re-read the Partial search switch
+    window.addEventListener('pageshow', () => { renderBanner(); renderTable(); });   // back from Search settings: re-read what is switched on there
     renderTable(); renderBanner();
   }
   if ($('.fdt-metafield-table')) initMetafieldPage();
