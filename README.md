@@ -20,8 +20,8 @@ Open [`index.html`](index.html) in a browser. There is no build step and no serv
 |---|---|---|
 | Home | `index.html` | the home screen above (self-contained) |
 | Filter | `filter.html` | "Manage filter set" table (status toggles, applies-to tags, actions), "Collection booster" tab, feedback pill |
-| Search | `search.html` | "Search settings" tab, info banner, list of search fields with checkboxes, Save |
-| Metafield | `metafield.html` | metafield search box and table (0/10 selected), Save |
+| Search | `search.html` | "Search settings" tab, info banner, list of search fields with checkboxes, Save. After the built-in fields there is one row per **indexed metafield** (the text metafields that have Search applied on the Metafield page, marked with a "Metafield" tag), each with its own **Search type** and **Weight** (1 to start). Both are editable only while **Partial search** is on in Advanced features; a bad weight blocks Save. Choices are stored in `localStorage` on Save |
+| Metafield | `metafield.html` | metafield picker (search box) and a table with **Title, Type, Apply to, Actions** (5/10 selected in the demo store), Save. The pencil opens the **Apply to** window (Filter, Search; Search is disabled with a tooltip for non-text types); the bin asks before removing. Saving a new metafield or a changed Search selection starts an index (about 6 seconds here): a yellow "Collecting data" banner, then a green "Data indexing is completed" banner, and only then do the new rows appear in Search settings. Changes are a draft until Save, then stored in `localStorage` |
 | Collection booster | `filter-boost.html` | second tab inside Filter |
 | Search booster | `search-boost.html` | second tab inside Search |
 | Year Make Model | `ymm.html` | header, empty state |
