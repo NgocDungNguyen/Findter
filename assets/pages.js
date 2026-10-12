@@ -116,7 +116,7 @@
     let rows = mfsLoad(), activeIndex = -1, opener = null, skipOpen = false, hidePending = false;
     const dirty = () => JSON.stringify(rows) !== savedJson;
     wrap.setAttribute('data-mfp', '');
-    $('thead tr', wrap).innerHTML = ['Title', 'Type', 'Apply to', 'Type-weight', 'Actions'].map(h => `<th data-polaris-header-cell="true" class="Polaris-DataTable__Cell Polaris-DataTable__Cell--verticalAlignTop Polaris-DataTable__Cell--header" scope="col"><strong class="Polaris-Text--root">${h}</strong></th>`).join('');
+    const thead = $('thead tr', wrap);
 
     /* --- index banner: yellow while the app collects the values, green when it is done --- */
     const section = $('.Polaris-Layout__Section > .Polaris-BlockStack'); const bannerBox = document.createElement('div'); bannerBox.setAttribute('data-mfp', ''); if (section) section.prepend(bannerBox);
@@ -135,14 +135,17 @@
 
     const iconBtn = (label, id, kind, icon) => `<button class="Polaris-Button Polaris-Button--pressable Polaris-Button--variantSecondary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter" aria-label="${esc(label)}" data-id="${id}" data-act="${kind}" type="button"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium"><span class="Polaris-Icon Polaris-Icon--toneBase">${icon}</span></span></button>`;
     const cell = html => `<td class="Polaris-DataTable__Cell Polaris-DataTable__Cell--verticalAlignMiddle">${html}</td>`;
-    /* the Type-weight cell: only a text metafield with Search applied, and only while Advanced Search is on; otherwise it ranks as normal and shows "-" */
-    const typeWeight = row => (isText(row.id) && row.applies.includes('search') && partialOn()) ? `${MF_TYPES[row.type]} - ${row.weight}` : '-';
+    /* the Type-weight column exists only while Advanced Search is on; its cell shows "Search type - weight" for a text metafield with Search applied, "-" for the rest */
+    const typeWeight = row => (isText(row.id) && row.applies.includes('search')) ? `${MF_TYPES[row.type]} - ${row.weight}` : '-';
     function renderTable() {
+      const tw = partialOn();
+      wrap.classList.toggle('mf-tw', tw);
+      thead.innerHTML = ['Title', 'Type', 'Apply to', ...(tw ? ['Type-weight'] : []), 'Actions'].map(h => `<th data-polaris-header-cell="true" class="Polaris-DataTable__Cell Polaris-DataTable__Cell--verticalAlignTop Polaris-DataTable__Cell--header" scope="col"><strong class="Polaris-Text--root">${h}</strong></th>`).join('');
       tbody.innerHTML = rows.map(row => {
         const m = mfMeta(row.id);
         const tags = ['search', 'filter'].filter(a => row.applies.includes(a)).map(a => `<span class="mf-pill">${a === 'search' ? 'Search' : 'Filter'}</span>`).join('');
         return `<tr class="Polaris-DataTable__TableRow Polaris-DataTable--hoverable"><th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--verticalAlignMiddle Polaris-DataTable__Cell--firstColumn" scope="row">${esc(m.label)}</th>`
-          + cell(MF_TYPE_LABEL[m.type]) + cell(tags ? `<span class="mf-pills">${tags}</span>` : '-') + cell(esc(typeWeight(row)))
+          + cell(MF_TYPE_LABEL[m.type]) + cell(tags ? `<span class="mf-pills">${tags}</span>` : '-') + (tw ? cell(esc(typeWeight(row))) : '')
           + cell(`<div class="filter-set-table-action-column">${iconBtn('Edit ' + m.label, row.id, 'edit', ICON_EDIT)}${iconBtn('Delete ' + m.label, row.id, 'delete', ICON_DELETE)}</div>`) + '</tr>';
       }).join('');
       footer.textContent = `${rows.length}/${MF_LIMIT} selected`;
@@ -325,7 +328,7 @@
     if (el.matches('.ft-checkbox')) setSave(true);                           // search page: untick / tick a field
     if (el.matches('.pg-switch[aria-label="Turn Partial search on or off"]')) store.set(PARTIAL_KEY, el.checked ? '1' : '0');   // features page: read back by Search settings
     if (el.matches('.pg-switch') && saveBtn()) setSave(true);                // design pages: toggling a setting
-    if (el.matches('.pg-check')) {                                            // design page: layouts are picked one at a time
+    if (el.matches('.pg-check') && !el.closest('[data-mfp]')) {               // design page: layouts are picked one at a time (not the Metafield page's own tick boxes)
       const boxes = $$('.pg-check'), i = boxes.indexOf(el), group = i < 3 ? boxes.slice(0, 3) : boxes.slice(3);
       if (el.checked) group.forEach(b => { if (b !== el) b.checked = false; }); else el.checked = true;
       setSave(true);

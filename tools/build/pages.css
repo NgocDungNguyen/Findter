@@ -86,13 +86,18 @@
 .mf-banner--ok a{color:#fff;text-decoration:underline}
 .mf-banner__text{flex:1 1 auto}
 .mf-help:empty{display:none}
-.fdt-metafield-table .Polaris-DataTable__Table{table-layout:fixed;min-width:720px}
 .fdt-metafield-table .Polaris-DataTable__Cell{white-space:normal;overflow-wrap:anywhere}
-.fdt-metafield-table th:nth-child(1){width:23%}
-.fdt-metafield-table th:nth-child(2){width:14%}
-.fdt-metafield-table th:nth-child(3){width:19%}
-.fdt-metafield-table th:nth-child(4){width:28%}
-.fdt-metafield-table th:nth-child(5){width:16%}
 .mf-modal__config{margin-top:16px}
 .fdt-metafield-table .Polaris-DataTable__Cell{text-align:left}
-.fdt-metafield-table th:nth-child(5),.fdt-metafield-table td:nth-child(5){text-align:center}
+.fdt-metafield-table .Polaris-DataTable__Table{table-layout:fixed;min-width:560px}
+.fdt-metafield-table.mf-tw .Polaris-DataTable__Table{min-width:720px}
+.fdt-metafield-table th:nth-child(1){width:34%}
+.fdt-metafield-table th:nth-child(2){width:20%}
+.fdt-metafield-table th:nth-child(3){width:28%}
+.fdt-metafield-table th:nth-child(4){width:18%}
+.fdt-metafield-table.mf-tw th:nth-child(1){width:23%}
+.fdt-metafield-table.mf-tw th:nth-child(2){width:14%}
+.fdt-metafield-table.mf-tw th:nth-child(3){width:19%}
+.fdt-metafield-table.mf-tw th:nth-child(4){width:28%}
+.fdt-metafield-table.mf-tw th:nth-child(5){width:16%}
+.fdt-metafield-table th:last-child,.fdt-metafield-table td:last-child{text-align:center}
