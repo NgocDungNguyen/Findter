@@ -32,15 +32,15 @@
   const PROMOS = {
     filter: {
       ids: { 'Manage filter set': 'manage-filter-set-promo', 'Collection booster': 'collection-booster-promo' },
-      desktop: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Filter_Promotion_Desktop.png?v=1791793896',
-      mobile: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Filter_Promotion_Mobile.png?v=1791793699',
+      desktop: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Filter_Promotion_Desktop_966x160_1x_c8dbd95b-31cd-4edd-87a4-659a597bc67f.png?v=1791883571',
+      mobile: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Filter_Promotion_Mobile_1x_0cbf4b13-38c1-472f-9980-20576fed0096.png?v=1791883572',
       alt: 'Get help getting your filters ready for BFCM. Chat with our team.',
       message: "Hi, I'd like help getting my filters ready for BFCM (Sale filter + out-of-stock items)",
     },
     search: {
       ids: { 'Search settings': 'search-settings-promo', 'Search booster': 'search-booster-promo' },
-      desktop: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Search_Promotion_Desktop.png?v=1791793660',
-      mobile: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Search_Promotion_Mobile.png?v=1791793673',
+      desktop: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Search_Promotion_Desktop_966x160_1x_c05c157f-916f-4700-9427-18d0c9bdefa4.png?v=1791883572',
+      mobile: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Search_Promotion_Mobile_1x_643c4c33-f16a-46d8-a352-1a178aaf75fd.png?v=1791883571',
       alt: 'Get help fixing searches that return no results before BFCM. Chat with our team.',
       message: "Hi, I'd like help fixing searches that return no results before BFCM",
     },

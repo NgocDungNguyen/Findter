@@ -2202,12 +2202,13 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   const SHOP_TYPE_OF_PLAN = { Trial: 'Trial', Starter: 'Subscription', Free: 'Free', Development: 'Development store', 'Paid before': 'Paid before', Service: 'Service' };   // what the demo bar's Plan means for promotion targeting
   const shopType = () => SHOP_TYPE_OF_PLAN[DEMO.plan] || 'Free';
 
-  // the official BFCM banners (Desktop 1266x320, Mobile 740x370)
-  const BFCM_IMG = 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/BFCM_Promotion_Banner_Homepage_-_';
+  // the official BFCM banners (Desktop 2172x724, Mobile 1774x887)
+  const BFCM_IMG = 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/BFCM_Promotion_Banner_Homepage_';
   const DEFAULT_PROMOTIONS = [
-    { sku: 'promo-bfcm', name: 'BFCM', deadline: '2026-12-03T23:59', enabled: true, desktop: BFCM_IMG + 'Desktop.png?v=1791510617', mobile: BFCM_IMG + 'Mobile.png?v=1791510710',
+    { sku: 'promo-bfcm', name: 'BFCM', deadline: '2026-12-03T23:59', enabled: true, desktop: BFCM_IMG + 'Desktop.png?v=1791883623', mobile: BFCM_IMG + 'Mobile.png?v=1791883640',
       types: ['Development store', 'Trial', 'Free'], code: 'BFCM2025', link: '/pricing' },                                       // click: copies BFCM2025, opens /pricing (same tab), "Code: … copied successfully" shows there
   ];
+  const freshBfcm = u => u.replace(/BFCM_Promotion_Banner_Homepage_-_(Desktop|Mobile)\.png\?v=\d+/, (m, k) => 'BFCM_Promotion_Banner_Homepage_' + k + '.png?v=' + (k === 'Desktop' ? '1791883623' : '1791883640'));   // promotions saved before the 2026-10 redesign still point at the old BFCM images
   const CN = window.__codeNotice;                  // shortcuts + "Code: … copied successfully" notice (build/code-notice.js)
   const SHORTCUTS = Object.keys(CN.routes).filter(r => r !== '/home' && r !== '/');
   const isPath = s => /^\/(?!\/)/.test(s);
@@ -2218,7 +2219,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     if (!p || typeof p.sku !== 'string' || !p.sku || !String(p.link || '').trim()) return null;      // the link is required (an older code-only promotion has none and is dropped)
     return {
       sku: p.sku, name: String(p.name || p.sku).slice(0, 100), deadline: String(p.deadline || ''), enabled: p.enabled !== false,
-      desktop: String(p.desktop || ''), mobile: String(p.mobile || ''),
+      desktop: freshBfcm(String(p.desktop || '')), mobile: freshBfcm(String(p.mobile || '')),
       types: Array.isArray(p.types) ? p.types.filter(t => SHOP_TYPES.some(([n]) => n === t)) : [],
       link: String(p.link || ''), code: String(p.code || '').slice(0, 60),
     };
