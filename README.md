@@ -30,6 +30,8 @@ Open [`index.html`](index.html) in a browser. There is no build step and no serv
 | Product grid design | `design-product-grid.html` | same page, second tab |
 | Pricing | `pricing.html` | current plan, product-count slider, Free / Starter plans, FAQ (static; built from the app's own page, inside this copy's sidebar) |
 
+**Promotion image banner** (Filter and Search): one banner per page, shown on both sub tabs under the main card (the filter-set table / Collection booster block on Filter, the Search field box / Search booster block on Search). Desktop and mobile (≤ 767.98px) images come from the Shopify CDN; desktop has rounded corners, mobile does not. Each sub tab has its own bannerId (`manage-filter-set-promo`, `collection-booster-promo`, `search-settings-promo`, `search-booster-promo`). Closing it with **X** on either sub tab closes it on both, for good (stored in `localStorage`; the real app stores it on the server). Clicking the banner opens the chat and sends the merchant's message (no auto reply, at most once every 10 seconds).
+
 Analytics is not built. It and Pricing sit in the sidebar under **View more** (the button turns into **View less**).
 
 Promotion banners (Master → Promotion) can link to these pages with shortcuts: `/filter`, `/filter-booster`, `/search`, `/search-booster`, `/metafield`, `/ymm`, `/features`, `/design`, `/product-grid`, `/pricing`. A shortcut opens in the same tab; an `https://` link opens a new tab. With a promo code, "Code: … copied successfully" shows under the header of the page that opens (`tools/build/code-notice.js`).

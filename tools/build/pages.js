@@ -25,6 +25,50 @@
   const PARTIAL_KEY = 'findter.partialSearch';                                  // Advanced features > Partial search switch (on by default, as captured)
   const partialOn = () => store.get(PARTIAL_KEY) !== '0';
 
+  /* ---------- Promotion image banner: ONE banner shared by the 2 sub tabs of Filter, and one shared by the 2 sub tabs of Search ----------
+     Each sub tab carries its own bannerId (by position, as the RQM says), but closing it on either sub tab closes it on both:
+     the dismissal is stored for every bannerId of the page. Clicking the banner opens Crisp and sends the merchant's message
+     (no auto reply, at most once every 10 s); the X only closes. The real app stores the dismissal on the server. */
+  const PROMOS = {
+    filter: {
+      ids: { 'Manage filter set': 'manage-filter-set-promo', 'Collection booster': 'collection-booster-promo' },
+      desktop: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Filter_Promotion_Desktop.png?v=1791793896',
+      mobile: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Filter_Promotion_Mobile.png?v=1791793699',
+      alt: 'Get help getting your filters ready for BFCM. Chat with our team.',
+      message: "Hi, I'd like help getting my filters ready for BFCM (Sale filter + out-of-stock items)",
+    },
+    search: {
+      ids: { 'Search settings': 'search-settings-promo', 'Search booster': 'search-booster-promo' },
+      desktop: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Search_Promotion_Desktop.png?v=1791793660',
+      mobile: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Search_Promotion_Mobile.png?v=1791793673',
+      alt: 'Get help fixing searches that return no results before BFCM. Chat with our team.',
+      message: "Hi, I'd like help fixing searches that return no results before BFCM",
+    },
+  };
+  const PROMO_KEY = id => 'findter.promo.' + id + '.dismissed';
+  function initPromoBanner() {
+    const tab = $('.Polaris-Tabs__Tab[aria-selected="true"]'); if (!tab) return;
+    const label = text(tab);
+    const promo = Object.values(PROMOS).find(p => p.ids[label]); if (!promo) return;
+    const ids = Object.values(promo.ids);
+    if (ids.some(id => store.get(PROMO_KEY(id)) === '1')) return;              // closed on either sub tab: gone for good on both
+    const card = $('#app .Polaris-ShadowBevel'); if (!card) return;            // the table / block info / Search field box
+    const box = document.createElement('div'); box.className = 'pr-banner'; box.setAttribute('data-mfp', ''); box.setAttribute('data-banner-id', promo.ids[label]);
+    box.innerHTML = `<button type="button" class="pr-banner__link" aria-label="${promo.alt} Opens a chat."><picture><source media="(max-width: 767.98px)" srcset="${promo.mobile}"><img src="${promo.desktop}" alt="${promo.alt}" width="966" height="160" decoding="async"></picture></button><button type="button" class="pr-banner__x" aria-label="Dismiss"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94z"></path></svg></button>`;
+    card.insertAdjacentElement('afterend', box);
+    let lastSent = 0;
+    $('.pr-banner__link', box).addEventListener('click', () => {
+      if (Date.now() - lastSent < 10000) return;                               // anti-spam: one message per 10 s
+      lastSent = Date.now();
+      if (window.__shell) window.__shell.openChatWith(promo.message);          // no auto reply: CSE answers in person
+    });
+    $('.pr-banner__x', box).addEventListener('click', () => {
+      ids.forEach(id => store.set(PROMO_KEY(id), '1'));
+      box.remove();
+    });
+  }
+  initPromoBanner();
+
   /* ---------- Metafield search: every text metafield chosen on the Metafield page is its own search field in Search settings ----------
      Metafield page: pick product metafields and set Apply to (Filter / Search; Search only for text types).
      Search settings: every chosen TEXT metafield (Text, Text List, Multi Line Text) is a row of its own, after Vendor, tagged "Metafield".
