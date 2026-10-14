@@ -33,16 +33,16 @@
   const PROMOS = {
     filter: {
       ids: { 'Manage filter set': 'manage-filter-set-promo', 'Collection booster': 'collection-booster-promo' },
-      desktop: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Filter_Promotion_Desktop_966x160_1x_c8dbd95b-31cd-4edd-87a4-659a597bc67f.png?v=1791883571',
-      mobile: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Filter_Promotion_Mobile_1x_0cbf4b13-38c1-472f-9980-20576fed0096.png?v=1791883572',
-      alt: 'Get help getting your filters ready for BFCM. Chat with our team.',
+      desktop: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Filter_Promotion_Desktop_966x1603x.png?v=1791887415',
+      mobile: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Filter_Promotion_Mobile_1x_baa7fa60-9e17-4581-9f5e-760ba4c245dd.png?v=1791885255',
+      alt: 'BFCM prep, no charge. Make sale products easier to find: add a sale filter and move sold-out products lower in your collections.',
       message: "Hi, I'd like help getting my filters ready for BFCM (Sale filter + out-of-stock items)",
     },
     search: {
       ids: { 'Search settings': 'search-settings-promo', 'Search booster': 'search-booster-promo' },
-      desktop: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Search_Promotion_Desktop_966x160_1x_c05c157f-916f-4700-9427-18d0c9bdefa4.png?v=1791883572',
-      mobile: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Search_Promotion_Mobile_1x_643c4c33-f16a-46d8-a352-1a178aaf75fd.png?v=1791883571',
-      alt: 'Get help fixing searches that return no results before BFCM. Chat with our team.',
+      desktop: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Search_Promotion_Desktop_966x1603x.png?v=1791887414',
+      mobile: 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/Search_Promotion_Mobile_1x_17abd6c2-5ebb-4f3f-bfee-6c1e3c86ca6b.png?v=1791885412',
+      alt: "BFCM prep, no charge. Don't let searches end in \"No results\": set up synonyms to help shoppers find products, even with typos.",
       message: "Hi, I'd like help fixing searches that return no results before BFCM",
     },
   };
@@ -55,7 +55,8 @@
     if (ids.some(id => store.get(PROMO_KEY(id)) === '1')) return;              // closed on either sub tab: gone for good on both
     const card = $('#app .Polaris-ShadowBevel'); if (!card) return;            // the table / block info / Search field box
     const box = document.createElement('div'); box.className = 'pr-banner'; box.setAttribute('data-mfp', ''); box.setAttribute('data-banner-id', promo.ids[label]);
-    box.innerHTML = `<button type="button" class="pr-banner__link" aria-label="${promo.alt} Opens a chat."><picture><source media="(max-width: 767.98px)" srcset="${promo.mobile}"><img src="${promo.desktop}" alt="${promo.alt}" width="966" height="160" decoding="async"></picture></button><button type="button" class="pr-banner__x" aria-label="Dismiss"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94z"></path></svg></button>`;
+    const alt = promo.alt.replace(/&/g, '&amp;').replace(/"/g, '&quot;');      // the copy has quotes ("No results")
+    box.innerHTML = `<button type="button" class="pr-banner__link" aria-label="${alt} Opens a chat."><picture><source media="(max-width: 767.98px)" srcset="${promo.mobile}"><img src="${promo.desktop}" alt="${alt}" width="966" height="160" decoding="async"></picture></button><button type="button" class="pr-banner__x" aria-label="Dismiss"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94z"></path></svg></button>`;
     card.insertAdjacentElement('afterend', box);
     let lastSent = 0;
     $('.pr-banner__link', box).addEventListener('click', () => {
