@@ -693,3 +693,19 @@
 .fdt-filter-preview__box-input:hover .fdt-filter-preview__count {
     color: var(--fdt-filter-value-color-hover, #000000);
 }
+
+/* contextual save bar (Search settings) + search-type tooltip */
+.csb-hidden{display:none!important}
+.csb{position:fixed;top:0;left:0;right:0;z-index:950;background:#1a1a1a;color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.08)}
+.csb[hidden]{display:none}
+.csb__inner{display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px;max-width:1000px;margin:0 auto;padding:0 16px}
+.csb__msg{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:650}
+.csb__msg .Polaris-Icon{width:20px;height:20px}
+.csb__msg svg{fill:#fff}
+.csb__actions{display:flex;gap:8px}
+.csb__btn{min-height:28px;padding:4px 12px;border:0;border-radius:8px;font:inherit;font-size:13px;font-weight:550;cursor:pointer;background:#3d3d3d;color:#fff;box-shadow:inset 0 -1px 0 rgba(0,0,0,.4)}
+.csb__btn--save{background:#fff;color:#303030}
+.csb__btn:focus-visible{outline:2px solid #6ea8ff;outline-offset:2px}
+.mf-tip--down{margin-left:4px;vertical-align:middle}
+.mf-tip--down .mf-tip__bubble{bottom:auto;top:-8px;left:26px;transform:none;z-index:40;width:300px;max-width:300px;white-space:normal}
+.mf-field .Polaris-Label{display:flex;align-items:center}

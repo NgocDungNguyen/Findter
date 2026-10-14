@@ -18,6 +18,7 @@
 
   /* ---------- Save hooks + browser storage (every access guarded: storage can throw when blocked) ---------- */
   const savers = [];                                                            // run when the page's Save button is clicked
+  window.__pages = { savers, dirty: [] };                                       // pages with their own save bar (sort.js) join the unsaved-changes guard through this
   const store = {
     get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* storage blocked: keep going */ } },
@@ -73,11 +74,12 @@
      Metafield page: pick product metafields and set Apply to (Filter / Search; Search only for text types).
      Search settings: every chosen TEXT metafield (Text, Text List, Multi Line Text) is a row of its own, after Vendor, tagged "Metafield".
        The row's tick IS the Search tick of that metafield's Apply to: untick it on either page and it is unticked on the other (after Save).
-       A ticked row has its own Search type + Weight (editable while Partial search is on). Nothing is ever disabled or locked for this.
+       A ticked row has its own Search type + Weight, reachable only while Partial search (Advanced Search) is on.
+       A removed metafield that is added back gets its last Search tick again (findter.mfRemovedSearch.v1).
      Saving starts an index when a metafield is added or the Search selection changes (yellow, then green banner on the Metafield page).
      A page with unsaved changes cannot be left until they are saved or discarded.
      State in localStorage:  findter.metafields.v1  [{ id, applies }]   findter.mfFields.v1  { [id]: { type, weight } }   findter.mfIndex.v1  { pendingUntil, notice } */
-  const MFS_KEY = 'findter.metafields.v1', MFI_KEY = 'findter.mfIndex.v1', MFF_KEY = 'findter.mfFields.v1', MF_LIMIT = 10, INDEX_MS = 6000;
+  const MFS_KEY = 'findter.metafields.v1', MFI_KEY = 'findter.mfIndex.v1', MFF_KEY = 'findter.mfFields.v1', MFR_KEY = 'findter.mfRemovedSearch.v1', MF_LIMIT = 10, INDEX_MS = 6000;
   const MF_TYPES = {
     standard: 'Whole words',
     standard_edge_ngram: 'Word beginnings',
@@ -142,9 +144,16 @@
     const p = $('#' + input.id + '-help'); input.classList.toggle('mf-input--error', !valid);
     input.setAttribute('aria-invalid', String(!valid)); p.classList.toggle('mf-help--error', !valid); p.textContent = valid ? '' : WEIGHT_ERROR;
   };
-  const PARTIAL_NOTE = '<p class="mf-help mf-lock">Search type and weight need Partial search. Turn it on in <a class="Polaris-Link Polaris-Link--monochrome" href="features.html">Advanced features</a>.</p>';
+  const MF_TYPE_TIPS = {                                                       // the app's "Search type" tooltip (SEARCH_ANALYZER_OPTIONS)
+    standard: 'Matches complete words (with basic plural handling).',
+    standard_edge_ngram: 'Matches from the start of a word — good for autocomplete.',
+    standard_ngram: 'Matches text anywhere inside a word — broadest, may over-match.',
+  };
+  const typeTip = () => `<span class="mf-tip mf-tip--down" tabindex="0" role="img" aria-label="About search types"><span class="Polaris-Icon Polaris-Icon--toneSubdued">${ICON_INFO}</span><span class="mf-tip__bubble" role="tooltip">${Object.keys(MF_TYPES).map(k => `<strong>${MF_TYPES[k]}</strong>: ${MF_TYPE_TIPS[k]}`).join('<br>')}</span></span>`;
 
-  /* --- Search settings: one row per chosen text metafield, with its own Search type + Weight --- */
+  /* --- Search settings: one row per chosen text metafield, with its own Search type + Weight ---
+     Like the app (SearchFieldList): a row only has the arrow (Search type + Weight) while Advanced Search is on
+     (Partial search in Advanced features) AND the row is ticked. Without Advanced Search there is no arrow at all. */
   function initMetafieldFields() {
     const list = $('.ss-table > div'); const proto = list && list.lastElementChild; if (!proto) return;
     const template = proto.cloneNode(true);                                    // same row as the other search fields
@@ -157,13 +166,14 @@
     function paint(row, id) {                                                  // (re)draws one row
       const f = field(id), on = searchOf(id), panel = $('.mf-panel', row), chev = $('[role=button]', row), box = $('input.ft-checkbox', row);
       box.checked = on;
-      chev.style.display = on ? 'inline-flex' : 'none';                        // the options only exist for a ticked field
-      const show = on && open.has(id);
+      const can = on && partialOn();                                           // the options only exist for a ticked field, and only with Advanced Search
+      chev.style.display = can ? 'inline-flex' : 'none'; row.style.cursor = can ? 'pointer' : '';
+      const show = can && open.has(id);
       chev.setAttribute('aria-expanded', String(show)); row.classList.toggle('mf-open', show); panel.hidden = !show;
       if (!show) return;
-      const locked = !partialOn();                                             // Partial search off: options stay visible but disabled, with a way to unlock them
-      panel.innerHTML = `<div class="mf-grid">${mfSelect('mf-type-' + id, 'Search type', MF_TYPES, f.type, locked)}${mfWeight('mf-weight-' + id, f.weight, locked)}</div>${locked ? PARTIAL_NOTE : ''}`;
-      if (touched.has(id) && !locked) paintWeight($('#mf-weight-' + id, panel), isWhole(f.weight));
+      panel.innerHTML = `<div class="mf-grid">${mfSelect('mf-type-' + id, 'Search type', MF_TYPES, f.type, false)}${mfWeight('mf-weight-' + id, f.weight, false)}</div>`;
+      const lab = $('#mf-type-' + id + '-label', panel); if (lab) lab.insertAdjacentHTML('afterend', typeTip());
+      if (touched.has(id)) paintWeight($('#mf-weight-' + id, panel), isWhole(f.weight));
     }
     function buildRow(id) {
       const row = template.cloneNode(true); row.setAttribute('data-mf', ''); row.setAttribute('data-mf-id', id);
@@ -173,10 +183,10 @@
       const box = $('input.ft-checkbox', row);
       const panel = document.createElement('div'); panel.id = 'mf-panel-' + id; panel.className = 'mf-panel'; panel.hidden = true;
       $('.Polaris-Collapsible', row).replaceWith(panel);
-      const toggle = () => { if (!searchOf(id)) return; open.has(id) ? open.delete(id) : open.add(id); paint(row, id); };
+      const toggle = () => { if (!searchOf(id) || !partialOn()) return; open.has(id) ? open.delete(id) : open.add(id); paint(row, id); };
       row.addEventListener('click', e => { if (e.target.closest('.mf-panel') || e.target.closest('input')) return; toggle(); });
       chev.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
-      box.addEventListener('change', () => { draftSearch[id] = box.checked; box.checked ? open.add(id) : open.delete(id); paint(row, id); });
+      box.addEventListener('change', () => { draftSearch[id] = box.checked; box.checked && partialOn() ? open.add(id) : open.delete(id); paint(row, id); });
       panel.addEventListener('change', e => {
         if (e.target.id === 'mf-type-' + id) { field(id).type = e.target.value; setSave(true); paint(row, id); const again = $('#mf-type-' + id, row); if (again) again.focus(); }
       });
@@ -188,7 +198,7 @@
     const textIds = () => mfsLoad().filter(r => isText(r.id)).map(r => r.id);   // every chosen text metafield, in the Metafield page order
     const render = () => { $$('[data-mf]', list).forEach(r => r.remove()); textIds().forEach(id => list.appendChild(buildRow(id))); };
     savers.push(() => {
-      const bad = textIds().find(id => searchOf(id) && partialOn() && !isWhole(field(id).weight));
+      const bad = partialOn() && textIds().find(id => searchOf(id) && !isWhole(field(id).weight));
       if (bad) {                                                               // a bad weight blocks Save; the error shows next to the field
         open.add(bad); touched.add(bad); const row = $(`[data-mf-id="${bad}"]`, list); paint(row, bad); const w = $('#mf-weight-' + bad, row); if (w) w.focus(); return false;
       }
@@ -207,6 +217,11 @@
     });
     window.addEventListener('pageshow', render);
     render();
+
+    // the built-in rows (Title, SKU, ...) follow the same rule: an arrow only with Advanced Search and a tick
+    const builtIn = () => $$(':scope > *', list).filter(r => !r.hasAttribute('data-mf'));
+    const paintBuiltIn = r => { const c = $('[role=button][aria-controls^="adv-search"]', r), b = $('input.ft-checkbox', r); if (c) c.style.display = partialOn() && b && b.checked ? '' : 'none'; };
+    builtIn().forEach(r => { paintBuiltIn(r); const b = $('input.ft-checkbox', r); if (b) b.addEventListener('change', () => paintBuiltIn(r)); });
   }
   if ($('.ss-table')) initMetafieldFields();
 
@@ -273,8 +288,14 @@
     const closePop = () => { pop.hidden = true; input.setAttribute('aria-expanded', 'false'); activeIndex = -1; input.removeAttribute('aria-activedescendant'); };
     function pick(id) {
       const i = rows.findIndex(r => r.id === id);
-      if (i >= 0) rows.splice(i, 1); else if (rows.length < MF_LIMIT) rows.push({ id, applies: ['filter'] });   // a new metafield starts as Filter, like the app
+      if (i >= 0) rows.splice(i, 1); else if (rows.length < MF_LIMIT) rows.push({ id, applies: startApplies(id) });
       renderTable(); renderPop();
+    }
+    // a new metafield starts as Filter, like the app; one that was removed and is added back gets its last Search tick again
+    function startApplies(id) {
+      const before = saved.find(r => r.id === id); if (before) return before.applies.slice();   // removed and re-added before saving
+      const mem = parse(MFR_KEY, {}) || {};
+      return isText(id) && mem[id] ? ['search', 'filter'] : ['filter'];
     }
     input.addEventListener('focus', () => { if (skipOpen) { skipOpen = false; return; } openPop(); });
     input.addEventListener('click', openPop);
@@ -356,6 +377,9 @@
     savers.push(() => {
       const added = rows.some(r => !saved.some(s => s.id === r.id));                      // a new metafield or a changed Search selection needs an index
       const searchChanged = JSON.stringify(searchIdsOf(rows).sort()) !== JSON.stringify(searchIdsOf(saved).sort());
+      const mem = parse(MFR_KEY, {}) || {};                                     // remember the Search tick of removed metafields
+      saved.filter(s => !rows.some(r => r.id === s.id)).forEach(s => { mem[s.id] = s.applies.includes('search'); });
+      store.set(MFR_KEY, JSON.stringify(mem));
       savedJson = JSON.stringify(rows); saved = JSON.parse(savedJson); store.set(MFS_KEY, savedJson);
       if (added || searchChanged) { idxSave({ pendingUntil: Date.now() + INDEX_MS, notice: null }); hidePending = false; }
       renderBanner(); return true;
@@ -817,7 +841,7 @@
 
   /* ---------- Unsaved changes: a page with a Save button cannot be left until the changes are saved or discarded (BFS 4.1.5) ----------
      Applies to every link that goes to another page (sidebar, tabs, in-page links) and to closing / reloading the tab. */
-  const isDirty = () => { const b = saveBtn(); return !!b && !b.classList.contains('Polaris-Button--disabled'); };
+  const isDirty = () => { const b = saveBtn(); return (!!b && !b.classList.contains('Polaris-Button--disabled')) || window.__pages.dirty.some(f => f()); };
   let leaving = false, leaveDlg = null, leaveHref = '', leaveFrom = null;
   const leaveTo = href => { leaving = true; location.href = href; };
   function closeLeave() { leaveDlg.hidden = true; if (leaveFrom && document.contains(leaveFrom)) leaveFrom.focus(); leaveFrom = null; }
@@ -855,6 +879,21 @@
     e.preventDefault(); e.stopImmediatePropagation(); askLeave(href, a);
   }, true);
   window.addEventListener('beforeunload', e => { if (!leaving && isDirty()) { e.preventDefault(); e.returnValue = ''; } });
+
+  /* ---------- Search settings: the contextual save bar replaces the page's own Save button (the app since #844) ----------
+     The hidden Save button still holds the "something changed" state, so the leave guard above keeps working. */
+  if ($('.ss-table') && saveBtn()) {
+    const pageSave = saveBtn(); pageSave.classList.add('csb-hidden');
+    const bar = document.createElement('div'); bar.className = 'csb'; bar.hidden = true; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Unsaved changes');
+    bar.innerHTML = '<div class="csb__inner"><span class="csb__msg"><span class="Polaris-Icon">' + ICON_ALERT + '</span>Unsaved changes</span><div class="csb__actions"><button type="button" class="csb__btn" data-csb="discard">Discard</button><button type="button" class="csb__btn csb__btn--save" data-csb="save">Save</button></div></div>';
+    document.body.appendChild(bar);
+    const sync = () => { bar.hidden = pageSave.classList.contains('Polaris-Button--disabled'); };
+    new MutationObserver(sync).observe(pageSave, { attributes: true, attributeFilter: ['class'] }); sync();
+    bar.addEventListener('click', e => {
+      const b = e.target.closest('[data-csb]'); if (!b) return;
+      if (b.dataset.csb === 'save') pageSave.click(); else leaveTo(location.href);   // Discard: drop the draft (nothing was stored yet)
+    });
+  }
 
   /* ---------- Advanced features: the Partial search switch decides whether Search settings can edit the options above ---------- */
   const partialSwitch = $('.pg-switch[aria-label="Turn Partial search on or off"]');
