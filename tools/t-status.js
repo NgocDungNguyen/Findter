@@ -12,7 +12,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(/Plan\s*Trial/.test(txt), 'Plan row keeps the Trial badge');
   ok(/Expires on\s*[A-Z][a-z]{2} \d{1,2}, \d{4}/.test(txt) && !/Renew on/.test(txt), 'trial: only "Expires on" is shown');
   ok(/Products indexed\s*1,595 \/ 50,000/.test(txt), 'Products indexed 1,595 / 50,000 (Trial limit)');
-  ok(/App embed\s*Active/.test(txt) && /Search suggestion\s*Active/.test(txt), 'App embed + Search suggestion rows');
+  ok(/Search & filter core\s*Active/.test(txt) && /Search suggestion\s*Active/.test(txt), 'App embed + Search suggestion rows');
   await card.screenshot({ path: 'test/status-1440.png' });
   ok(!/Shown on your storefront/.test(txt), 'helper text removed');
   const rowsY = await p.$$eval('[data-card=status] [data-st]', els => els.map(e => ({ k: e.dataset.st, y: Math.round(e.getBoundingClientRect().y), label: e.querySelector('p').getBoundingClientRect().x, badgeRight: Math.round(e.querySelector('[data-s=s-badge] > div, .st-badge').getBoundingClientRect().right) })));

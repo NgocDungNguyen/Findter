@@ -16,16 +16,19 @@
     ['Service', 'Bought a one-time service charge, never had a paid plan'],
     ['Free', 'Never paid anything: trial ended, or an old install that never subscribed'],
   ];
-  const SHOP_TYPE_OF_PLAN = { Trial: 'Trial', Starter: 'Subscription', Free: 'Free', Development: 'Development store', 'Paid before': 'Paid before', Service: 'Service' };   // what the demo bar's Plan means for promotion targeting
+  const SHOP_TYPE_OF_PLAN = { Trial: 'Trial', 'Trial not started': 'Free', Starter: 'Subscription', Enterprise: 'Subscription', Free: 'Free', Development: 'Development store', 'Paid before': 'Paid before', Service: 'Service', Legacy: 'Free', 'Old install': 'Free' };   // what the demo bar's Store means for promotion targeting (a trial that has not started is not "running", so the app targets it as Free)
   const shopType = () => SHOP_TYPE_OF_PLAN[DEMO.plan] || 'Free';
 
-  // the official BFCM banners (Desktop 2172x724, Mobile 1774x887)
+  // the official BFCM banners, final 2026-10 version without a button (Desktop 2534x640, Mobile 1774x887)
   const BFCM_IMG = 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/BFCM_Promotion_Banner_Homepage_';
+  const BFCM_DESKTOP = 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/BFCM_Discount_2534x640_3df26a6d-d359-4a9e-b8da-584b2adee773.png?v=1791884548';
   const DEFAULT_PROMOTIONS = [
-    { sku: 'promo-bfcm', name: 'BFCM', deadline: '2026-12-03T23:59', enabled: true, desktop: BFCM_IMG + 'Desktop.png?v=1791883623', mobile: BFCM_IMG + 'Mobile.png?v=1791883640',
+    { sku: 'promo-bfcm', name: 'BFCM', deadline: '2026-12-03T23:59', enabled: true, desktop: BFCM_DESKTOP, mobile: BFCM_IMG + 'Mobile.png?v=1791883640',
       types: ['Development store', 'Trial', 'Free'], code: 'BFCM2025', link: '/pricing' },                                       // click: copies BFCM2025, opens /pricing (same tab), "Code: … copied successfully" shows there
   ];
-  const freshBfcm = u => u.replace(/BFCM_Promotion_Banner_Homepage_-_(Desktop|Mobile)\.png\?v=\d+/, (m, k) => 'BFCM_Promotion_Banner_Homepage_' + k + '.png?v=' + (k === 'Desktop' ? '1791883623' : '1791883640'));   // promotions saved before the 2026-10 redesign still point at the old BFCM images
+  // promotions saved in this browser before the final images still point at an older BFCM desktop / mobile file: move them to the final ones
+  const freshBfcm = u => u.replace(/^https:\/\/cdn\.shopify\.com\/s\/files\/1\/0765\/0302\/3847\/files\/BFCM_Promotion_Banner_Homepage_(?:-_)?Desktop\.png(\?v=\d+)?$/, BFCM_DESKTOP)
+    .replace(/BFCM_Promotion_Banner_Homepage_-_Mobile\.png\?v=\d+/, 'BFCM_Promotion_Banner_Homepage_Mobile.png?v=1791883640');
   const CN = window.__codeNotice;                  // shortcuts + "Code: … copied successfully" notice (build/code-notice.js)
   const SHORTCUTS = Object.keys(CN.routes).filter(r => r !== '/home' && r !== '/');
   const isPath = s => /^\/(?!\/)/.test(s);

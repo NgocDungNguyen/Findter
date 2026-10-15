@@ -1016,6 +1016,13 @@ s-page > s-button[slot="breadcrumb-actions"], s-page > s-internal-button[slot="b
 .st-tone--green.st-tone--green{background:#affebf;color:#014b40}
 .st-tone--orange.st-tone--orange{background:#ffd6a4;color:#5e4200}
 .st-tone--blue.st-tone--blue *{color:#003a5a}.st-tone--green.st-tone--green *{color:#014b40}.st-tone--orange.st-tone--orange *{color:#5e4200}
+.st-tone--gray.st-tone--gray{background:#e3e3e3;color:#303030}.st-tone--gray.st-tone--gray *{color:#303030}
+/* limit banners (BR-15): same shell as the sync banner; "over your product limit" is the app's critical tone */
+.sy-banner--crit .sy-banner__head{background:#e51c00;color:#fff}.sy-banner--crit .sy-banner__x:hover{background:rgba(255,255,255,.18)}
+.lim-text{margin:0 0 12px}.lim-text a{color:#005bd3}
+.lim-btn{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:8px;background:#303030;color:#fff;font-weight:550;text-decoration:none}
+.lim-btn:hover{background:#1a1a1a}.lim-btn:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
+.sy-host + .sy-host{margin-top:0}
 /* demo bar (prototype tool, lives in the header): plan / days left / indexed switches */
 .demo-bar{margin-left:auto;display:flex;align-items:center;min-width:0}
 .demo-bar + .sh-more{margin-left:12px}
@@ -1025,16 +1032,18 @@ s-page > s-button[slot="breadcrumb-actions"], s-page > s-internal-button[slot="b
 .demo-btn,.demo-toggle{height:24px;padding:0 8px;border:1px solid #e3e3e3;border-radius:8px;background:#fff;color:#303030;font:inherit;font-size:12px;line-height:16px;font-weight:550;cursor:pointer;white-space:nowrap}
 .demo-btn:hover,.demo-toggle:hover{background:#f7f7f7}
 .demo-btn:disabled{opacity:.45;cursor:not-allowed}
+.demo-select{height:24px;padding:0 4px;border:1px solid #e3e3e3;border-radius:8px;background:#fff;color:#303030;font:inherit;font-size:12px;line-height:16px;font-weight:550;cursor:pointer}
+.demo-select:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
 .demo-btn[aria-pressed=true]{background:#303030;border-color:#303030;color:#fff}
 .demo-btn:focus-visible,.demo-toggle:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
 .demo-toggle{display:none}
-@media (max-width:1279px){
+@media (max-width:1679px){   /* the demo bar has 5 groups: inline only on very wide screens, a "Demo data" drop-down otherwise */
   .demo-toggle{display:inline-block}
   .demo-panel{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:flex-start;gap:12px;padding:12px 16px;background:#fff;border-top:1px solid #e3e3e3;box-shadow:0 8px 16px rgba(0,0,0,.12)}
   .demo-bar.is-open .demo-panel{display:flex}
   .demo-group{flex-wrap:wrap}
   .demo-label{min-width:56px}
-  .demo-btn{height:32px;padding:0 12px}
+  .demo-btn,.demo-select{height:32px;padding:0 12px}
 }
 /* Findter app status: neutral badge (value of Expires on / Renew on, Products indexed and the Inactive state) */
 .st-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:8px;font-size:12px;line-height:16px;font-weight:550;background:#e3e3e3;color:#303030}
@@ -2262,6 +2271,22 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     color: var(--fdt-filter-value-color-hover, #000000);
 }
 
+/* contextual save bar (Search settings) + search-type tooltip */
+.csb-hidden{display:none!important}
+.csb{position:fixed;top:0;left:0;right:0;z-index:950;background:#1a1a1a;color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.08)}
+.csb[hidden]{display:none}
+.csb__inner{display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px;max-width:1000px;margin:0 auto;padding:0 16px}
+.csb__msg{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:650}
+.csb__msg .Polaris-Icon{width:20px;height:20px}
+.csb__msg svg{fill:#fff}
+.csb__actions{display:flex;gap:8px}
+.csb__btn{min-height:28px;padding:4px 12px;border:0;border-radius:8px;font:inherit;font-size:13px;font-weight:550;cursor:pointer;background:#3d3d3d;color:#fff;box-shadow:inset 0 -1px 0 rgba(0,0,0,.4)}
+.csb__btn--save{background:#fff;color:#303030}
+.csb__btn:focus-visible{outline:2px solid #6ea8ff;outline-offset:2px}
+.mf-tip--down{margin-left:4px;vertical-align:middle}
+.mf-tip--down .mf-tip__bubble{bottom:auto;top:-8px;left:26px;transform:none;z-index:40;width:300px;max-width:300px;white-space:normal}
+.mf-field .Polaris-Label{display:flex;align-items:center}
+
 /* Sort page (sort.html): ported from the real app's Settings/SortBody.jsx + SortSkeleton.jsx and the .ft-sort-* rules of ManageFilter/FilterSet/index.css. Everything is scoped to .so-page. */
 .so-page{--so-text:#303030;--so-sub:#616161}
 .so-page .so-stack{display:flex;flex-direction:column;gap:16px}
@@ -2358,18 +2383,3 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 
 /* error toast (window.shopify.toast.show(msg,{isError:true})) */
 #toast.is-error{background:#8e1f0b}
-/* contextual save bar (Search settings) + search-type tooltip */
-.csb-hidden{display:none!important}
-.csb{position:fixed;top:0;left:0;right:0;z-index:950;background:#1a1a1a;color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.08)}
-.csb[hidden]{display:none}
-.csb__inner{display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px;max-width:1000px;margin:0 auto;padding:0 16px}
-.csb__msg{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:650}
-.csb__msg .Polaris-Icon{width:20px;height:20px}
-.csb__msg svg{fill:#fff}
-.csb__actions{display:flex;gap:8px}
-.csb__btn{min-height:28px;padding:4px 12px;border:0;border-radius:8px;font:inherit;font-size:13px;font-weight:550;cursor:pointer;background:#3d3d3d;color:#fff;box-shadow:inset 0 -1px 0 rgba(0,0,0,.4)}
-.csb__btn--save{background:#fff;color:#303030}
-.csb__btn:focus-visible{outline:2px solid #6ea8ff;outline-offset:2px}
-.mf-tip--down{margin-left:4px;vertical-align:middle}
-.mf-tip--down .mf-tip__bubble{bottom:auto;top:-8px;left:26px;transform:none;z-index:40;width:300px;max-width:300px;white-space:normal}
-.mf-field .Polaris-Label{display:flex;align-items:center}

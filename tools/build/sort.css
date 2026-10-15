@@ -1,0 +1,96 @@
+/* Sort page (sort.html): ported from the real app's Settings/SortBody.jsx + SortSkeleton.jsx and the .ft-sort-* rules of ManageFilter/FilterSet/index.css. Everything is scoped to .so-page. */
+.so-page{--so-text:#303030;--so-sub:#616161}
+.so-page .so-stack{display:flex;flex-direction:column;gap:16px}
+.so-card{background:#fff;border-radius:12px;box-shadow:0 1px 0 rgba(26,26,26,.07),0 0 0 1px rgba(26,26,26,.08);padding:16px;overflow:hidden}
+.so-card__h{margin:0;font-size:14px;line-height:20px;font-weight:650;color:var(--so-text)}
+.so-sub{margin:0;font-size:13px;line-height:20px;color:var(--so-sub)}
+.so-caption{margin:0 0 4px;font-size:12px;line-height:16px;font-weight:550;color:var(--so-sub)}
+.so-col{display:flex;flex-direction:column;gap:16px}
+.so-col--tight{gap:4px}
+
+/* Default sort by value: Collection page / Search result page side by side, stacked on mobile */
+.ft-sort-defaults{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.so-box{border:1px solid #e3e3e3;border-radius:8px;padding:16px;min-width:0}
+.so-box__h{margin:0 0 8px;font-size:13px;line-height:20px;font-weight:650;color:var(--so-text)}
+.so-page .Polaris-Select{width:100%}
+@media only screen and (max-width:640px){.ft-sort-defaults{grid-template-columns:minmax(0,1fr)}}
+
+/* table (FilterSet/index.css) */
+.so-page .ft-table{display:flex;flex-direction:column;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.so-page .ft-table .table-head,.so-page .ft-table .table-row{display:grid;grid-template-columns:40px 100px minmax(0,1fr) minmax(0,1fr) 100px;padding:12px 8px;align-items:center;font-size:13px;line-height:20px;color:var(--so-text)}
+.so-page .ft-table .table-row>div,.so-page .ft-table .table-head>div{min-width:0}
+.so-page .ft-table .table-row>div>.so-t{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.so-page .ft-table.ft-sort-table .table-row>div:nth-child(4),.so-page .ft-table.ft-sort-table .table-head>div:nth-child(4){padding-left:12px}
+.so-page .ft-table.ft-sort-table .sort-label>div:first-child{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.so-page .ft-table.ft-sort-table .sort-label-badge{flex-shrink:0}
+.so-page .ft-table .table-head{border-radius:6px;font-weight:700}
+.so-page .ft-table .table-head .action{display:flex;justify-content:flex-end}
+.so-page .ft-table .table-row{background:#fff;border:1px solid #ebebeb;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.so-page .ft-table .table-row:last-child{border-radius:0 0 8px 8px}
+.so-page .ft-table .table-row:hover{background:#f9fafb;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.so-page .ft-table .table-row.is-ghost{opacity:.5}
+.so-page .ft-table .table-row.is-moving{will-change:transform}
+.so-sort-label{display:flex;align-items:center;gap:4px}
+.so-grab{cursor:grab}
+.so-grab:focus-visible{outline:2px solid #005bd3;outline-offset:-2px;border-radius:6px}
+.so-handle{width:40px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;color:#8a8a8a}
+.so-handle svg{width:20px;height:20px;fill:#8a8a8a}
+.so-sub-text{color:var(--so-sub)}
+.so-action{display:flex;justify-content:flex-end;gap:8px;align-items:center}
+.so-iconbtn{display:inline-flex;align-items:center;justify-content:center;min-height:28px;min-width:28px;padding:0 6px;border:0;border-radius:8px;background:#fff;box-shadow:0 0 0 1px rgba(26,26,26,.15) inset,0 -1px 0 1px rgba(0,0,0,.17) inset,0 1px 0 0 rgba(255,255,255,.4) inset;cursor:pointer}
+.so-iconbtn:hover{background:#fafafa}
+.so-iconbtn:active{background:#f1f1f1}
+.so-iconbtn:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
+.so-iconbtn svg{width:20px;height:20px;fill:#4a4a4a}
+@media only screen and (max-width:640px){
+  .so-page .ft-table .table-head,.so-page .ft-table .table-row{grid-template-columns:40px 64px minmax(0,1fr) minmax(0,1fr) 100px;min-width:568px}
+  .so-page .ft-table.ft-sort-table .table-row>.sort-type>.so-t{white-space:normal;overflow:visible}
+  .so-page .ft-table.ft-sort-table .sort-label{flex-wrap:wrap}
+  .so-page .ft-table.ft-sort-table .sort-label-badge{flex-basis:100%}
+}
+.so-drag-overlay{position:fixed;z-index:700;pointer-events:none;box-shadow:0 4px 10px rgba(0,0,0,.1);opacity:.9;background:#fff;border:1px solid #ebebeb;border-radius:8px;display:grid;align-items:center;padding:12px 8px;font-size:13px;line-height:20px;color:var(--so-text)}
+
+/* loading skeleton (SortSkeleton.jsx) */
+.ft-sort-skeleton-bar{background:#e3e3e3;border-radius:6px;animation:ft-sort-skeleton-pulse 2s ease-in-out infinite}
+@keyframes ft-sort-skeleton-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.ft-sort-skeleton-bar{animation:none}}
+
+/* empty state (no sort options yet) */
+.so-empty{display:flex;flex-direction:column;align-items:center;gap:16px;padding:48px 16px;text-align:center}
+.so-empty img{max-width:140px;height:auto}
+.so-empty h2{margin:0;font-size:16px;line-height:24px;font-weight:650}
+.so-empty p{margin:0;font-size:13px;line-height:20px}
+
+/* modal: label field */
+.so-field{display:flex;flex-direction:column;gap:4px}
+.so-field label{font-size:13px;line-height:20px;color:var(--so-text)}
+.so-counter{align-self:flex-end;font-size:12px;line-height:16px;color:var(--so-sub)}
+.so-note{margin:8px 0 0;font-size:13px;line-height:20px;color:var(--so-sub)}
+.mf-btn[disabled]{opacity:.5;cursor:not-allowed}
+
+/* tooltip of the scope badge (Polaris Tooltip) */
+.so-tooltip{position:fixed;z-index:800;max-width:240px;padding:6px 10px;border-radius:8px;background:#303030;color:#fff;font-size:12px;line-height:16px;box-shadow:0 4px 12px rgba(0,0,0,.2);pointer-events:none}
+.so-tooltip[hidden]{display:none}
+
+/* contextual save bar (App Bridge useContextualSaveBar): covers the admin top bar while there are unsaved changes */
+.so-savebar{position:absolute;top:0;left:0;right:0;height:54px;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;background:#1a1a1a;color:#fff}
+.so-savebar[hidden]{display:none}
+.so-savebar__t{display:flex;align-items:center;gap:8px;font-size:13px;line-height:20px;font-weight:650}
+.so-savebar__t svg{width:20px;height:20px;fill:#fff;flex:none}
+.so-savebar__a{display:flex;gap:8px}
+.so-sbtn{min-height:32px;padding:6px 14px;border:0;border-radius:8px;font:inherit;font-size:13px;line-height:20px;font-weight:550;cursor:pointer}
+.so-sbtn--discard{background:#4a4a4a;color:#fff}
+.so-sbtn--discard:hover:not(:disabled){background:#5c5c5c}
+.so-sbtn--save{background:#fff;color:#1a1a1a}
+.so-sbtn--save:hover:not(:disabled){background:#f1f1f1}
+.so-sbtn:disabled{opacity:.6;cursor:default}
+.so-sbtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.so-sbtn.is-loading{position:relative;color:transparent}
+.so-sbtn.is-loading::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:so-spin .7s linear infinite}
+.so-sbtn--save.is-loading::after{border-color:#1a1a1a;border-top-color:transparent}
+.so-sbtn--discard.is-loading::after{border-color:#fff;border-top-color:transparent}
+@keyframes so-spin{to{transform:rotate(360deg)}}
+@media (max-width:767px){.so-savebar__t span{display:none}}
+
+/* error toast (window.shopify.toast.show(msg,{isError:true})) */
+#toast.is-error{background:#8e1f0b}

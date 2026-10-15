@@ -20,7 +20,7 @@ doc.querySelectorAll('.Polaris-ShadowBevel').forEach(b => { const h = b.querySel
   const rows = [...doc.querySelectorAll('[data-card=status] span.f38')].map(r => r.closest('[data-s=s-stack]'));
   const [planRow, embedRow, suggestRow] = rows;
   planRow.setAttribute('data-st', 'plan'); embedRow.setAttribute('data-st', 'embed'); suggestRow.setAttribute('data-st', 'suggest');
-  embedRow.querySelector('p').textContent = 'App embed';
+  // label stays the app's own "Search & filter core" (that row is the app embed status), as in the RQM (UI-01)
   const valueRow = (key, label) => { const r = planRow.cloneNode(true); r.setAttribute('data-st', key); r.querySelector('p').textContent = label; r.querySelector('[data-s=s-badge]').outerHTML = '<span class="st-badge"></span>'; return r; };
   const dateRow = valueRow('date', 'Expires on'), indexedRow = valueRow('indexed', 'Products indexed');
   planRow.after(dateRow); dateRow.after(indexedRow);
@@ -96,6 +96,13 @@ const appExtra = `
 .st-tone--green.st-tone--green{background:#affebf;color:#014b40}
 .st-tone--orange.st-tone--orange{background:#ffd6a4;color:#5e4200}
 .st-tone--blue.st-tone--blue *{color:#003a5a}.st-tone--green.st-tone--green *{color:#014b40}.st-tone--orange.st-tone--orange *{color:#5e4200}
+.st-tone--gray.st-tone--gray{background:#e3e3e3;color:#303030}.st-tone--gray.st-tone--gray *{color:#303030}
+/* limit banners (BR-15): same shell as the sync banner; "over your product limit" is the app's critical tone */
+.sy-banner--crit .sy-banner__head{background:#e51c00;color:#fff}.sy-banner--crit .sy-banner__x:hover{background:rgba(255,255,255,.18)}
+.lim-text{margin:0 0 12px}.lim-text a{color:#005bd3}
+.lim-btn{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:8px;background:#303030;color:#fff;font-weight:550;text-decoration:none}
+.lim-btn:hover{background:#1a1a1a}.lim-btn:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
+.sy-host + .sy-host{margin-top:0}
 /* demo bar (prototype tool, lives in the header): plan / days left / indexed switches */
 .demo-bar{margin-left:auto;display:flex;align-items:center;min-width:0}
 .demo-bar + .sh-more{margin-left:12px}
@@ -105,16 +112,18 @@ const appExtra = `
 .demo-btn,.demo-toggle{height:24px;padding:0 8px;border:1px solid #e3e3e3;border-radius:8px;background:#fff;color:#303030;font:inherit;font-size:12px;line-height:16px;font-weight:550;cursor:pointer;white-space:nowrap}
 .demo-btn:hover,.demo-toggle:hover{background:#f7f7f7}
 .demo-btn:disabled{opacity:.45;cursor:not-allowed}
+.demo-select{height:24px;padding:0 4px;border:1px solid #e3e3e3;border-radius:8px;background:#fff;color:#303030;font:inherit;font-size:12px;line-height:16px;font-weight:550;cursor:pointer}
+.demo-select:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
 .demo-btn[aria-pressed=true]{background:#303030;border-color:#303030;color:#fff}
 .demo-btn:focus-visible,.demo-toggle:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
 .demo-toggle{display:none}
-@media (max-width:1279px){
+@media (max-width:1679px){   /* the demo bar has 5 groups: inline only on very wide screens, a "Demo data" drop-down otherwise */
   .demo-toggle{display:inline-block}
   .demo-panel{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:flex-start;gap:12px;padding:12px 16px;background:#fff;border-top:1px solid #e3e3e3;box-shadow:0 8px 16px rgba(0,0,0,.12)}
   .demo-bar.is-open .demo-panel{display:flex}
   .demo-group{flex-wrap:wrap}
   .demo-label{min-width:56px}
-  .demo-btn{height:32px;padding:0 12px}
+  .demo-btn,.demo-select{height:32px;padding:0 12px}
 }
 /* Findter app status: neutral badge (value of Expires on / Renew on, Products indexed and the Inactive state) */
 .st-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:8px;font-size:12px;line-height:16px;font-weight:550;background:#e3e3e3;color:#303030}
@@ -176,8 +185,8 @@ const navMain = [['Home', 'home'], ['Orders', 'order'], ['Products', 'product'],
 const item = ([label, icon]) => `<a class="sh-item" href="#" ${''}>${ic(icon)}<span class="sh-item__label">${label}</span></a>`;
 const appIcon = 'https://cdn.shopify.com/s/files/applications/393b6ef120968ea1931a5ec86b58d041_200x200.png?v=1753934348';
 const smartIcon = 'https://cdn.shopify.com/s/files/applications/f44b43e81ef89598c0de05c8ea6dcf80_200x200.png?v=1543569774';
-const subs = ['Filter', 'Search', 'Metafield', 'Year Make Model', 'Filter & product grid design', 'Advanced features'];
-const PAGE_LINKS = { Filter: 'filter.html', Search: 'search.html', Metafield: 'metafield.html', 'Year Make Model': 'ymm.html', 'Filter & product grid design': 'design.html', 'Advanced features': 'features.html' };
+const subs = ['Filter', 'Search', 'Metafield', 'Sort', 'Year Make Model', 'Filter & product grid design', 'Advanced features'];
+const PAGE_LINKS = { Filter: 'filter.html', Search: 'search.html', Metafield: 'metafield.html', Sort: 'sort.html', 'Year Make Model': 'ymm.html', 'Filter & product grid design': 'design.html', 'Advanced features': 'features.html' };
 const alertsData = [
   ['Permissions', 'Sep 7 at 2:34 PM', 'New collaborator request for your store', 'Review collaborator request from collaborator@example.com.', false],
   ['Billing', 'Sep 7 at 2:30 PM', 'Let us know if you’ve registered for a tax number', 'Update your billing settings if you have a tax number for your business.', true],

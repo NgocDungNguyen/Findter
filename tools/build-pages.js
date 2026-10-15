@@ -15,6 +15,7 @@ const PAGES = [
   { key: 'features', file: 'features.html', active: 'Advanced features', flat: true },
   { key: 'design', file: 'design.html', active: 'Filter & product grid design', flat: true },
   { key: 'pricing', file: 'pricing.html', active: 'Pricing', srcdoc: true },
+  { key: 'sort', file: 'sort.html', active: 'Sort', custom: true, script: 'assets/sort.js' },       // written by hand (no capture): ported from the app's Settings/SortBody.jsx
   { key: 'design-tab2', file: 'design-product-grid.html', active: 'Filter & product grid design', flat: true },
 ];
 // tabs that are separate pages
@@ -25,7 +26,7 @@ const CHEVRON = '<span type="chevron-right" class="pg-chevron" aria-hidden="true
 /* ---------- shared assets ---------- */
 const home = new JSDOM(fs.readFileSync(path.join(root, 'index.html'), 'utf8')).window.document;
 fs.mkdirSync(path.join(root, 'assets'), { recursive: true });
-const css = [...home.querySelectorAll('style')].map(s => s.textContent).join('\n') + '\n' + rd('build/pages.css');
+const css = [...home.querySelectorAll('style')].map(s => s.textContent).join('\n') + '\n' + rd('build/pages.css') + '\n' + rd('build/sort.css');
 fs.writeFileSync(path.join(root, 'assets', 'common.css'), css);
 
 // shell behaviour = the first part of the home script (nav, menus, search, Sidekick, chat); home-only features are stubbed
@@ -35,6 +36,7 @@ let shell = app.slice(0, cut).replace("'use strict';", "'use strict';\n  const u
 shell += '\n  window.__shell = { toast, closePops, openChatWith: (text, reply) => { toggleChat(true); sendChat(text); if (reply) setTimeout(() => replyChat(reply), 800); } };\n  applyNav();\n})();\n';
 fs.writeFileSync(path.join(root, 'assets', 'shell.js'), shell);
 fs.writeFileSync(path.join(root, 'assets', 'pages.js'), rd('build/pages.js'));
+fs.writeFileSync(path.join(root, 'assets', 'sort.js'), rd('build/sort.js'));
 fs.writeFileSync(path.join(root, 'assets', 'code-notice.js'), rd('build/code-notice.js'));
 
 /* ---------- shell pieces copied from index.html so every page stays in sync with it ---------- */
@@ -92,7 +94,12 @@ function pricingContent() {
   app.querySelectorAll('a[href]').forEach(a => { a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener noreferrer'); });      // the only link is the public docs page
   return app.outerHTML;
 }
+// Sort: header + the container sort.js fills (the page is drawn by script, like the app's SortBody)
+function sortContent() {
+  return '<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack so-page"><div class="fdt-header"><h1 class="fdt-header__title">Sort</h1><p class="fdt-header__description">Manage available sort options and customize their display order</p></div><div id="so-body"></div></div></div></main></div></div>';
+}
 function contentFor(p) {
+  if (p.custom) return sortContent();
   if (p.srcdoc) return pricingContent();
   if (p.flat) {
     const doc = new JSDOM(`<body>${rd(`cap/pages/${p.key}.flat.html`)}</body>`).window.document;
@@ -180,6 +187,8 @@ ${parts.toast}
 <script src="assets/code-notice.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/pages.js"></script>
+${p.script ? `<script src="${p.script}"></script>
+` : ''}
 </body>
 </html>
 `;
