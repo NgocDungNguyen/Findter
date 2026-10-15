@@ -1,0 +1,23 @@
+01.png  Homepage desktop: vị trí box Findter app status (Trial)
+02.png  Trial, còn hơn 7 ngày: Trial xanh dương, Expires on xanh dương, Products indexed xanh lá
+03.png  Trial, còn 7 ngày trở xuống: Expires on chuyển cam
+04.png  Trial chưa bắt đầu / đang tạm dừng: hiện Trial, không có dòng ngày
+05.png  Advanced trial (trial > 50,000 sản phẩm): badge cam, banner Store limit reached
+06.png  Plan trả phí: tên plan xanh lá, Renew on xanh lá, y = giới hạn của plan
+07.png  Plan trả phí, còn 7 ngày trở xuống: Renew on chuyển cam
+08.png  Plan đã cancel: Ends on + ngày cuối kỳ (xanh dương)
+09.png  Plan đã downgrade: giữ plan hiện tại, Renew on = ngày plan mới bắt đầu
+10.png  Plan trả phí vượt giới hạn: Products indexed cam, banner nhắc upgrade
+11.png  Plan không giới hạn sản phẩm: x / ∞
+12.png  Free: không có dòng ngày, y = 300
+13.png  Free (chưa từng trả phí) vượt 300: Products indexed cam, banner Store limit reached
+14.png  Free (từng trả phí, plan đã hết hạn) vượt 300: Products indexed cam, không có banner chung
+15.png  Development store: badge Development xanh dương, không có dòng ngày, y = 50,000
+16.png  Legacy: badge xám, không có dòng ngày
+17.png  Legacy / store cài trước 20/07/2026 vượt giới hạn: banner You're over your product limit
+18.png  Đạt 90% giới hạn: Products indexed vẫn xanh lá, banner You're almost at your product limit
+19.png  Đang sync: Products indexed cam dù chưa vượt giới hạn
+20.png  Ngôn ngữ tiếng Pháp: tên tháng đổi theo ngôn ngữ, ngày và năm giữ nguyên
+21.png  Ngôn ngữ tiếng Nhật: tên tháng đổi theo ngôn ngữ
+22.png  Mobile: box Findter app status ở đầu trang
+23.png  Thanh Demo data trên demo web: chọn loại store, trạng thái plan, số ngày, số sản phẩm, ngôn ngữ

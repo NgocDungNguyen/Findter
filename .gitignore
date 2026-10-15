@@ -21,3 +21,9 @@ tools/build/master-block-v3.js
 
 # the real (private) application code, cloned only for reading: never commit
 real-app/
+
+# customer store data exports (store domains): never commit, the repo is public
+theme_check/
+
+# Office lock files
+~$*
