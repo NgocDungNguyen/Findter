@@ -3,6 +3,7 @@
    Turning the switch on (build/watermark.js decides who sees the card, Master -> Features):
    - Trial / Free / other types, and a paid shop while a CSE is online: the chat opens with the shop's message and the support team asks
      "No" / "Yes, remove it". The switch stays on until the answer. No: nothing happens in the chat and the switch goes back off.
+     Only one question is open at a time: switching on again (also after switching off) just brings the chat back to it, no second message
      Yes: the badge is removed, the team confirms in the chat so a CSE can follow up, and the switch becomes a green "Removed" badge
    - a paid shop while no CSE is online (demo bar: CSE): no chat step, the switch becomes "Removed" at once
    The card follows the demo bar (Store, Badge, CSE) and Master's Save through FindterWatermark.onChange. */
@@ -24,16 +25,19 @@
       : '<input type="checkbox" class="pg-switch" role="switch" data-wm-switch aria-labelledby="wm-label"' + (pending ? ' checked' : '') + '>';
     host.innerHTML = CARD + '<div class="wm-row">' + label + control + '</div></div></div></div>';
   }
-  let asking = false;
+  let asking = false, awaiting = false;                                    // asking: the message is out, the question is not yet; awaiting: the question (No / Yes) is on screen unanswered
   function askInChat() {                                                   // the shop's message, then the support team's question with two answers
-    if (asking || !S) return; asking = true;
+    if (!S) return;
+    if (asking) return;
+    if (awaiting) { S.toggleChat(true); return; }                          // one request at a time: switching on again only brings the chat back to the open question, nothing is sent
+    asking = true;
     S.toggleChat(true); S.sendChat('Hi, I would like to remove the “Powered by Findter” badge from my storefront.');
     setTimeout(() => {
-      asking = false;
+      asking = false; awaiting = true;
       S.replyChoices('Sure, I can do that for you. Do you want me to remove the badge now?', [
-        ['No', () => { pending = false; render(); /* nothing happens in the chat */ }],
+        ['No', () => { awaiting = false; pending = false; render(); /* nothing happens in the chat */ }],
         ['Yes, remove it', answer => {
-          S.sendChat(answer); WM.setRemoved(true);
+          awaiting = false; S.sendChat(answer); WM.setRemoved(true);
           setTimeout(() => S.replyChat('I have already removed the “Powered by Findter” badge from your storefront. Is there anything else I can help you with?'), 800);
         }],
       ]);
@@ -45,6 +49,6 @@
     if (WM.isPaid() && !WM.cseOnline()) { WM.setRemoved(true); if (S) S.toast('The badge is removed from your storefront'); return; }   // nobody to confirm with
     pending = true; askInChat();
   });
-  window.addEventListener('findter:demo-reset', () => { pending = false; });   // the demo bar's Reset: start over
+  window.addEventListener('findter:demo-reset', () => { pending = false; awaiting = false; asking = false; });   // the demo bar's Reset: start over
   WM.onChange(render); render();
 })();

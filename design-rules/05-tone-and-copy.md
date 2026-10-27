@@ -15,7 +15,7 @@ Matches Shopify's Polaris content guidelines and BFS 4.2.1 / 4.3.
 - **Sentence case** for headings, buttons, labels, tabs, nav ("Add filter set", not "Add Filter Set").
 - Buttons start with a verb: Add, Save, Edit, Delete, Enable, Discard, Preview.
 - Numbers as digits; units spelled once and consistently; dates "Jan 5, 2026"; times with a clear time zone when it matters.
-- Oxford comma; no "&" in running text (the nav label "Filter & product grid design" is the existing app's name for a nav item only).
+- Oxford comma; no "&" in running text (the page title "Filter & product grid design" is the existing app's own name; the nav item is "Filter and grid design").
 - No emojis in the UI. No ALL CAPS.
 - Spell-check every heading, nav item and button (BFS 4.2.1 #1).
 

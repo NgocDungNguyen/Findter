@@ -13,13 +13,14 @@ const PAGES = [
   { key: 'search-booster', file: 'search-boost.html', active: 'Search', flat: true },
   { key: 'ymm', file: 'ymm.html', active: 'Year Make Model', flat: true },
   { key: 'features', file: 'features.html', active: 'Advanced features', flat: true },
-  { key: 'design', file: 'design.html', active: 'Filter & product grid design', flat: true },
+  { key: 'design', file: 'design.html', active: 'Filter and grid design', flat: true },
   { key: 'pricing', file: 'pricing.html', active: 'Pricing', srcdoc: true },
-  { key: 'sort', file: 'sort.html', active: 'Sort', custom: true, script: 'assets/sort.js' },       // written by hand (no capture): ported from the app's Settings/SortBody.jsx
+  { key: 'sort', file: 'sort.html', active: 'Custom sort', custom: true, script: 'assets/sort.js' },       // written by hand (no capture): ported from the app's Settings/SortBody.jsx
   { key: 'search-translation', file: 'search-translation.html', active: 'Search', custom: 'extra', script: 'assets/extra.js' },    // written by hand: ported from the app's pages/search/locales.jsx
   { key: 'search-synonym', file: 'search-synonym.html', active: 'Search', custom: 'extra', script: 'assets/extra.js' },        // ported from components/Synonym/*
   { key: 'filter-translate', file: 'filter-translate.html', active: 'Filter', custom: 'extra', script: 'assets/extra.js' },  // ported from pages/filter/set/[name]/translations.jsx + TranslationEditor.jsx
-  { key: 'design-tab2', file: 'design-product-grid.html', active: 'Filter & product grid design', flat: true },
+  { key: 'filter-set', file: 'filter-set.html', active: 'Filter', custom: 'extra', script: 'assets/extra.js' },                 // the filter set's own page (read-only Default filter set); its Translations button opens filter-translate.html
+  { key: 'design-tab2', file: 'design-product-grid.html', active: 'Filter and grid design', flat: true },
 ];
 // tabs that are separate pages
 const TAB_PAGES = { 'Manage filter set': 'filter.html', 'Collection booster': 'filter-boost.html', 'Search settings': 'search.html', 'Search booster': 'search-boost.html', 'Translations': 'search-translation.html', 'Synonyms Search': 'search-synonym.html', 'Filter design': 'design.html', 'Product grid design': 'design-product-grid.html' };
@@ -103,7 +104,7 @@ function pricingContent() {
 }
 // Sort: header + the container sort.js fills (the page is drawn by script, like the app's SortBody)
 function sortContent() {
-  return '<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack so-page"><div class="fdt-header"><h1 class="fdt-header__title">Sort</h1><p class="fdt-header__description">Manage available sort options and customize their display order</p></div><div id="so-body"></div></div></div></main></div></div>';
+  return '<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack so-page"><div class="fdt-header"><h1 class="fdt-header__title">Custom sort options</h1><p class="fdt-header__description">Manage available sort options and customize their display order <a class="fdt-header__link" href="' + GUIDE + 'advanced-features/custom-sort-options" target="_blank" rel="noopener noreferrer">Custom sort options guideline here</a></p></div><div id="so-body"></div></div></div></main></div></div>';
 }
 /* Search tabs: the capture only has "Search settings" and "Search booster"; the real app also shows Translations and Synonyms Search (pages/search/locales.jsx, synonym.jsx).
    active = the id of the tab to mark as current (new pages); omitted on the captured pages, which keep their own. */
@@ -126,7 +127,10 @@ function extraContent(p) {
   let head = '', tabs = '', kind = '';
   if (p.key === 'filter-translate') {
     kind = 'filter-translate';
-    head = `<div class="fdt-header"><div class="ex-titlebar"><a class="ex-back" href="filter.html" aria-label="Back"><span class="Polaris-Icon">${BACK_ICON}</span></a><h1 class="fdt-header__title">Translate Default filter set</h1></div><p class="fdt-header__description">Add translated labels for this filter set's options, values, and groups.</p>${guideLink(GUIDE + 'advanced-features/auto-translate', 'Multi-language filter value here')}</div>`;
+    head = `<div class="fdt-header"><div class="ex-titlebar ex-titlebar--split"><div class="ex-titlebar__l"><a class="ex-back" href="filter-set.html" aria-label="Back"><span class="Polaris-Icon">${BACK_ICON}</span></a><div class="ex-titlebar__text"><h1 class="fdt-header__title">Translate Default filter set</h1><p class="fdt-header__description">Add translated labels for this filter set's options, values, and groups. <a class="fdt-header__link" href="${GUIDE}advanced-features/auto-translate" target="_blank" rel="noopener noreferrer">Multi-language filter value guideline here</a></p></div></div></div></div>`;
+  } else if (p.key === 'filter-set') {
+    kind = 'filter-set';
+    head = `<div class="fdt-header"><div class="ex-titlebar ex-titlebar--split"><div class="ex-titlebar__l"><a class="ex-back" href="filter.html" aria-label="Back"><span class="Polaris-Icon">${BACK_ICON}</span></a><div><h1 class="fdt-header__title">Default filter set</h1>${guideLink(GUIDE + 'create-and-set-up-filters/filter-overview-and-access', 'Filter set guidelines here')}</div></div><a class="ex-btn" href="filter-translate.html">Translations</a></div></div>`;
   } else {
     const doc = new JSDOM(`<body>${rd('cap/pages/search.html')}</body>`).window.document, stack = doc.querySelector('s-stack');
     const inner = doc.createElement('div'); [...stack.childNodes].forEach(n => inner.appendChild(n));
@@ -137,7 +141,7 @@ function extraContent(p) {
     tabs = `<div class="Polaris-Layout">${tabSection.outerHTML}</div>`;
     head = translation
       ? `<div class="fdt-header"><h1 class="fdt-header__title">Search</h1>${guideLink(GUIDE + 'advanced-features/auto-translate', 'Multi-language search guideline here')}</div>`
-      : `<div class="fdt-header"><h1 class="fdt-header__title">Synonyms Search</h1><p class="fdt-header__description">Help customers find products even if they type typos, abbreviations, or similar words.</p>${guideLink(GUIDE + 'advanced-features/synonym-search', 'Synonyms search guideline here')}</div>`;
+      : `<div class="fdt-header"><h1 class="fdt-header__title">Synonyms Search</h1><p class="fdt-header__description">Help customers find products even if they type typos, abbreviations, or similar words. <a class="fdt-header__link" href="${GUIDE}advanced-features/synonym-search" target="_blank" rel="noopener noreferrer">Synonyms search guideline here</a></p></div>`;
   }
   return `<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack ex-page">${head}${tabs}<div id="ex-body" data-page="${kind}"></div></div></div></main></div></div>`;
 }
@@ -193,7 +197,8 @@ function chatWiring(p, doc, root) {
     case 'search': { mark(inBanner('Contact us'), 'search');
       const slot = doc.createElement('div'); slot.className = 'Polaris-Layout__Section'; slot.hidden = true; slot.setAttribute('data-wm-card', '');   // the "Remove “Powered by Findter” badge" card (watermark-card.js) goes between the info banner and "Search field"
       inBanner('Contact us').closest('.Polaris-Layout__Section').after(slot); break; }
-    case 'metafield': mark(root.querySelector('a.fdt-header__link:not([href])'), 'metafield'); break;            // "For additional metafields, please contact us"
+    case 'metafield': mark(root.querySelector('a.fdt-header__link:not([href])'), 'metafield');
+      root.querySelector('.fdt-header__description').insertAdjacentHTML('afterend', `<p class="fdt-header__description" data-mf-search-guide hidden><a class="fdt-header__link" href="${GUIDE}set-up-search-function/search-by-product-metafields" target="_blank" rel="noopener noreferrer">Search by metafield guideline here</a></p>`); break;     // shown only while Search by metafield is on (pages.js)            // "For additional metafields, please contact us"
     case 'features': mark(root.querySelector('.fdt-contact-us-link').closest('a'), 'feature'); break;            // "Contact us now" in the bottom banner
     case 'design': case 'design-tab2': contactBanner(doc, root, 'design'); break;                                 // both design tabs: under the tabs (replaces the bottom "Got feedback..." banner)
   }

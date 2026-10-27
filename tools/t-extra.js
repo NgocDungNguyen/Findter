@@ -38,7 +38,7 @@ let fails = 0; const ok = (name, cond, extra) => { if (!cond) fails++; console.l
 
   // Synonyms
   p = await open('search-synonym.html');
-  ok('Synonyms: title, sub text, guide link', await p.locator('h1').innerText() === 'Synonyms Search' && (await p.locator('.fdt-header__description').count()) === 2 && await guide(p, 'Synonyms search guideline here', G + 'synonym-search'));
+  ok('Synonyms: title, sub text, guide link', await p.locator('h1').innerText() === 'Synonyms Search' && (await p.locator('.fdt-header__description').count()) === 1 && (await p.locator('.fdt-header__description').innerText()).endsWith('similar words. Synonyms search guideline here') && await guide(p, 'Synonyms search guideline here', G + 'synonym-search'));
   ok('Synonyms: 3 rows', await p.locator('.ex-table tbody tr').count() === 3);
   await p.locator('.ex-info').hover(); await shot(p, 'synonym');
   await p.locator('tr[data-id="3"] [data-act=toggle]').click(); ok('Synonyms: toggle toast', (await p.locator('#toast').innerText()).includes('Change status success'));
@@ -52,14 +52,15 @@ let fails = 0; const ok = (name, cond, extra) => { if (!cond) fails++; console.l
   p = await open('filter-translate.html');
   ok('Translate: title + 2 sub lines', await p.locator('h1').innerText() === 'Translate Default filter set');
   const lines = await p.locator('.fdt-header__description').allInnerTexts();
-  ok('Translate: existing sub text then link line', lines[0] === "Add translated labels for this filter set's options, values, and groups." && lines[1] === 'Multi-language filter value here' && await guide(p, 'Multi-language filter value here', G + 'auto-translate'), lines.join(' / '));
+  ok('Translate: sub text with the guide link on the same line', lines.length === 1 && lines[0] === "Add translated labels for this filter set's options, values, and groups. Multi-language filter value guideline here" && await guide(p, 'Multi-language filter value guideline here', G + 'auto-translate'), lines.join(' / '));
   await shot(p, 'filter-translate');
-  await p.locator('input[data-k="o1:v:In stock"]').fill('En stock'); ok('Translate: save bar shows', await p.locator('.so-savebar').evaluate(e => !e.hidden));
+  await p.locator('input[data-k="o1:v:In Stock"]').fill('En stock'); ok('Translate: save bar shows', await p.locator('.so-savebar').evaluate(e => !e.hidden));
   await p.selectOption('#ex-lang', 'de'); ok('Translate: discard modal on language switch', await p.locator('.mf-modal').count() === 1);
   await p.locator('[data-m=cancel]').click();
   await p.locator('.so-sbtn--save').click(); ok('Translate: saved', (await p.locator('#toast').innerText()).includes('Save successfully') && await p.locator('.so-savebar').evaluate(e => e.hidden));
-  await p.locator('[data-o=o2]').click(); ok('Translate: expand Color', await p.locator('#ex-o-o2').isVisible());
-  await p.locator('a.ex-back').click(); await p.waitForURL(/filter\.html/); ok('Translate: back to filter.html', true);
+  ok('Translate: every option starts open', await p.locator('.ex-collapse:visible').count() === 4); await p.locator('[data-o=o2]').click(); ok('Translate: collapse Price', !(await p.locator('#ex-o-o2').isVisible()));
+  await p.locator('a.ex-back').click(); await p.waitForURL(/filter-set.html/); ok('Translate: back to filter-set.html', true);
+  ok('Filter set: 4 options, Translations button', (await p.locator('.ex-fo tbody tr').count()) === 4 && await p.locator('a.ex-btn', { hasText: 'Translations' }).getAttribute('href') === 'filter-translate.html');
 
   // phone width
   for (const f of ['search-translation.html', 'search-synonym.html', 'filter-translate.html']) {

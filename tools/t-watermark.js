@@ -14,18 +14,21 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.goto(url('index.html') + '#/master/features'); await p.waitForTimeout(400);
   ok(await p.locator('[data-panel=features] [data-wm-master]').isVisible(), 'Master → Features shows the badge setting');
   ok(await p.locator('[data-panel=load]').isHidden(), 'the empty "Load" panel is not shown on Features');
+  const heads = await p.$$eval('[data-panel=features] .prm-card > h2, [data-panel=features] .prm-card > .ft-head > h2', h => h.map(x => x.textContent));
+  ok(heads.join('|') === 'Features|Recommended Apps|Powered by Findter badge', 'the badge container comes after Features and Recommended Apps (' + heads.join('|') + ')');
+  ok(await p.locator('[data-wm-master] [data-wm-act=save]').count() === 1 && await p.locator('[data-wm-master] .Polaris-Button').count() === 1, 'the badge container has its own Save button, no Discard');
   ok(await p.locator('[data-wm=enabled]').isChecked(), 'feature is on by default');
   const types = await p.$$eval('[data-wm-type]', i => i.map(x => x.dataset.wmType + ':' + x.checked));
   ok(types.join() === 'Subscription:true,Development store:false,Trial:true,Paid before:true,Service:true,Free:true', 'six shop types, Development store unticked by default (' + types.join(' ') + ')');
   ok(await p.locator('[data-wm-act=save]').isDisabled(), 'Save is disabled until something changes');
   await p.uncheck('[data-wm-type="Free"]');
-  ok(await p.locator('[data-panel=features] .hl-status').isVisible() && await p.locator('[data-wm-act=save]').isEnabled(), 'a change shows "Unsaved changes" and enables Save');
-  await p.click('[data-wm-act=discard]'); ok(await p.locator('[data-wm-type="Free"]').isChecked(), 'Discard puts the saved value back');
+  ok(await p.locator('.mt-tab[data-tab=features].has-changes').count() === 1 && await p.locator('[data-wm-act=save]').isEnabled(), 'a change marks the tab and enables Save');
+  await p.check('[data-wm-type="Free"]'); ok(await p.locator('[data-wm-act=save]').isDisabled(), 'putting the saved value back disables Save again');
   await p.uncheck('[data-wm=enabled]'); ok(await p.locator('[data-wm-type="Free"]').isDisabled(), 'turning the feature off dims the shop types');
   await p.check('[data-wm=enabled]');
   for (const t of ['Subscription', 'Trial', 'Paid before', 'Service', 'Free']) await p.uncheck(`[data-wm-type="${t}"]`);
   ok(/at least one/.test(await p.textContent('[data-wm-err]')) && await p.locator('[data-wm-act=save]').isDisabled(), 'feature on with no shop type: error, Save disabled');
-  await p.click('[data-wm-act=discard]');
+  await p.reload(); await p.waitForTimeout(400);
 
   /* ---- Search settings card, per store type ---- */
   await p.goto(url('search.html')); await p.waitForTimeout(400);
@@ -99,6 +102,30 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.click('.demo-reset'); await p.waitForTimeout(150);
   ok(!(await p.locator('[data-wm-switch]').isChecked()), 'Reset also clears a request that was still waiting for an answer');
   await p.click('.chat-choice:has-text("No")'); await store('Free');
+
+  /* ---- a shop that spams the switch: one request at a time ---- */
+  const hi = () => p.getByText(/Hi, I would like to remove/).count();
+  await p.click('.demo-reset'); await p.waitForTimeout(150); await store('Free');
+  const h0 = await hi(), c0 = await p.locator('.chat-choices').count(), r0 = await p.getByText(/I have already removed/).count();   // the chat keeps what earlier checks put in it
+  for (let i = 0; i < 3; i++) { await p.click('[data-wm-switch]'); await p.waitForTimeout(40); await p.click('[data-wm-switch]'); await p.waitForTimeout(40); }
+  await p.click('[data-wm-switch]'); await p.waitForSelector('.chat-choice', { timeout: 3000 }); await p.waitForTimeout(1200);
+  ok(await p.locator('.chat-choices').count() === c0 + 1 && await hi() === h0 + 1, 'switching on and off many times: one message from the shop, one question with one pair of answers');
+  await p.click('[data-wm-switch]'); await p.click('[data-wm-switch]'); await p.waitForTimeout(300);
+  ok(await p.locator('.chat-choices').count() === c0 + 1 && await hi() === h0 + 1 && await p.locator('[data-wm-switch]').isChecked(), 'off, then on again while the question is open: nothing new is sent, the switch is on');
+  await p.click('.chat-choice:has-text("No")'); await p.waitForTimeout(200);
+  await p.click('[data-wm-switch]'); await p.waitForSelector('.chat-choice', { timeout: 3000 }); await p.waitForTimeout(1200);
+  ok(await p.locator('.chat-choices').count() === c0 + 1 && await hi() === h0 + 2, 'after No, switching on asks again (a new request)');
+  await p.click('.chat-choice:has-text("Yes, remove it")'); await p.waitForTimeout(1500);
+  ok(await p.getByText(/I have already removed/).count() === r0 + 1 && await p.locator('.wm-badge').isVisible(), 'Yes: one automatic reply, the badge is Removed');
+  await p.click('.demo-reset'); await p.waitForTimeout(150); await store('Free');
+
+  /* ---- Master -> Features on a phone: the chat launcher does not cover the Save button of the last container ---- */
+  const ph = await ctx.newPage(); ph.on('pageerror', e => errs.push('phone: ' + e.message)); await ph.setViewportSize({ width: 390, height: 800 });
+  await ph.goto(url('index.html') + '#/master/features'); await ph.waitForTimeout(500);
+  await ph.evaluate(() => { const sc = document.querySelector('.sh-scroll'); if (sc) sc.scrollTop = sc.scrollHeight; window.scrollTo(0, document.body.scrollHeight); }); await ph.waitForTimeout(300);
+  const hit = await ph.evaluate(() => { const s = document.querySelector('[data-wm-act=save]'), f = document.querySelector('.m-fab'); if (!s || !f) return 'missing'; const a = s.getBoundingClientRect(), c = f.getBoundingClientRect(); return !(a.right < c.left || a.left > c.right || a.bottom < c.top || a.top > c.bottom); });
+  ok(hit === false, 'phone: the chat launcher does not sit on the badge container Save button (' + hit + ')');
+  await ph.close();
 
   /* ---- sample storefront ---- */
   const sf = await ctx.newPage(); sf.on('pageerror', e => errs.push('storefront: ' + e.message));

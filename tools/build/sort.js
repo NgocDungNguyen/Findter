@@ -384,7 +384,6 @@
     if (e.target.closest('[data-b=save]')) onSaveClick();
     else if (e.target.closest('[data-b=discard]') && !saving) openDiscardModal();
   });
-  const guide = $('.fdt-header__link'); if (guide) guide.addEventListener('click', e => e.preventDefault());
   document.addEventListener('keydown', e => { if (e.key === 'Escape') hideTip(); });
 
   /* ---------- hook into the page-leave guard of pages.js (unsaved changes) ---------- */

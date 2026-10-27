@@ -23,7 +23,7 @@ const log = (...a) => console.log(...a);
   await p.locator('.ft-switch-btn:not(.disabled)').first().click(); log('Filter  toggle   :', before, '->', await sw.getAttribute('class'));
   log('Filter  disabled toggle stays:', await p.locator('.ft-switch-btn.disabled .slider-toggle').first().getAttribute('class'));
   await p.locator('button', { hasText: 'Add filter set' }).click(); log('Filter  add      :', await toast());
-  await p.locator('button[aria-label="Edit"]').first().click(); await p.waitForTimeout(100); log('Filter  edit     :', await toast());
+  await p.locator('button[aria-label="Edit"]').nth(1).click(); await p.waitForTimeout(100); log('Filter  edit     :', await toast());
   await p.locator('.Polaris-Tabs__Tab', { hasText: 'Collection booster' }).click(); await p.waitForTimeout(100); log('Filter  tab      :', await toast());
 
   /* Search page */

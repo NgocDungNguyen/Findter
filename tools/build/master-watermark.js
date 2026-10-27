@@ -1,7 +1,8 @@
   /* ======================================================================================================
-     Master -> Features: the "Powered by Findter" badge setting
-       - turns the badge on or off for everyone, and picks the shop types it applies to
-       - a draft until Save (like Master -> Home); Discard goes back to what is saved
+     Master -> Features: same page as the real app, with the "Powered by Findter" badge container added under "Recommended Apps"
+       - Features and Recommended Apps are static copies of what the real tab shows (nothing in them works here)
+       - the badge container: title, "Enable the badge" tickbox, "Apply to" shop types (each with its note, like Promotion), and its own Save button at the bottom of the container
+       - a draft until Save; the tab gets the orange dot while there is something unsaved
      The saved config is read by the Search settings card ("Remove “Powered by Findter” badge") and by the sample storefront (build/watermark.js).
      This file is spliced into app.js at build time (tools/build.js), so it shares that file's scope.
      ====================================================================================================== */
@@ -10,23 +11,32 @@
   const wmSame = (a, b) => a.enabled === b.enabled && a.types.length === b.types.length && a.types.every(t => b.types.includes(t));
   function wmDirty() { return !wmSame(wmDraft, WM.config()); }
   const wmCheck = (attrs, label, hint, on, off) => `<div class="prm-check"><label><input type="checkbox" ${attrs}${on ? ' checked' : ''}${off ? ' disabled' : ''}> <span>${label}</span></label>${hint ? `<span class="prm-hint">${hint}</span>` : ''}</div>`;
+  const FT_FEATURES = [['ymm', 'Year Make Model'], ['grouped_filter', 'Merged values group'], ['synonym_search', 'Synonym search'], ['custom_sort', 'Custom sort options'], ['advanced_search', 'Advanced search options'], ['translation', 'Multi-language filter & search'], ['advanced_variant_filter', 'Hide out-of-stock variant products'], ['variant_filter', 'Boost in-stock variant products'], ['sale_filter', 'Sale filter'], ['swatch_image', 'Image swatches filter'], ['market_currency', 'Local currency adaption'], ['multi_source', 'Multi-filters by one source'], ['filter_count_value', 'Filter value count'], ['collection_search', 'Search in collection'], ['search_within_filter', 'Search in filter']];
+  const ftActs = label => `<span class="ft-acts"><button type="button" class="ft-ico" data-ft-static aria-label="Edit ${label}">${PEN_ICON}</button><button type="button" class="ft-ico" data-ft-static aria-label="Delete ${label}">${BIN_ICON}</button></span>`;
+  const ftSave = `<div class="prm-foot"><button type="button" class="${BTN1} Polaris-Button--disabled" disabled>${btnText('Save')}</button></div>`;
+  const ftFeaturesCard = () => `<div class="prm-card"><div class="ft-head"><h2>Features</h2><button type="button" class="${BTN1}" data-ft-static>${btnText('Add new feature')}</button></div>`
+    + `<div class="prm-scroll"><div class="ft-table ft-table--features"><div class="ft-thead" aria-hidden="true"><span></span><span>Status</span><span>Thumbnail</span><span>Code</span><span>Name</span><span>Action</span></div>`
+    + FT_FEATURES.map(([code, name]) => `<div class="ft-row"><span class="prm-handle" aria-hidden="true">${DRAG_ICON}</span><span><input type="checkbox" class="ft-switch" role="switch" data-ft-static aria-label="${name}" checked></span><span><span class="ft-thumb"></span></span><span>${code}</span><span>${name}</span>${ftActs(name)}</div>`).join('')
+    + `</div></div>${ftSave}</div>`;
+  const ftAppsCard = () => `<div class="prm-card"><div class="ft-head"><h2>Recommended Apps</h2><button type="button" class="${BTN1}" data-ft-static>${btnText('Add new app')}</button></div>`
+    + `<div class="ft-box"><h3>Live Storefront Preview</h3><div class="ft-app"><span class="ft-thumb"></span><div><strong>Sample app</strong><span class="prm-chip">Sample</span></div><p>A sample recommended app</p><button type="button" class="${BTN2}" data-ft-static>${btnText('View app')}</button></div></div>`
+    + `<h3 class="ft-sub">Manage Apps</h3><div class="prm-scroll"><div class="ft-table ft-table--apps"><div class="ft-thead" aria-hidden="true"><span></span><span>Thumbnail</span><span>Name</span><span>Badge</span><span>Description</span><span>Action</span></div>`
+    + `<div class="ft-row"><span class="prm-handle" aria-hidden="true">${DRAG_ICON}</span><span><span class="ft-thumb"></span></span><span>Sample app</span><span>Sample</span><span>A sample recommended app</span>${ftActs('Sample app')}</div></div></div>${ftSave}</div>`;
   function renderWatermarkMaster() {
     wmDraft = WM.config();
-    panelFeat.innerHTML = `<div class="prm-edit" data-wm-master><div class="prm-card"><div class="hl-head"><div><h2>Powered by Findter badge</h2><p class="prm-note" style="margin:0">A small “Powered by Findter” text under the search suggestions on the storefront. A shop that is not in a ticked type below never sees the setting in its app and never gets the badge. Everything you change here is a draft until you click Save.</p></div><div class="hl-head__side"><span class="hl-status" hidden>Unsaved changes</span></div></div></div>`
-      + `<div class="prm-card"><h2>Feature</h2>${wmCheck('data-wm="enabled"', 'Enable the badge', 'Turn off to hide the badge and the setting for every shop.', wmDraft.enabled)}</div>`
-      + `<div class="prm-card" data-wm-types><h2>Apply to</h2><div class="prm-label">Shop types</div>`
+    panelFeat.innerHTML = ftFeaturesCard() + ftAppsCard()
+      + `<div class="prm-card" data-wm-master><h2>Powered by Findter badge</h2>${wmCheck('data-wm="enabled"', 'Enable the badge', '', wmDraft.enabled)}`
+      + `<div data-wm-types><div class="prm-label ft-apply">Apply to</div>`
       + WM.SHOP_TYPES.map(([n, d]) => wmCheck(`data-wm-type="${escHtml(n)}"`, n, d, wmDraft.types.includes(n), !wmDraft.enabled)).join('')
-      + `<span class="pm-err prm-err" data-wm-err></span><p class="prm-note">Each shop counts as exactly one type, checked in the order above. A shop with a paid plan is always “Subscription”. Every ticked type sees the same switch; turning it on opens the chat for a “Yes, remove it” answer, except a paid shop while no CSE is online, whose badge is removed at once. Keep “Development store” unticked so Shopify’s reviewers and testers do not see the setting.</p></div>`
-      + `<div class="prm-actions"><button type="button" class="${BTN2} Polaris-Button--disabled" data-wm-act="discard" disabled>${btnText('Discard changes')}</button><button type="button" class="${BTN1} Polaris-Button--disabled" data-wm-act="save" disabled>${btnText('Save')}</button></div></div>`;
+      + `<span class="pm-err prm-err" data-wm-err></span></div>`
+      + `<div class="prm-foot"><button type="button" class="${BTN1} Polaris-Button--disabled" data-wm-act="save" disabled>${btnText('Save')}</button></div></div>`;
     syncWatermarkMaster();
   }
   function syncWatermarkMaster() {
     const dirty = wmDirty(), bad = wmDraft.enabled && !wmDraft.types.length;
     const err = $('[data-wm-err]', panelFeat); err.textContent = bad ? 'Pick at least one shop type' : ''; err.classList.toggle('is-shown', bad);
     $$('[data-wm-type]', panelFeat).forEach(i => { i.disabled = !wmDraft.enabled; });
-    $('.hl-status', panelFeat).hidden = !dirty;
-    const save = $('[data-wm-act=save]', panelFeat), disc = $('[data-wm-act=discard]', panelFeat);
-    setBtn(save, !dirty || bad); setBtn(disc, !dirty);
+    setBtn($('[data-wm-act=save]', panelFeat), !dirty || bad);
     const tab = $('.mt-tab[data-tab=features]'); if (tab) tab.classList.toggle('has-changes', dirty);
   }
   panelFeat.addEventListener('change', e => {
@@ -36,7 +46,7 @@
     syncWatermarkMaster();
   });
   panelFeat.addEventListener('click', e => {
+    if (e.target.closest('[data-ft-static]')) { e.preventDefault(); toast('Only the Powered by Findter badge setting works in this copy'); return; }
     const b = e.target.closest('[data-wm-act]'); if (!b || b.disabled) return;
-    if (b.dataset.wmAct === 'save') { WM.saveConfig(wmDraft); syncWatermarkMaster(); toast('Saved. The setting and the badge follow this now'); }
-    else { wmDraft = WM.config(); renderWatermarkMaster(); }
+    WM.saveConfig(wmDraft); syncWatermarkMaster(); toast('Saved. The setting and the badge follow this now');
   });

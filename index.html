@@ -1585,6 +1585,30 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .prm-check .prm-hint{margin:0 0 0 24px}
 .prm-note{margin:14px 0 0;color:#616161;font-size:13px;line-height:20px}
 .prm-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:24px}
+.ft-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.ft-head h2{margin:0}
+.ft-table{min-width:640px;border:1px solid #e3e3e3;border-radius:12px;overflow:hidden}
+.ft-thead,.ft-row{display:grid;grid-template-columns:32px 72px 80px minmax(130px,1fr) minmax(150px,1.5fr) 108px;align-items:center;gap:10px;padding:0 12px;font-size:13px;line-height:20px}
+.ft-table--apps .ft-thead,.ft-table--apps .ft-row{grid-template-columns:32px 80px minmax(80px,1fr) minmax(80px,1fr) minmax(120px,1.6fr) 108px}
+.ft-thead{height:44px;font-weight:650;color:#303030}
+.ft-row{min-height:52px;border-top:1px solid #e3e3e3;background:#fff}
+.ft-thumb{display:block;width:34px;height:34px;border:1px solid #e3e3e3;border-radius:8px;background:#fafafa}
+.ft-acts{display:flex;justify-content:flex-end;gap:8px}
+.ft-ico{display:grid;place-items:center;width:34px;height:28px;border:1px solid #cfcfcf;border-radius:8px;background:#fff;color:#303030;cursor:pointer}
+.ft-ico:hover{background:#f7f7f7}
+.ft-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ft-switch{appearance:none;-webkit-appearance:none;position:relative;display:inline-block;flex:none;box-sizing:border-box;width:32px;height:16px;margin:4px 0;border-radius:9999px;border:1px solid #8a8a8a;background:#fdfdfd;cursor:pointer;vertical-align:middle}
+.ft-switch::before{content:"";position:absolute;top:50%;left:2px;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:#8a8a8a}
+.ft-switch:checked{background:#303030;border-color:transparent}
+.ft-switch:checked::before{background:#fff;transform:translateX(16px)}
+.ft-box{margin-top:4px;padding:12px;border:1px solid #e3e3e3;border-radius:12px}
+.ft-box h3,.ft-sub{margin:0 0 8px;font-size:13px;line-height:20px;font-weight:650}
+.ft-sub{margin-top:16px}
+.ft-app{display:flex;flex-wrap:wrap;align-items:center;gap:12px;font-size:13px;line-height:20px}
+.ft-app strong{display:block}
+.ft-app p{margin:0;color:#616161}
+.ft-apply{margin-top:12px;font-weight:550}
+@media (max-width:767px){[data-panel=features]{padding-bottom:96px}}   /* the chat launcher is fixed bottom-right (~84px) and would sit on the last container's Save button */
 
 </style>
 </head>
@@ -1610,7 +1634,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     <a class="sh-item sh-only-collapsed sh-appsrail" href="#/" data-nav="page" aria-current="page"><span class="ic " aria-hidden="true"><svg  viewBox="0 0 16 16"><path d="M11.75 1.75v5"></path><path d="M9.25 4.25h5"></path><rect width="5" height="5" x="1.75" y="9.25" rx="1.5"></rect><rect width="5" height="5" x="9.25" y="9.25" rx="1.5"></rect><rect width="5" height="5" x="1.75" y="1.75" rx="1.5"></rect></svg></span></a>
     <div class="sh-appgroup">
       <a class="sh-item sh-item--app" href="#/" data-nav="page" aria-current="page"><img class="sh-appicon" src="https://cdn.shopify.com/s/files/applications/393b6ef120968ea1931a5ec86b58d041_200x200.png?v=1753934348" alt=""><span class="sh-item__label">Findter Filter &amp; Search</span></a>
-      <a class="sh-item sh-item--sub" href="filter.html" data-nav="page"><span class="sh-item__label">Filter</span></a><a class="sh-item sh-item--sub" href="search.html" data-nav="page"><span class="sh-item__label">Search</span></a><a class="sh-item sh-item--sub" href="metafield.html" data-nav="page"><span class="sh-item__label">Metafield</span></a><a class="sh-item sh-item--sub" href="sort.html" data-nav="page"><span class="sh-item__label">Sort</span></a><a class="sh-item sh-item--sub" href="ymm.html" data-nav="page"><span class="sh-item__label">Year Make Model</span></a><a class="sh-item sh-item--sub" href="design.html" data-nav="page"><span class="sh-item__label">Filter & product grid design</span></a><a class="sh-item sh-item--sub" href="features.html" data-nav="page"><span class="sh-item__label">Advanced features</span></a>
+      <a class="sh-item sh-item--sub" href="filter.html" data-nav="page"><span class="sh-item__label">Filter</span></a><a class="sh-item sh-item--sub" href="search.html" data-nav="page"><span class="sh-item__label">Search</span></a><a class="sh-item sh-item--sub" href="metafield.html" data-nav="page"><span class="sh-item__label">Metafield</span></a><a class="sh-item sh-item--sub" href="sort.html" data-nav="page"><span class="sh-item__label">Custom sort</span></a><a class="sh-item sh-item--sub" href="ymm.html" data-nav="page"><span class="sh-item__label">Year Make Model</span></a><a class="sh-item sh-item--sub" href="design.html" data-nav="page"><span class="sh-item__label">Filter and grid design</span></a><a class="sh-item sh-item--sub" href="features.html" data-nav="page"><span class="sh-item__label">Advanced features</span></a>
       <a class="sh-item sh-item--sub sh-item--extra" href="#"><span class="sh-item__label">Analytics</span></a>
       <a class="sh-item sh-item--sub sh-item--extra" href="pricing.html" data-nav="page"><span class="sh-item__label">Pricing</span></a>
       <a class="sh-item sh-item--sub sh-item--master" href="#/master" data-nav="page"><span class="sh-item__label">Master</span></a>
@@ -2862,9 +2886,10 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   });
 
     /* ======================================================================================================
-     Master -> Features: the "Powered by Findter" badge setting
-       - turns the badge on or off for everyone, and picks the shop types it applies to
-       - a draft until Save (like Master -> Home); Discard goes back to what is saved
+     Master -> Features: same page as the real app, with the "Powered by Findter" badge container added under "Recommended Apps"
+       - Features and Recommended Apps are static copies of what the real tab shows (nothing in them works here)
+       - the badge container: title, "Enable the badge" tickbox, "Apply to" shop types (each with its note, like Promotion), and its own Save button at the bottom of the container
+       - a draft until Save; the tab gets the orange dot while there is something unsaved
      The saved config is read by the Search settings card ("Remove “Powered by Findter” badge") and by the sample storefront (build/watermark.js).
      This file is spliced into app.js at build time (tools/build.js), so it shares that file's scope.
      ====================================================================================================== */
@@ -2873,23 +2898,32 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   const wmSame = (a, b) => a.enabled === b.enabled && a.types.length === b.types.length && a.types.every(t => b.types.includes(t));
   function wmDirty() { return !wmSame(wmDraft, WM.config()); }
   const wmCheck = (attrs, label, hint, on, off) => `<div class="prm-check"><label><input type="checkbox" ${attrs}${on ? ' checked' : ''}${off ? ' disabled' : ''}> <span>${label}</span></label>${hint ? `<span class="prm-hint">${hint}</span>` : ''}</div>`;
+  const FT_FEATURES = [['ymm', 'Year Make Model'], ['grouped_filter', 'Merged values group'], ['synonym_search', 'Synonym search'], ['custom_sort', 'Custom sort options'], ['advanced_search', 'Advanced search options'], ['translation', 'Multi-language filter & search'], ['advanced_variant_filter', 'Hide out-of-stock variant products'], ['variant_filter', 'Boost in-stock variant products'], ['sale_filter', 'Sale filter'], ['swatch_image', 'Image swatches filter'], ['market_currency', 'Local currency adaption'], ['multi_source', 'Multi-filters by one source'], ['filter_count_value', 'Filter value count'], ['collection_search', 'Search in collection'], ['search_within_filter', 'Search in filter']];
+  const ftActs = label => `<span class="ft-acts"><button type="button" class="ft-ico" data-ft-static aria-label="Edit ${label}">${PEN_ICON}</button><button type="button" class="ft-ico" data-ft-static aria-label="Delete ${label}">${BIN_ICON}</button></span>`;
+  const ftSave = `<div class="prm-foot"><button type="button" class="${BTN1} Polaris-Button--disabled" disabled>${btnText('Save')}</button></div>`;
+  const ftFeaturesCard = () => `<div class="prm-card"><div class="ft-head"><h2>Features</h2><button type="button" class="${BTN1}" data-ft-static>${btnText('Add new feature')}</button></div>`
+    + `<div class="prm-scroll"><div class="ft-table ft-table--features"><div class="ft-thead" aria-hidden="true"><span></span><span>Status</span><span>Thumbnail</span><span>Code</span><span>Name</span><span>Action</span></div>`
+    + FT_FEATURES.map(([code, name]) => `<div class="ft-row"><span class="prm-handle" aria-hidden="true">${DRAG_ICON}</span><span><input type="checkbox" class="ft-switch" role="switch" data-ft-static aria-label="${name}" checked></span><span><span class="ft-thumb"></span></span><span>${code}</span><span>${name}</span>${ftActs(name)}</div>`).join('')
+    + `</div></div>${ftSave}</div>`;
+  const ftAppsCard = () => `<div class="prm-card"><div class="ft-head"><h2>Recommended Apps</h2><button type="button" class="${BTN1}" data-ft-static>${btnText('Add new app')}</button></div>`
+    + `<div class="ft-box"><h3>Live Storefront Preview</h3><div class="ft-app"><span class="ft-thumb"></span><div><strong>Sample app</strong><span class="prm-chip">Sample</span></div><p>A sample recommended app</p><button type="button" class="${BTN2}" data-ft-static>${btnText('View app')}</button></div></div>`
+    + `<h3 class="ft-sub">Manage Apps</h3><div class="prm-scroll"><div class="ft-table ft-table--apps"><div class="ft-thead" aria-hidden="true"><span></span><span>Thumbnail</span><span>Name</span><span>Badge</span><span>Description</span><span>Action</span></div>`
+    + `<div class="ft-row"><span class="prm-handle" aria-hidden="true">${DRAG_ICON}</span><span><span class="ft-thumb"></span></span><span>Sample app</span><span>Sample</span><span>A sample recommended app</span>${ftActs('Sample app')}</div></div></div>${ftSave}</div>`;
   function renderWatermarkMaster() {
     wmDraft = WM.config();
-    panelFeat.innerHTML = `<div class="prm-edit" data-wm-master><div class="prm-card"><div class="hl-head"><div><h2>Powered by Findter badge</h2><p class="prm-note" style="margin:0">A small “Powered by Findter” text under the search suggestions on the storefront. A shop that is not in a ticked type below never sees the setting in its app and never gets the badge. Everything you change here is a draft until you click Save.</p></div><div class="hl-head__side"><span class="hl-status" hidden>Unsaved changes</span></div></div></div>`
-      + `<div class="prm-card"><h2>Feature</h2>${wmCheck('data-wm="enabled"', 'Enable the badge', 'Turn off to hide the badge and the setting for every shop.', wmDraft.enabled)}</div>`
-      + `<div class="prm-card" data-wm-types><h2>Apply to</h2><div class="prm-label">Shop types</div>`
+    panelFeat.innerHTML = ftFeaturesCard() + ftAppsCard()
+      + `<div class="prm-card" data-wm-master><h2>Powered by Findter badge</h2>${wmCheck('data-wm="enabled"', 'Enable the badge', '', wmDraft.enabled)}`
+      + `<div data-wm-types><div class="prm-label ft-apply">Apply to</div>`
       + WM.SHOP_TYPES.map(([n, d]) => wmCheck(`data-wm-type="${escHtml(n)}"`, n, d, wmDraft.types.includes(n), !wmDraft.enabled)).join('')
-      + `<span class="pm-err prm-err" data-wm-err></span><p class="prm-note">Each shop counts as exactly one type, checked in the order above. A shop with a paid plan is always “Subscription”. Every ticked type sees the same switch; turning it on opens the chat for a “Yes, remove it” answer, except a paid shop while no CSE is online, whose badge is removed at once. Keep “Development store” unticked so Shopify’s reviewers and testers do not see the setting.</p></div>`
-      + `<div class="prm-actions"><button type="button" class="${BTN2} Polaris-Button--disabled" data-wm-act="discard" disabled>${btnText('Discard changes')}</button><button type="button" class="${BTN1} Polaris-Button--disabled" data-wm-act="save" disabled>${btnText('Save')}</button></div></div>`;
+      + `<span class="pm-err prm-err" data-wm-err></span></div>`
+      + `<div class="prm-foot"><button type="button" class="${BTN1} Polaris-Button--disabled" data-wm-act="save" disabled>${btnText('Save')}</button></div></div>`;
     syncWatermarkMaster();
   }
   function syncWatermarkMaster() {
     const dirty = wmDirty(), bad = wmDraft.enabled && !wmDraft.types.length;
     const err = $('[data-wm-err]', panelFeat); err.textContent = bad ? 'Pick at least one shop type' : ''; err.classList.toggle('is-shown', bad);
     $$('[data-wm-type]', panelFeat).forEach(i => { i.disabled = !wmDraft.enabled; });
-    $('.hl-status', panelFeat).hidden = !dirty;
-    const save = $('[data-wm-act=save]', panelFeat), disc = $('[data-wm-act=discard]', panelFeat);
-    setBtn(save, !dirty || bad); setBtn(disc, !dirty);
+    setBtn($('[data-wm-act=save]', panelFeat), !dirty || bad);
     const tab = $('.mt-tab[data-tab=features]'); if (tab) tab.classList.toggle('has-changes', dirty);
   }
   panelFeat.addEventListener('change', e => {
@@ -2899,9 +2933,9 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     syncWatermarkMaster();
   });
   panelFeat.addEventListener('click', e => {
+    if (e.target.closest('[data-ft-static]')) { e.preventDefault(); toast('Only the Powered by Findter badge setting works in this copy'); return; }
     const b = e.target.closest('[data-wm-act]'); if (!b || b.disabled) return;
-    if (b.dataset.wmAct === 'save') { WM.saveConfig(wmDraft); syncWatermarkMaster(); toast('Saved. The setting and the badge follow this now'); }
-    else { wmDraft = WM.config(); renderWatermarkMaster(); }
+    WM.saveConfig(wmDraft); syncWatermarkMaster(); toast('Saved. The setting and the badge follow this now');
   });
 
   addEventListener('beforeunload', e => { if (isDirty() || wmDirty()) { e.preventDefault(); e.returnValue = ''; } });

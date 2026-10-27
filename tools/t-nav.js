@@ -27,7 +27,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
     await p.locator('.Polaris-Tabs__Tab', { hasText: tab }).first().click(); await p.waitForTimeout(500);
     ok(p.url().endsWith('/' + target), `${f}: tab "${tab}" -> ${target}`);
   }
-  for (const [label, target] of [['Filter','filter.html'],['Search','search.html'],['Metafield','metafield.html'],['Year Make Model','ymm.html'],['Filter & product grid design','design.html'],['Advanced features','features.html']]) {
+  for (const [label, target] of [['Filter','filter.html'],['Search','search.html'],['Metafield','metafield.html'],['Year Make Model','ymm.html'],['Filter and grid design','design.html'],['Advanced features','features.html']]) {
     await p.goto(url('index.html')); await p.waitForTimeout(300);
     await p.locator('aside#nav .sh-item--sub', { hasText: label }).first().click(); await p.waitForTimeout(500);
     ok(p.url().endsWith('/' + target), `sidebar "${label}" -> ${target}`);

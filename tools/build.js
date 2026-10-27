@@ -186,8 +186,8 @@ const navMain = [['Home', 'home'], ['Orders', 'order'], ['Products', 'product'],
 const item = ([label, icon]) => `<a class="sh-item" href="#" ${''}>${ic(icon)}<span class="sh-item__label">${label}</span></a>`;
 const appIcon = 'https://cdn.shopify.com/s/files/applications/393b6ef120968ea1931a5ec86b58d041_200x200.png?v=1753934348';
 const smartIcon = 'https://cdn.shopify.com/s/files/applications/f44b43e81ef89598c0de05c8ea6dcf80_200x200.png?v=1543569774';
-const subs = ['Filter', 'Search', 'Metafield', 'Sort', 'Year Make Model', 'Filter & product grid design', 'Advanced features'];
-const PAGE_LINKS = { Filter: 'filter.html', Search: 'search.html', Metafield: 'metafield.html', Sort: 'sort.html', 'Year Make Model': 'ymm.html', 'Filter & product grid design': 'design.html', 'Advanced features': 'features.html' };
+const subs = ['Filter', 'Search', 'Metafield', 'Custom sort', 'Year Make Model', 'Filter and grid design', 'Advanced features'];
+const PAGE_LINKS = { Filter: 'filter.html', Search: 'search.html', Metafield: 'metafield.html', 'Custom sort': 'sort.html', 'Year Make Model': 'ymm.html', 'Filter and grid design': 'design.html', 'Advanced features': 'features.html' };
 const alertsData = [
   ['Permissions', 'Sep 7 at 2:34 PM', 'New collaborator request for your store', 'Review collaborator request from collaborator@example.com.', false],
   ['Billing', 'Sep 7 at 2:30 PM', 'Let us know if you’ve registered for a tax number', 'Update your billing settings if you have a tax number for your business.', true],

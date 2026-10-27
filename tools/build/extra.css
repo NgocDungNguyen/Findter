@@ -9,7 +9,7 @@
 .ex-sub{margin:0;font-size:13px;line-height:20px;color:var(--ex-sub)}
 .ex-label{font-size:13px;line-height:20px;color:var(--ex-text)}
 .ex-row-between{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.ex-page .fdt-header .fdt-header__description+.fdt-header__description{margin-top:0}
+.fdt-header .fdt-header__description+.fdt-header__description{margin-top:0}
 .ex-back{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin-right:4px;padding:0;border:0;border-radius:8px;background:transparent;cursor:pointer;color:#4a4a4a;text-decoration:none}
 .ex-back:hover{background:#f1f1f1}
 .ex-back .Polaris-Icon{width:20px;height:20px;margin:0}
@@ -18,9 +18,30 @@
 .ex-ic{display:inline-flex;width:20px;height:20px;flex:none}
 .ex-ic svg{width:20px;height:20px;fill:currentColor}
 
+/* Filter set page (filter-set.html) */
+.ex-titlebar--split{justify-content:space-between;align-items:flex-start;gap:12px}
+.ex-titlebar__l{display:flex;align-items:flex-start;min-width:0}
+.ex-titlebar__l .ex-back{margin-top:-2px}
+.ex-ro{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px;padding:6px 12px;border-radius:8px;background:#f1f1f1;color:#b5b5b5;font-size:13px;line-height:20px}
+.ex-ro--tags{flex-wrap:wrap;justify-content:flex-start;padding:8px 12px}
+.ex-ro .ex-tag{background:#e3e3e3;color:#9a9a9a}
+.ex-ro .ex-tag svg{width:12px;height:12px;fill:#b5b5b5}
+.ex-ro__ph{flex:1 1 100%}
+.ex-ro__n{color:#616161}
+.ex-fo th:first-child,.ex-fo td:first-child{width:40px;padding-right:0}
+.ex-fo-drag{display:inline-flex;color:#8a8a8a;cursor:grab}
+.ex-fo-drag svg{width:16px;height:16px;fill:currentColor}
+.ex-fo th:last-child,.ex-fo td:last-child{text-align:right;width:1%}
+.ex-fo .ex-actions-cell{justify-content:flex-end}
+.ex-fo .ex-tablewrap,.ex-tablewrap.ex-fo{margin-top:12px}
+.ex-table.ex-fo-t{min-width:480px}
+.ex-iconbtn--box{border:1px solid #d6d6d6;background:#fff}
+
 /* buttons (Polaris look; own class so the demo's generic Polaris-Button handler does not toast) */
 .ex-btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:28px;padding:6px 12px;border:0;border-radius:8px;background:#fff;color:var(--ex-text);font:inherit;font-size:13px;line-height:16px;font-weight:550;cursor:pointer;box-shadow:0 0 0 1px rgba(26,26,26,.15) inset,0 1px 0 rgba(26,26,26,.07)}
 .ex-btn:hover{background:#fafafa}
+a.ex-btn{text-decoration:none}
+.ex-titlebar__text{display:flex;flex-direction:column;gap:4px;min-width:0}
 .ex-btn--primary{background:#303030;color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.25) inset}
 .ex-btn--primary:hover{background:#1a1a1a}
 .ex-btn:disabled{opacity:.5;cursor:not-allowed}

@@ -12,7 +12,7 @@ const svg = (w, h, c, t) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}
   let popups = 0; ctx.on('page', () => { popups++; });
   const p = await ctx.newPage(); p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type() === 'error' && !/ERR_|Failed to load/.test(m.text()) && errs.push(m.text()));
   const goHome = async () => { await p.goto(url + '#/'); await p.waitForTimeout(500); };
-  const plan = async name => { await p.click(`.demo-btn[data-key=plan][data-val="${name}"]`); await p.waitForTimeout(150); };
+  const plan = async name => { await p.selectOption('.demo-select[data-key=plan]', name); await p.waitForTimeout(150); };
   const promoVisible = () => p.locator('[data-card=promotion]').isVisible().catch(() => false);
   const recVisible = async () => (await p.locator('[data-card=rec] .Polaris-Box').first().isVisible());
   const box = sel => p.evaluate(s => { const e = document.querySelector(s); if (!e) return null; const r = e.getBoundingClientRect(); return { w: +r.width.toFixed(2), h: +r.height.toFixed(2), top: r.top, left: r.left }; }, sel);

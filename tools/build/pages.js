@@ -58,6 +58,7 @@
     const alt = promo.alt.replace(/&/g, '&amp;').replace(/"/g, '&quot;');      // the copy has quotes ("No results")
     box.innerHTML = `<button type="button" class="pr-banner__link" aria-label="${alt} Opens a chat."><picture><source media="(max-width: 767.98px)" srcset="${promo.mobile}"><img src="${promo.desktop}" alt="${alt}" width="966" height="160" decoding="async"></picture></button><button type="button" class="pr-banner__x" aria-label="Dismiss"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94z"></path></svg></button>`;
     card.insertAdjacentElement('afterend', box);
+    if (parseFloat(getComputedStyle(card.parentElement).rowGap) > 0) box.style.marginTop = '0';   // the parent already puts 16px between its blocks: do not add the banner's own 16px on top
     let lastSent = 0;
     $('.pr-banner__link', box).addEventListener('click', () => {
       if (Date.now() - lastSent < 10000) return;                               // anti-spam: one message per 10 s
@@ -245,6 +246,7 @@
     /* --- index banner: yellow while the app collects the values, green when it is done --- */
     const section = $('.Polaris-Layout__Section > .Polaris-BlockStack'); const bannerBox = document.createElement('div'); bannerBox.setAttribute('data-mfp', ''); if (section) section.prepend(bannerBox);
     function renderBanner() {
+      const guide = $('[data-mf-search-guide]'); if (guide) guide.hidden = !searchIdsOf(mfsLoad()).length;   // "Search by metafield guideline here": only while a saved metafield is searchable
       const i = idxLoad(), pending = i.pendingUntil > Date.now();
       if (pending && !hidePending) bannerBox.innerHTML = `<div class="mf-banner mf-banner--warn" role="status"><div class="mf-banner__head"><span class="mf-banner__icon">${ICON_ALERT}</span><strong>Collecting data</strong><button type="button" class="mf-banner__x" data-banner="hide" aria-label="Dismiss">${ICON_CLOSE}</button></div><p class="mf-banner__body">We are collecting metafield values, please wait.</p></div>`;
       else if (!pending && i.notice === 'done') bannerBox.innerHTML = `<div class="mf-banner mf-banner--ok" role="status"><span class="mf-banner__icon">${ICON_OK}</span><span class="mf-banner__text">Data indexing is completed. You can use selected metafields in <a href="filter.html">filter</a> and <a href="search.html">search</a> now.</span><button type="button" class="mf-banner__x" data-banner="done" aria-label="Dismiss">${ICON_CLOSE}</button></div>`;
@@ -928,6 +930,8 @@
     const prev = t.closest('.display-features-card-preview');                 // features: click on a preview opens the big viewer in the original
     if (prev) { soon('Feature preview'); return; }
 
+    const setRow = t.closest('.manage-filter-set-table tbody tr');            // the Default filter set opens its own page (Edit button or its name); the other sets are not built
+    if (setRow && /^Default filter set$/.test(text($('.filter-set-table-name-column', setRow))) && t.closest('button[aria-label="Edit"], .filter-set-table-name-column a')) { location.href = 'filter-set.html'; return; }
     const act = t.closest('button[aria-label="Edit"], button[aria-label="Duplicate"], button[aria-label="Delete"]');
     if (act) { soon(act.getAttribute('aria-label') + ' filter set'); return; }
 
@@ -964,7 +968,7 @@
 
   /* ---------- DataTable: on narrow screens it "condenses" into a sideways scroller with arrows + dots ---------- */
   function tables() { return $$('.Polaris-DataTable').map(dt => ({ dt, wrap: dt.parentElement, nav: $('.Polaris-DataTable__Navigation', dt.parentElement), sc: $('.Polaris-DataTable__ScrollContainer', dt), table: $('table', dt) })).filter(x => x.nav && x.sc); }
-  const colsOf = x => $$('thead th', x.table);
+  function colsOf(x) { return $$('thead th', x.table); }   // a function, not a const: the metafield column handler above calls layoutTable before this line runs
   function layoutTable(x) {
     x.wrap.classList.remove('Polaris-DataTable--condensed'); x.dt.classList.remove('Polaris-DataTable--condensed');
     const needs = x.table.scrollWidth > x.sc.clientWidth + 1;

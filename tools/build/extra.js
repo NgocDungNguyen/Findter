@@ -180,13 +180,18 @@
   function filterTranslatePage() {
     const KEY = 'findter.filterTranslations.v1';
     const LANGS = [['fr', 'French'], ['de', 'German']];
+    // the Default filter set of the demo store; French and German come from the shop's native Shopify translations (only Color has them), so the other boxes show the original text
     const OPTIONS = [
-      { id: 'o1', label: 'Availability', groups: [], values: ['In stock', 'Out of stock'] },
-      { id: 'o2', label: 'Color', groups: [{ id: 'g1', label: 'Warm colors', values: ['Red', 'Orange'] }], values: ['Blue', 'Black'] },
-      { id: 'o3', label: 'Product type', groups: [], values: ['T-shirts', 'Hoodies', 'Jackets'] },
+      { id: 'o1', label: 'Availability', groups: [], values: ['In Stock', 'Out of Stock'] },
+      { id: 'o2', label: 'Price', groups: [], values: ['0-10', 'Above 10'] },
+      { id: 'o3', label: 'Color', groups: [], values: ['Dawn', 'Electric', 'Ice', 'Powder', 'Sunset', 'Special Selling Plans Ski Wax Special Selling Plans Ski Wax'] },
+      { id: 'o4', label: 'Size', groups: [], values: ['154cm', '158cm', '160cm'] },
     ];
-    const SUGGEST = { fr: { 'In stock': 'En stock', 'Out of stock': 'Rupture de stock', Red: 'Rouge', Blue: 'Bleu', Black: 'Noir', Availability: 'Disponibilité', Color: 'Couleur' }, de: { 'In stock': 'Auf Lager', 'Out of stock': 'Nicht vorrätig', Red: 'Rot', Blue: 'Blau', Black: 'Schwarz', Availability: 'Verfügbarkeit', Color: 'Farbe' } };
-    let locale = LANGS[0][0], all = load(KEY, {}), fields = clone(all[locale] || {}), initial = clone(fields), expanded = new Set(['o1']), resyncing = false;
+    const SUGGEST = {
+      fr: { Color: 'Couleur', Dawn: 'Aube', Electric: 'Électrique', Ice: 'Glace', Powder: 'Poudre', Sunset: 'Coucher de soleil', 'Special Selling Plans Ski Wax Special Selling Plans Ski Wax': 'Plans de vente spéciaux fart de ski Plans de vente spéciaux fart de ski' },
+      de: { Color: 'Farbe', Dawn: 'Morgendämmerung', Electric: 'Elektrisch', Ice: 'Eis', Powder: 'Pulver', Sunset: 'Sonnenuntergang' },
+    };
+    let locale = LANGS[0][0], all = load(KEY, {}), fields = clone(all[locale] || {}), initial = clone(fields), expanded = new Set(OPTIONS.map(o => o.id)), resyncing = false;
     const edited = () => JSON.stringify(fields) !== JSON.stringify(initial);
     const field = (key, label, ph) => `<input class="mf-input" autocomplete="off" aria-label="${esc(label)}" data-k="${esc(key)}" placeholder="${esc((SUGGEST[locale] || {})[ph] || ph)}" value="${esc(fields[key] || '')}">`;
     const valueRow = (oid, v) => `<div class="ex-trow"><span class="ex-tlabel">${esc(v)}</span>${field(oid + ':v:' + v, 'Value label translation', v)}</div>`;
@@ -225,7 +230,25 @@
     render();
   }
 
-  ({ translations: translationsPage, synonyms: synonymsPage, 'filter-translate': filterTranslatePage }[page] || (() => {}))();
+  /* ===================== Filter set (the set's own page, read-only for the Default filter set): Translations button -> filter-translate.html ===================== */
+  function filterSetPage() {
+    const OPTS = [['Availability', 'Availability', 'Checklist'], ['Price', 'Price', 'Slider'], ['Color', 'Color', 'Box'], ['Size', 'Size', 'Box']];
+    const NAME = 'Default filter set', TAGS = ['All Collections', 'All Collections in Search Result Page'];
+    const grip = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.5" cy="3.5" r="1.25"/><circle cx="10.5" cy="3.5" r="1.25"/><circle cx="5.5" cy="8" r="1.25"/><circle cx="10.5" cy="8" r="1.25"/><circle cx="5.5" cy="12.5" r="1.25"/><circle cx="10.5" cy="12.5" r="1.25"/></svg>';
+    body.innerHTML = `<section class="ex-card"><div class="ex-col">
+        <h2 class="ex-h">Filter set information</h2>
+        <div class="ex-field"><span class="ex-label">Name</span><div class="ex-ro" aria-disabled="true"><span>${esc(NAME)}</span><span class="ex-ro__n">${NAME.length}/40</span></div></div>
+        <div class="ex-field"><span class="ex-label">Collection</span><div class="ex-ro ex-ro--tags" aria-disabled="true">${TAGS.map(t => `<span class="ex-tag ex-tag--static">${esc(t)}<span class="ex-ic">${ICON.close}</span></span>`).join('')}<span class="ex-ro__ph">Search for collections</span></div><p class="ex-sub">Select the collections where this filter set will display</p></div>
+      </div></section>
+      <section class="ex-card"><div class="ex-row-between"><h2 class="ex-h">Filter options</h2><button type="button" class="ex-btn ex-btn--primary" data-act="add">Add filter option</button></div>
+        <div class="ex-tablewrap ex-fo"><table class="ex-table ex-fo-t"><thead><tr><th><span class="Polaris-Text--visuallyHidden">Reorder</span></th><th>Label</th><th>Source</th><th>Display type</th><th>Actions</th></tr></thead><tbody>
+          ${OPTS.map(([label, source, type]) => `<tr><td><span class="ex-fo-drag" aria-hidden="true">${grip}</span></td><td>${esc(label)}</td><td>${esc(source)}</td><td>${esc(type)}</td><td><div class="ex-actions-cell"><button type="button" class="ex-iconbtn ex-iconbtn--box" data-act="edit" aria-label="Edit ${esc(label)}">${icon('edit')}</button><button type="button" class="ex-iconbtn ex-iconbtn--box" data-act="delete" aria-label="Delete ${esc(label)}">${icon('del')}</button></div></td></tr>`).join('')}
+        </tbody></table></div></section>
+      <div class="ex-actions"><button type="button" class="ex-btn ex-btn--primary" disabled>Save</button></div>`;
+    body.addEventListener('click', e => { if (e.target.closest('[data-act]')) showToast('Editing filter options is not part of this copy'); });
+  }
+
+  ({ 'filter-set': filterSetPage, translations: translationsPage, synonyms: synonymsPage, 'filter-translate': filterTranslatePage }[page] || (() => {}))();
 })();
 
 // phone: bring the current Search tab into view in the sideways-scrolling tab row (after fonts and layout settle)

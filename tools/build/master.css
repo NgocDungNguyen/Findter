@@ -239,3 +239,27 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .prm-check .prm-hint{margin:0 0 0 24px}
 .prm-note{margin:14px 0 0;color:#616161;font-size:13px;line-height:20px}
 .prm-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:24px}
+.ft-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.ft-head h2{margin:0}
+.ft-table{min-width:640px;border:1px solid #e3e3e3;border-radius:12px;overflow:hidden}
+.ft-thead,.ft-row{display:grid;grid-template-columns:32px 72px 80px minmax(130px,1fr) minmax(150px,1.5fr) 108px;align-items:center;gap:10px;padding:0 12px;font-size:13px;line-height:20px}
+.ft-table--apps .ft-thead,.ft-table--apps .ft-row{grid-template-columns:32px 80px minmax(80px,1fr) minmax(80px,1fr) minmax(120px,1.6fr) 108px}
+.ft-thead{height:44px;font-weight:650;color:#303030}
+.ft-row{min-height:52px;border-top:1px solid #e3e3e3;background:#fff}
+.ft-thumb{display:block;width:34px;height:34px;border:1px solid #e3e3e3;border-radius:8px;background:#fafafa}
+.ft-acts{display:flex;justify-content:flex-end;gap:8px}
+.ft-ico{display:grid;place-items:center;width:34px;height:28px;border:1px solid #cfcfcf;border-radius:8px;background:#fff;color:#303030;cursor:pointer}
+.ft-ico:hover{background:#f7f7f7}
+.ft-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ft-switch{appearance:none;-webkit-appearance:none;position:relative;display:inline-block;flex:none;box-sizing:border-box;width:32px;height:16px;margin:4px 0;border-radius:9999px;border:1px solid #8a8a8a;background:#fdfdfd;cursor:pointer;vertical-align:middle}
+.ft-switch::before{content:"";position:absolute;top:50%;left:2px;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:#8a8a8a}
+.ft-switch:checked{background:#303030;border-color:transparent}
+.ft-switch:checked::before{background:#fff;transform:translateX(16px)}
+.ft-box{margin-top:4px;padding:12px;border:1px solid #e3e3e3;border-radius:12px}
+.ft-box h3,.ft-sub{margin:0 0 8px;font-size:13px;line-height:20px;font-weight:650}
+.ft-sub{margin-top:16px}
+.ft-app{display:flex;flex-wrap:wrap;align-items:center;gap:12px;font-size:13px;line-height:20px}
+.ft-app strong{display:block}
+.ft-app p{margin:0;color:#616161}
+.ft-apply{margin-top:12px;font-weight:550}
+@media (max-width:767px){[data-panel=features]{padding-bottom:96px}}   /* the chat launcher is fixed bottom-right (~84px) and would sit on the last container's Save button */

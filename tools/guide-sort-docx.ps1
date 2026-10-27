@@ -1,4 +1,4 @@
-# Builds "CSE Guide_ Sort by options (v3).docx" from the screenshots made by guide-sort-shots.js.
+# Builds "CSE Guide_ Sort by options (v4).docx" from the screenshots made by guide-sort-shots.js.
 # Frame (styles, numbering, footer) = "CSE Guide_ Search by Metafield (v2).docx". Run from PowerShell:
 #   $s=[IO.File]::ReadAllText('<this file>',[Text.Encoding]::UTF8); Invoke-Expression $s
 $ErrorActionPreference = 'Stop'
@@ -9,7 +9,7 @@ Add-Type -AssemblyName System.Drawing
 $root = 'C:\Users\BSS GROUP\New_Homepage'
 $img = Join-Path $root 'docs\cse-guides\sort-by-options\img'
 $template = Join-Path $root 'CSE Guide_ Search by Metafield (v2).docx'
-$outFile = Join-Path $root 'CSE Guide_ Sort by options (v3).docx'
+$outFile = Join-Path $root 'CSE Guide_ Sort by options (v4).docx'
 $work = Join-Path $env:TEMP 'sort-guide-build'
 $footerTitle = 'CSE Guide: Sort by options'
 
@@ -81,25 +81,41 @@ function Banner([string]$kicker, [string]$title, [string]$sub) {
 $b = New-Object Text.StringBuilder
 function Add([string]$x) { [void]$script:b.Append($x) }
 
-Add (Banner 'HƯỚNG DẪN CSE' 'Sort by options' 'Dành cho đội CSE  ·  Cập nhật 14/10/2026')
+Add (Banner 'HƯỚNG DẪN CSE' 'Sort by options' 'Dành cho đội CSE  ·  Cập nhật 22/10/2026')
 Add (Para 'Sort by options cho phép chọn **option nào hiện** trong ô Sort by ở **Collection page** và **Search result page**, **đổi vị trí**, **đổi tên** và chọn **sort mặc định** cho từng trang. Tính năng cần **unlock** trước.')
 
 Add (H1 'Tóm tắt nhanh')
 Add (Tbl @(2500, 7138) @(
     @('Tính năng', 'Bật/tắt, đổi vị trí, đổi tên các option Sort by và chọn sort mặc định cho Collection page và Search result page'),
-    @('Cần unlock ở', '**C1: Master** → nhập store URL → **Feature** → dòng **Custom Sort** → **Unlock** (CSE unlock, khách không tự bật). **C2**: vào **Advanced features** để unlock'),
+    @('Cần unlock ở', '**C1: Master** → nhập store URL → **Feature** → dòng **Custom Sort** → **Unlock** (CSE unlock, khách không tự bật). **Nên dùng C1**: chỉ C1 mới bật cờ Sort trên storefront và tạo sẵn cấu hình mặc định. **C2** (Advanced features) cần dev xác nhận trước khi dùng, xem lưu ý ở mục 1'),
     @('Cài ở đâu', 'Menu **Sort** trong app (chỉ hiện sau khi unlock)'),
     @('Sau khi unlock', 'Có **11 option**, **bật sẵn 4**: Relevance, What''s new?, Price low to high, Price high to low. Sort mặc định: Collection = What''s new?, Search = Relevance'),
     @('Chỉ dùng được ở 1 trang', '**Relevance** chỉ ở Search. **Featured** chỉ ở Collection'),
     @('Featured cần Collection Manual Sorting', '**Store cũ chưa unlock Collection Manual Sorting → không hiển thị option Featured** trong list Sort by option (đúng thiết kế). **Store mới cài app tự được unlock Collection Manual Sorting → hiển thị option Featured** trong list Sort by option (đúng thiết kế). **Store đã uninstall rồi cài lại = store cũ**: CSE bật thủ công trong Master → Feature nếu khách cần'),
-    @('Sau khi lưu', 'Nhấn **Save** trên thanh trên cùng. Không cần chờ index, tải lại storefront để kiểm tra')
+    @('Sau khi lưu', 'Nhấn **Save** trên thanh trên cùng. Không cần chờ index, tải lại storefront để kiểm tra'),
+    @('Công cụ kiểm tra Featured', 'Trong Shopify admin, trang chi tiết collection → **More actions** → **Findter index**: xem chế độ sort đã index, lần index gần nhất và nút **Reindex sorting** (xem mục 4)')
 ) $false $true)
+
+Add (H1 'Có gì mới (cập nhật 22/10/2026)')
+Add (Para 'Bổ sung cho bản release Sort by options đầu tiên (findter-snf-705 và 711). Tất cả cùng ticket #535.')
+Add (Tbl @(2900, 3700, 3038) @(
+    @('Thay đổi', 'Trước', 'Bây giờ'),
+    @('**Best selling gộp vào Featured**', 'Có 2 option Best selling và Featured cùng sắp xếp theo thứ tự collection, chỉ dùng được 1 trong 2', 'Chỉ còn **Featured**. Store đang bật Best selling được chuyển thành Featured (bật, giữ vị trí và sort mặc định Collection). Tên khách đã đổi cho Best selling được giữ. Dữ liệu cũ được lưu lại khi khách Save trang Sort lần sau'),
+    @('**Link cũ sort=best_selling**', 'Là một option riêng', 'Mở ra với **Featured** được chọn. Sort mặc định Search từng đặt Best selling thì về **Relevance**'),
+    @('**Featured chỉ khi store có Collection Manual Sorting**', 'Featured luôn hiện trong bảng', 'Store chưa có thì **ẩn Featured** ở bảng, ô Default và storefront. Cấu hình đã lưu được giữ nguyên'),
+    @('**Hỗ trợ collection đặt Most relevant**', 'Chỉ collection Manual và Best selling mới lấy được thứ tự collection', 'Collection đặt **Most relevant** trong Shopify cũng được lấy thứ tự cho Featured'),
+    @('**Mất dropdown Sort By trên storefront**', 'Store bật Custom Sort nhưng chưa từng Save trang Sort thì storefront mất dropdown', 'Storefront dùng 4 option mặc định (Relevance, What''s new?, Price low to high, Price high to low) cho tới khi khách Save. Cấu hình bị tắt hết từ phía dev / Master thì vẫn không có dropdown (đúng thiết kế; trang Sort của khách không cho tắt hết)'),
+    @('**Store cài mới**', 'Phải nhờ CSE bật Collection Manual Sorting', 'Tự được bật sẵn. Store uninstall rồi cài lại vẫn tính là store cũ'),
+    @('**Mô tả đầu trang Sort**', 'Có link “guideline here”', 'Chỉ còn dòng chữ “Manage available sort options and customize their display order”. Link sẽ thêm khi có User Guide')
+) $true $false)
 
 Add (H1 '1. Cách cài')
 Add (Step '**C1: Unlock Custom Sort.** Mở **Master** → nhập store URL của khách → mở rộng mục **Feature** → ở dòng **Custom Sort** nhấn **Unlock**.' 1)
 Add (Placeholder 'Master → Feature → dòng Custom Sort (đang Locked) → nút Unlock (giữ ảnh gốc trong Google Doc)' 'Dòng Custom Sort trong Master → Feature')
-Add (Step '**C2: Unlock qua Advanced features.** Mở **Advanced features** → thẻ Custom Sort → **Click to enable**.' 1)
+Add (Callout 'Sau khi Unlock ở Master:' 'App bật cờ Sort trên storefront (metafield disable_sort_legacy = 1) và tạo sẵn cấu hình mặc định (4 option bật). Tắt (Lock) thì cờ này về 0 và storefront quay lại bộ sort cũ.' 'info')
+Add (Step '**C2: Unlock qua Advanced features (cần dev xác nhận trước khi dùng).** Mở **Advanced features** → thẻ Custom Sort → **Click to enable**.' 1)
 Add (Placeholder 'Advanced features → Click to enable (giữ ảnh gốc trong Google Doc)' 'Click to enable trong Advanced features')
+Add (Callout 'Cần xác nhận với dev:' 'Theo code hiện tại, bật feature từ Advanced features chỉ cấp quyền custom_sort. Nó **không** ghi cờ storefront (disable_sort_legacy) và không tạo cấu hình mặc định như Master. Hậu quả có thể gặp: menu Sort đã hiện nhưng storefront vẫn dùng bộ sort cũ (3 option). Nếu khách bật theo C2 mà storefront không đổi, hãy dùng C1 (Master → Unlock) để bật lại.' 'warn')
 Add (Step '**Mở trang Sort.** Tải lại app, menu **Sort** xuất hiện ở sidebar. Nhấn vào.' 1)
 Add (Figure 'sort_01_menu' 'Menu Sort trong sidebar của app')
 Add (Step '**Làm quen với trang.** Dưới tiêu đề là dòng mô tả “Manage available sort options and customize their display order”. Trang có 2 phần: **Default sort by value** (1) ở trên và bảng option ở dưới.' 1)
@@ -142,7 +158,7 @@ Add (Tbl @(2100, 3338, 1000, 3200) @(
     @('Old to New', 'By created date, oldest first', 'Off', 'Collection và Search'),
     @('Sale low to high', 'By sale percentage, ascending', 'Off', 'Collection và Search'),
     @('Sale high to low', 'By sale percentage, descending', 'Off', 'Collection và Search'),
-    @('Featured', 'Default / Manually sort', 'Off', 'Chỉ Collection page, và chỉ hiện khi shop đã unlock Collection Manual Sorting')
+    @('Featured', 'Default / Manually sort', 'Off', 'Chỉ Collection page (trừ /collections/all), và chỉ hiện khi shop đã unlock Collection Manual Sorting')
 ) $true $false)
 Add (Figure 'sort_04_badges' 'Rê chuột vào tag Collection only (1) hiện giải thích (2). Relevance có tag Search only')
 Add (Figure 'sort_15_spf_off' 'Store chưa unlock Collection Manual Sorting: bảng (2) và ô Default (1) không có Featured')
@@ -155,31 +171,45 @@ Add (Tbl @(2500, 3700, 3438) @(
     @('Không tắt được option', 'Mỗi trang phải còn ít nhất 1 option đang hiện: Collection cần 1 option khác Relevance, Search cần 1 option khác Featured. Vi phạm sẽ hiện thông báo đỏ và công tắc giữ nguyên', 'Bật option khác trước, rồi mới tắt option cần tắt'),
     @('Sort mặc định không như đã chọn', 'Option đã chọn bị tắt thì storefront dùng mặc định gốc (**Collection = What''s new?, Search = Relevance**). Nếu mặc định gốc cũng tắt thì dùng **option bật đầu tiên trong bảng**. Featured không chọn được làm default Collection khi store chưa unlock Collection Manual Sorting', 'Bật lại option đã chọn hoặc chọn lại sort mặc định'),
     @('Sort mặc định là **Featured**', '**Ở /collections/all storefront dùng What''s new?.** **Ở Search không bao giờ dùng Featured** mà dùng **Relevance**', 'Đúng thiết kế'),
-    @('Featured không ra thứ tự như trong Shopify', 'Featured theo thứ tự collection trong Shopify, cần shop đã unlock **Collection Manual Sorting** và collection đang ở chế độ **Manual** hoặc **Best selling**. Muốn hiển thị theo Best selling: đặt collection sang Best selling trong Shopify rồi chọn Featured. **Store mới cài đã bật sẵn**; store cũ thì chưa. **Store đã uninstall rồi cài lại = store cũ**', 'Store cũ: bật **Collection Manual Sorting** trong Master → Feature, chờ app lấy lại thứ tự collection rồi kiểm tra lại. Kiểm tra chế độ sort của collection trong Shopify. Báo trước cho khách: thứ tự sản phẩm ở collection Manual sẽ đổi theo đúng Shopify admin'),
-    @('Khách hỏi option **Best selling**', 'Best selling đã bỏ khỏi bảng vì cùng thứ tự collection với Featured. Store trước đây bật Best selling: option được chuyển thành **Featured** (bật, giữ vị trí cũ, giữ sort mặc định Collection) khi đọc cấu hình, ghi lại khi merchant Save. Link/snippet cũ dùng sort best_selling vẫn chạy như Featured', 'Hướng dẫn khách dùng Featured. Nhớ unlock Collection Manual Sorting nếu là store cũ'),
+    @('Featured không ra thứ tự như trong Shopify', 'Featured chỉ lấy thứ tự collection khi shop đã unlock **Collection Manual Sorting** và collection đang ở chế độ sort **Manual**, **Best selling** hoặc **Most relevant** trong Shopify, đồng thời app đã index thứ tự đó. **Collection ở chế độ khác** (A-Z, giá, ngày…) hoặc chưa index xong thì Featured hiển thị giống **What''s new?**. **Store mới cài đã bật sẵn**; store cũ thì chưa. **Store đã uninstall rồi cài lại = store cũ**', 'Kiểm tra chế độ sort của collection trong Shopify. Mở **Findter index** (mục 4) xem chế độ đã index, rồi bấm **Reindex sorting**. Store cũ: bật **Collection Manual Sorting** trong Master → Feature trước. Báo trước cho khách: thứ tự sản phẩm ở collection Manual sẽ đổi theo đúng Shopify admin'),
+    @('Khách hỏi option **Best selling**', 'Best selling đã bỏ khỏi bảng vì cùng thứ tự collection với Featured. Store trước đây bật Best selling: option được chuyển thành **Featured** (bật, giữ vị trí cũ, giữ sort mặc định Collection) khi đọc cấu hình, ghi lại khi khách Save. **Nếu khách đã đổi tên Best selling thì tên đó được giữ** cho Featured (tên gốc “Best selling” thì thành “Featured”). Sort mặc định Search từng là Best selling thì về Relevance', 'Hướng dẫn khách dùng Featured. Nhớ unlock Collection Manual Sorting nếu là store cũ. Muốn đổi lại tên thì nhấn bút chì ở dòng Featured'),
+    @('Link cũ có **sort=best_selling** hoặc snippet theme còn dùng best_selling', 'Storefront coi như **Featured**: dropdown chọn Featured, không bao giờ hiện option Best selling', 'Đúng thiết kế, không cần sửa link'),
+    @('**Mất dropdown Sort By** trên storefront', '(1) Trang Sort của khách **không cho tắt hết** option, nhưng nếu chỉ bật Featured và Relevance thì ở **/collections/all** (không có Featured, Relevance) không còn option nào nên app ẩn dropdown. (2) Cấu hình bị đặt **tắt hết** từ phía dev / Master thì dropdown ẩn (đúng thiết kế). (3) Khách **chưa từng Save** trang Sort: storefront dùng 4 option mặc định nên vẫn có dropdown. (4) Chưa unlock Custom Sort: storefront dùng bộ sort cũ', 'Mở trang Sort xem option nào đang bật, bật thêm option dùng được ở mọi collection (ví dụ What''s new?). Nếu vẫn không có dropdown: kiểm tra đã unlock bằng C1, tải lại storefront, rồi chuyển dev'),
     @('Người dùng mở link url có sort nhưng sort này đã bị tắt bởi admin', 'Storefront chuyển về What''s new? (Collection) hoặc Relevance (Search). Nếu option đó cũng tắt thì dùng option bật đầu tiên trong bảng', 'Đúng thiết kế')
 ) $true $false)
 Add (Figure 'sort_05_error_search' 'Không tắt được option cuối ở Search: (1) công tắc giữ nguyên, (2) Featured đang bật, (3) thông báo lỗi')
 Add (Figure 'sort_06_error_collection' 'Không tắt được option cuối cùng ở Collection: (1) Relevance không tính, (2) công tắc giữ nguyên, (3) thông báo lỗi')
 
-Add (H1 '4. Lưu ý')
+Add (H1 '4. Kiểm tra Featured bằng Findter index')
+Add (Para 'Khi khách báo Featured không ra đúng thứ tự collection, dùng công cụ ngay trong **Shopify admin** (không phải trong app Findter).')
+Add (Step '**Mở công cụ.** Shopify admin → **Products** → **Collections** → mở collection cần kiểm tra → **More actions** → **Findter index**.' 3)
+Add (Placeholder 'Shopify admin → trang collection → More actions → Findter index (chụp từ store thật, replica chưa có màn này)' 'Cửa sổ Collection index status')
+Add (Step '**Đọc thông tin.** Cửa sổ “Collection index status” hiện: tên **Collection**, **Sorting by** (chế độ sort app đã index, hiện “Not indexed” nếu chưa index) và **Last index**.' 3)
+Add (Step '**Xử lý.** Nếu Sorting by không phải Manual, Best selling hoặc Most relevant: đổi chế độ sort của collection trong Shopify, rồi bấm **Reindex sorting**. Nếu app hiện “Contact us to unlock sorting by collection”: store chưa có Collection Manual Sorting, bật trong Master → Feature.' 3)
+Add (Callout 'Lưu ý:' 'Reindex sorting chỉ xếp hàng đợi index collection đó, thứ tự mới có thể cần một lúc mới hiện trên storefront. Kiểm tra lại sau vài phút.' 'info')
+
+Add (H1 '5. Lưu ý')
 Add (Bullet 'Cấu hình áp dụng **chung cho cả shop**, không chỉnh riêng từng collection.')
 Add (Bullet 'Storefront chỉ hiện option **đang bật**, theo **thứ tự trong bảng**.')
 Add (Bullet 'Chưa unlock thì trang Sort không có tác dụng, storefront giữ bộ sort cũ: Collection có What''s New, Price low to high, Price high to low; Search có thêm Relevance.')
 Add (Bullet 'Chưa Save mà rời trang: app hỏi xác nhận trước khi bỏ thay đổi.')
+Add (Bullet 'Khách chưa unlock mà mở thẳng đường dẫn /sort: app tự đưa về trang Homepage.')
+Add (Bullet 'Option **Featured** ẩn ở **/collections/all** trên storefront (trang này không có thứ tự thủ công), kể cả khi đang bật.')
 Add (Bullet 'Bật/tắt, đổi thứ tự, đổi tên không cần index. Sau Save, tải lại storefront là thấy.')
 Add (Bullet '**Featured chỉ hiện khi store đã unlock Collection Manual Sorting.** Store cũ chưa unlock: không hiển thị Featured (đúng thiết kế). Store mới cài: tự unlock, hiển thị Featured (đúng thiết kế).')
 
-Add (H1 '5. Khách báo Sort by không đúng ý')
+Add (H1 '6. Khách báo Sort by không đúng ý')
 Add (Para 'Kiểm tra lần lượt theo thứ tự:')
 Add (Step 'Shop đã unlock **Custom Sort** chưa? Menu **Sort** có hiện không?' 2)
 Add (Step 'Option cần dùng đã bật và đã nhấn **Save** chưa (có thông báo “Sort options updated successfully”)?' 2)
 Add (Step 'Option có dùng được ở trang đó không (Relevance chỉ Search, Featured chỉ Collection)?' 2)
 Add (Step 'Sort mặc định của trang đó đã chọn đúng chưa, option đó có đang bật không?' 2)
-Add (Step 'Không thấy Featured: store đã unlock **Collection Manual Sorting** chưa (store cũ chưa thì không hiển thị)? Featured không ra thứ tự Shopify: collection đã đặt Manual/Best selling chưa?' 2)
+Add (Step 'Không thấy Featured: store đã unlock **Collection Manual Sorting** chưa (store cũ chưa thì không hiển thị)? Đang ở **/collections/all** thì Featured luôn ẩn.' 2)
+Add (Step 'Featured không ra thứ tự Shopify: collection đã đặt Manual / Best selling / Most relevant chưa? Mở **Findter index** (mục 4) xem Sorting by, rồi **Reindex sorting**.' 2)
+Add (Step 'Unlock bằng C2 (Advanced features) mà storefront không đổi: unlock lại bằng C1 (Master).' 2)
 Add (Step 'Đã tải lại storefront chưa?' 2)
 Add (Para 'Vẫn không đúng: chuyển dev kèm store URL, trang bị lỗi (link collection hoặc link search), option đã thử và ảnh chụp trang Sort.')
-Add (Figure 'sort_14_empty' 'Trang Sort hiện “No sort options yet” nghĩa là shop chưa có dữ liệu sort. Chuyển dev kiểm tra')
+Add (Figure 'sort_14_empty' 'Trang Sort hiện “No sort options yet” khi app không tải được dữ liệu sort. Tải lại trang, vẫn lỗi thì chuyển dev. (Nút Contact us ở màn này hiện chưa có tác dụng)')
 
 $bodyXml = $b.ToString()
 
