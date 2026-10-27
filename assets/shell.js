@@ -78,7 +78,7 @@
     if (a.getAttribute('aria-current') === 'page') return;
     toast('“' + label + '” is not part of this copy');
   }));
-  $$('.sh-item__actions .sh-iconbtn, .sh-pin').forEach(b => b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); toast(b.getAttribute('aria-label')); }));
+  $$('.sh-item__actions .sh-iconbtn, .sh-pin').forEach(b => b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); if (b.getAttribute('aria-label') === 'View your online store') window.open('storefront.html', '_blank', 'noopener'); else toast(b.getAttribute('aria-label')); }));
   $('.sk__input').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.value.trim()) { toast('Sidekick is not available in this copy'); e.target.value = ''; } });
   $$('.sk .sh-iconbtn:not(.js-skplus), .m-fab--sk').forEach(b => b.addEventListener('click', () => toast('Sidekick is not available in this copy')));
 
@@ -90,9 +90,16 @@
   const sendChat = text => { const m = document.createElement('div'); m.className = 'chat-msg'; m.style.cssText = 'margin:8px 0 0 auto;background:#9b2423;color:#fff'; m.textContent = text; const b = $('.chat-panel__body'); b.appendChild(m); b.scrollTop = b.scrollHeight; };
   // the support team's answer (left bubble, like the greeting)
   const replyChat = text => { const m = document.createElement('div'); m.className = 'chat-msg'; m.textContent = text; const b = $('.chat-panel__body'); b.appendChild(m); b.scrollTop = b.scrollHeight; };
+  // the support team's question with quick-reply buttons, choices = [[label, fn], ...]. A button answers it once: the buttons go away, then fn runs
+  const replyChoices = (text, choices) => {
+    replyChat(text);
+    const row = document.createElement('div'); row.className = 'chat-choices'; row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Quick replies');
+    choices.forEach(([label, fn]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chat-choice'; b.textContent = label; b.addEventListener('click', () => { row.remove(); fn(label); }); row.appendChild(b); });
+    const body = $('.chat-panel__body'); body.appendChild(row); body.scrollTop = body.scrollHeight;
+  };
   $('.chat-panel__foot input').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.value.trim()) { sendChat(e.target.value); e.target.value = ''; } });
 
 
-  window.__shell = { toast, closePops, openChatWith: (text, reply) => { toggleChat(true); sendChat(text); if (reply) setTimeout(() => replyChat(reply), 800); } };
+  window.__shell = { toast, closePops, sendChat, replyChat, replyChoices, toggleChat, openChatWith: (text, reply) => { toggleChat(true); sendChat(text); if (reply) setTimeout(() => replyChat(reply), 800); } };
   applyNav();
 })();

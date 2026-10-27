@@ -96,4 +96,5 @@ Run this list on **every** new screen, component or feature before calling it fi
 - Banners inside the home columns: keep to **one banner per column area** and don't stack them next to another banner (4.3.4).
 - Chat bubble (Crisp-style): must never open itself (4.3.3).
 - "Save" buttons on settings pages: use the contextual save bar in the real app (4.1.5).
+- "Powered by Findter" badge (Search settings → the "Remove “Powered by Findter” badge" card): the switch needs the chat to answer ("Yes, remove it") for Trial / Free, and for a paid shop while a CSE is online. Shopify support (see `Chat.txt`) called a removal that needs a person a dark pattern under 4.3, even with the auto-remove button; the owner chose it anyway. Only a paid shop with no CSE online is self-serve (removed at once). Keep it swappable: never open the chat by itself (4.3.3, it opens only from the switch), never a banner next to another banner (4.3.4), never part of onboarding, and list it in the Pricing comparison.
 - Master / Home layout editor uses its own Save: it is an admin tool; keep Discard next to Save and warn on leaving with unsaved changes.

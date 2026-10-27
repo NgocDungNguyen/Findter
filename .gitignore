@@ -27,3 +27,7 @@ theme_check/
 
 # Office lock files
 ~$*
+
+# theme data exports from the DB (store domains, emails): never commit
+theme-data*.csv
+*.theme-export.csv

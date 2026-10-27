@@ -1,0 +1,107 @@
+/* Search > Translations, Search > Synonyms Search, Filter set > Translate (extra.js). Everything is scoped to .ex-page. */
+.ex-page{--ex-text:#303030;--ex-sub:#616161}
+.ex-page .ex-card{background:#fff;border-radius:12px;box-shadow:0 1px 0 rgba(26,26,26,.07),0 0 0 1px rgba(26,26,26,.08);padding:16px}
+#ex-body{display:flex;flex-direction:column;gap:16px;min-width:0}
+.ex-col{display:flex;flex-direction:column;gap:16px}
+.ex-col--tight{gap:4px}
+.ex-h{margin:0;font-size:14px;line-height:20px;font-weight:650;color:var(--ex-text)}
+.ex-h3{margin:0;font-size:13px;line-height:20px;font-weight:650;color:var(--ex-text)}
+.ex-sub{margin:0;font-size:13px;line-height:20px;color:var(--ex-sub)}
+.ex-label{font-size:13px;line-height:20px;color:var(--ex-text)}
+.ex-row-between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ex-page .fdt-header .fdt-header__description+.fdt-header__description{margin-top:0}
+.ex-back{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin-right:4px;padding:0;border:0;border-radius:8px;background:transparent;cursor:pointer;color:#4a4a4a;text-decoration:none}
+.ex-back:hover{background:#f1f1f1}
+.ex-back .Polaris-Icon{width:20px;height:20px;margin:0}
+.ex-back svg{width:20px;height:20px;fill:#4a4a4a}
+.ex-titlebar{display:flex;align-items:center}
+.ex-ic{display:inline-flex;width:20px;height:20px;flex:none}
+.ex-ic svg{width:20px;height:20px;fill:currentColor}
+
+/* buttons (Polaris look; own class so the demo's generic Polaris-Button handler does not toast) */
+.ex-btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:28px;padding:6px 12px;border:0;border-radius:8px;background:#fff;color:var(--ex-text);font:inherit;font-size:13px;line-height:16px;font-weight:550;cursor:pointer;box-shadow:0 0 0 1px rgba(26,26,26,.15) inset,0 1px 0 rgba(26,26,26,.07)}
+.ex-btn:hover{background:#fafafa}
+.ex-btn--primary{background:#303030;color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.25) inset}
+.ex-btn--primary:hover{background:#1a1a1a}
+.ex-btn:disabled{opacity:.5;cursor:not-allowed}
+.ex-btn:focus-visible,.ex-iconbtn:focus-visible,.ex-tag__x:focus-visible,.ex-toggle:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
+.ex-btn.is-loading{position:relative;color:transparent}
+.ex-btn.is-loading::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border:2px solid #303030;border-top-color:transparent;border-radius:50%;animation:so-spin .7s linear infinite}
+.ex-btn--primary.is-loading::after{border-color:#fff;border-top-color:transparent}
+.ex-actions{display:flex;justify-content:flex-end}
+.ex-iconbtn{display:inline-flex;align-items:center;justify-content:center;min-height:28px;min-width:28px;padding:0 6px;border:0;border-radius:8px;background:transparent;cursor:pointer}
+.ex-iconbtn:hover{background:#f1f1f1}
+.ex-iconbtn .ex-ic svg{fill:#4a4a4a}
+
+/* fields */
+.ex-field{position:relative;display:flex;flex-direction:column;gap:4px}
+.ex-input-wrap{position:relative}
+.ex-prefix{position:absolute;left:8px;top:50%;margin-top:-10px;pointer-events:none}
+.ex-prefix svg{fill:#616161}
+.ex-input--prefix{padding-left:32px}
+.ex-field .mf-pop{top:100%}
+.ex-note{display:flex;align-items:flex-start;gap:8px;padding:12px;border-radius:12px;background:#eaf4ff;color:#003a5a}
+.ex-note p{margin:0;font-size:13px;line-height:20px}
+.ex-note .ex-ic svg{fill:#005bd3}
+.ex-tags{display:flex;flex-wrap:wrap;gap:8px}
+.ex-tag{display:inline-flex;align-items:center;gap:4px;max-width:100%;min-height:24px;padding:0 4px 0 8px;border-radius:8px;background:#e3e3e3;color:var(--ex-text);font-size:13px;line-height:20px}
+.ex-tag--static{padding:0 8px}
+.ex-tag__x{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;padding:0;border:0;border-radius:6px;background:transparent;cursor:pointer}
+.ex-tag__x:hover{background:#cecece}
+.ex-tag__x svg{width:16px;height:16px;fill:#4a4a4a}
+
+/* synonyms table (DataTable, ft-synonym-table) */
+.ex-tablewrap{margin-top:16px;border:1px solid #ccc;border-radius:8px}
+@media (max-width:900px){.ex-tablewrap{overflow-x:auto}}
+.ex-table{width:100%;border-collapse:collapse;font-size:13px;line-height:20px;min-width:640px}
+.ex-table th{padding:12px 16px;text-align:left;font-weight:600;color:var(--ex-text);border-bottom:1px solid #ebebeb;white-space:nowrap}
+.ex-table td{padding:12px 16px;vertical-align:middle;border-bottom:1px solid #ebebeb;color:var(--ex-text)}
+.ex-table tr:last-child td{border-bottom:0}
+.ex-table tbody tr:hover{background:#fafafa}
+.ex-w10{width:10%}.ex-w20{width:20%}
+.ex-actions-cell{display:flex;gap:8px;justify-content:flex-start}
+.ex-th-rel{display:inline-flex;align-items:center;gap:4px}
+.ex-info{position:relative;display:inline-flex}
+.ex-info .ex-ic svg{fill:#8a8a8a}
+.ex-tip{position:absolute;z-index:50;left:50%;top:100%;transform:translateX(-30%);margin-top:6px;width:280px;padding:8px 12px;border-radius:8px;background:#303030;color:#fff;font-weight:400;white-space:normal;box-shadow:0 4px 12px rgba(0,0,0,.2);visibility:hidden;opacity:0}
+.ex-tip p{margin:0;font-size:12px;line-height:16px}
+.ex-tip__gap{margin-top:8px!important}
+.ex-info:hover .ex-tip,.ex-info:focus .ex-tip,.ex-info:focus-within .ex-tip{visibility:visible;opacity:1}
+.ex-empty{display:flex;flex-direction:column;align-items:center;gap:16px;padding:32px 16px;text-align:center}
+.ex-empty img{max-width:140px;height:auto}
+.ex-empty h2{margin:0;font-size:16px;line-height:24px;font-weight:650}
+.ex-empty p{margin:0;max-width:400px;font-size:13px;line-height:20px;color:var(--ex-sub)}
+
+/* synonym modal */
+.ex-form{display:flex;flex-direction:column;gap:16px}
+.ex-switchrow{display:flex;align-items:center;gap:8px;font-size:13px;line-height:20px;cursor:pointer}
+.ex-radios{display:flex;gap:16px}
+.ex-radio{display:inline-flex;align-items:center;gap:8px;font-size:13px;line-height:20px;cursor:pointer}
+.ex-radio input{margin:0;accent-color:#303030}
+.ex-taginput{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:32px;padding:4px 8px;border:1px solid #8a8a8a;border-radius:8px;background:#fdfdfd;cursor:text}
+.ex-taginput:focus-within{outline:2px solid #005bd3;outline-offset:1px;border-color:#005bd3}
+.ex-taginput input{flex:1 1 80px;min-width:80px;border:0;outline:0;background:transparent;font:inherit;font-size:13px;line-height:20px}
+
+/* filter set translate */
+.ex-resync{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px}
+.ex-lang{width:100%;max-width:320px}
+.ex-btn__ic svg{fill:#4a4a4a}
+.ex-toggle{cursor:pointer;width:100%}
+.ex-chev{display:inline-flex;transition:transform .15s}
+.ex-chev.is-open{transform:rotate(180deg)}
+.ex-chev svg{fill:#616161}
+.ex-collapse{padding-top:8px}
+.ex-collapse[hidden]{display:none}
+.ex-trow{display:flex;align-items:center;gap:8px}
+.ex-trow .mf-input{flex:1 1 auto;min-width:0}
+.ex-tlabel{display:inline-flex;align-items:center;gap:6px;flex:none;min-width:160px;max-width:160px;font-size:13px;line-height:20px;color:var(--ex-sub);overflow-wrap:anywhere}
+.ex-indent{padding-left:16px}
+@media (max-width:640px){.ex-trow{flex-direction:column;align-items:stretch;gap:4px}.ex-tlabel{max-width:none}}
+
+/* four Search tabs do not fit a phone: the row scrolls sideways (the real app's Tabs collapse into a "More" menu) */
+@media (max-width:767px){
+  .fdt-menu-tabs .Polaris-Tabs__Wrapper,.fdt-menu-tabs .Polaris-Tabs__ButtonWrapper{overflow-x:auto;scrollbar-width:none}
+  .fdt-menu-tabs .Polaris-Tabs__Wrapper::-webkit-scrollbar,.fdt-menu-tabs .Polaris-Tabs__ButtonWrapper::-webkit-scrollbar{display:none}
+  .fdt-menu-tabs .Polaris-Tabs{flex-wrap:nowrap}
+  .fdt-menu-tabs .Polaris-Tabs__Tab{white-space:nowrap}
+}

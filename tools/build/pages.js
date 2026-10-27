@@ -913,7 +913,7 @@
   /* ---------- clicks (one delegated handler so the markup stays plain) ---------- */
   document.addEventListener('click', e => {
     const t = e.target;
-    if (t.closest('[data-mfp], [data-dz]')) return;                            // Metafield page and design panels: handled by initMetafieldPage / initDesignPage
+    if (t.closest('[data-mfp], [data-dz], [data-wm-card]')) return;            // Metafield page, design panels and the badge card: handled by initMetafieldPage / initDesignPage / watermark-card.js
     const chat = t.closest('[data-chat]');                                   // "Contact us" in an info banner: the chat opens with the request already sent + the auto reply
     if (chat) { e.preventDefault(); const m = CHAT[chat.dataset.chat]; if (m && window.__shell) window.__shell.openChatWith(m.msg, m.reply); return; }
     const tab = t.closest('.Polaris-Tabs__Tab');

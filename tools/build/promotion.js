@@ -8,16 +8,7 @@
      (the data) goes in front of the layout code, the rest (the screens) goes after the layout code.
      ====================================================================================================== */
   const LS_PROMOTIONS = 'findter.promotions.v1', LS_PROMO_DISMISSED = 'findter.promotionsDismissed.v1';
-  const SHOP_TYPES = [
-    ['Subscription', 'A paid plan is in effect now (including a cancelled plan until its paid period ends)'],
-    ['Development store', 'Shopify partner development store without a paid plan'],
-    ['Trial', 'Pre-purchase trial is running'],
-    ['Paid before', 'Had a paid plan before, none now (cancelled and lapsed). Untick to reach never-paid shops only'],
-    ['Service', 'Bought a one-time service charge, never had a paid plan'],
-    ['Free', 'Never paid anything: trial ended, or an old install that never subscribed'],
-  ];
-  const SHOP_TYPE_OF_PLAN = { Trial: 'Trial', 'Trial not started': 'Free', Starter: 'Subscription', Enterprise: 'Subscription', Free: 'Free', Development: 'Development store', 'Paid before': 'Paid before', Service: 'Service', Legacy: 'Free', 'Old install': 'Free' };   // what the demo bar's Store means for promotion targeting (a trial that has not started is not "running", so the app targets it as Free)
-  const shopType = () => SHOP_TYPE_OF_PLAN[DEMO.plan] || 'Free';
+  const { SHOP_TYPES, shopType } = window.FindterWatermark;                  // the shop types and what the demo bar's Store means for them (build/watermark.js, shared with the badge setting)
 
   // the official BFCM banners, final 2026-10 version without a button (Desktop 2534x640, Mobile 1774x887)
   const BFCM_IMG = 'https://cdn.shopify.com/s/files/1/0765/0302/3847/files/BFCM_Promotion_Banner_Homepage_';

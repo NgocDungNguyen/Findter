@@ -56,6 +56,7 @@ const colHTML = (side, title, group, sub) => '<div class="hl-col hl-col--' + sid
 const masterPageHtml = '<div id="master-page" hidden><div class="mp-wrap"><h1 class="mp-title">Master UI</h1><div class="ft-welcome mp-hero"><h1 class="ft-welcome__title">\u{1F44B} Master Control \u{1F44B}</h1><p class="ft-welcome__subtitle">Internal devops console \u2014 manage indexing, features, server tiers, and payments across every shop.</p></div><div class="mt-tabs"></div><div class="mp-panels">'
   + '<div data-panel="load">' + mpCard('<div class="mp-load">' + btn('Primary', 'Load', 'data-act="load"') + '</div>', ';--pc-box-padding-block-start-xs: 0;--pc-box-padding-block-end-xs: 0') + '</div>'
   + '<div data-panel="promotion" hidden></div>'
+  + '<div data-panel="features" hidden></div>'
   + '<div data-panel="home" hidden>' + mpCard('<div class="hl-head"><div><h2 class="Polaris-Text--root Polaris-Text--headingMd">Homepage layout</h2><p class="Polaris-Text--root Polaris-Text--bodyMd Polaris-Text--subdued">Drag and drop blocks to set their order. Desktop has a left and a right column, and phones have their own order. The Promotion block appears here once a promotion exists: create promotions in the Promotion tab. The block can sit in the left column or in the phone order. Everything you change here is a draft until you click Save.</p></div><div class="hl-head__side"><span class="hl-status" hidden>Unsaved changes</span></div></div><div class="hl-grid" id="hl">' + colHTML('left', 'Left column', 'desktop', 'Desktop only. The Promotion block can sit here too') + colHTML('right', 'Right column', 'desktop', 'Desktop only. The Promotion block cannot go here: the banner is 633 px wide') + colHTML('mobile', 'Mobile phone order', 'mobile', 'Phones only, up to 767px wide') + '</div><div class="hl-foot"><span class="hl-hint">Nothing changes on the homepage until you click Save. Keyboard: focus a block, then Shift + arrow keys to move it.</span><div class="hl-actions">' + btn('Tertiary', 'Reset to default', 'data-act="hl-reset"') + btn('Secondary', 'Discard changes', 'data-act="hl-discard"') + btn('Primary', 'Save', 'data-act="hl-save"') + '</div></div>') + '</div>'
 
   + '</div></div></div>';
@@ -106,18 +107,18 @@ const appExtra = `
 /* demo bar (prototype tool, lives in the header): plan / days left / indexed switches */
 .demo-bar{margin-left:auto;display:flex;align-items:center;min-width:0}
 .demo-bar + .sh-more{margin-left:12px}
-.demo-panel{display:flex;align-items:center;gap:16px}
+.demo-panel{display:flex;align-items:center;gap:8px}
 .demo-group{display:flex;align-items:center;gap:4px}
 .demo-label{margin-right:2px;font-size:12px;line-height:16px;color:#616161}
-.demo-btn,.demo-toggle{height:24px;padding:0 8px;border:1px solid #e3e3e3;border-radius:8px;background:#fff;color:#303030;font:inherit;font-size:12px;line-height:16px;font-weight:550;cursor:pointer;white-space:nowrap}
-.demo-btn:hover,.demo-toggle:hover{background:#f7f7f7}
+.demo-btn,.demo-toggle,.demo-reset{height:24px;padding:0 5px;border:1px solid #e3e3e3;border-radius:8px;background:#fff;color:#303030;font:inherit;font-size:12px;line-height:16px;font-weight:550;cursor:pointer;white-space:nowrap}
+.demo-btn:hover,.demo-toggle:hover,.demo-reset:hover{background:#f7f7f7}
 .demo-btn:disabled{opacity:.45;cursor:not-allowed}
 .demo-select{height:24px;padding:0 4px;border:1px solid #e3e3e3;border-radius:8px;background:#fff;color:#303030;font:inherit;font-size:12px;line-height:16px;font-weight:550;cursor:pointer}
 .demo-select:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
 .demo-btn[aria-pressed=true]{background:#303030;border-color:#303030;color:#fff}
-.demo-btn:focus-visible,.demo-toggle:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
+.demo-btn:focus-visible,.demo-toggle:focus-visible,.demo-reset:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
 .demo-toggle{display:none}
-@media (max-width:1679px){   /* the demo bar has 5 groups: inline only on very wide screens, a "Demo data" drop-down otherwise */
+@media (max-width:1859px){   /* the demo bar has 7 groups: inline only on very wide screens, a "Demo data" drop-down otherwise */
   .demo-toggle{display:inline-block}
   .demo-panel{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:flex-start;gap:12px;padding:12px 16px;background:#fff;border-top:1px solid #e3e3e3;box-shadow:0 8px 16px rgba(0,0,0,.12)}
   .demo-bar.is-open .demo-panel{display:flex}
@@ -218,9 +219,9 @@ const shell = `
     ${navMain.map(item).join('')}
     <div class="sh-divider"></div>
     <button class="sh-section" type="button">Sales channels ${ic('chevron-right')}</button>
-    <a class="sh-item sh-expanded-only" href="#">${custom('Online Store')}<span class="sh-item__label">Online Store</span><span class="sh-item__actions"><button class="sh-iconbtn" aria-label="Edit theme">${ic('edit')}</button><button class="sh-iconbtn" aria-label="View your online store">${ic('view')}</button></span></a>
+    <a class="sh-item sh-expanded-only" href="storefront.html" target="_blank" rel="noopener" data-nav="page">${custom('Online Store')}<span class="sh-item__label">Online Store</span><span class="sh-item__actions"><button class="sh-iconbtn" aria-label="Edit theme">${ic('edit')}</button><button class="sh-iconbtn" aria-label="View your online store">${ic('view')}</button></span></a>
     <a class="sh-item sh-expanded-only" href="#">${custom('Agentic')}<span class="sh-item__label">Agentic</span></a>
-    <a class="sh-item sh-only-collapsed" href="#">${custom('Online Store')}</a>
+    <a class="sh-item sh-only-collapsed" href="storefront.html" target="_blank" rel="noopener" data-nav="page" aria-label="Online Store">${custom('Online Store')}</a>
     <div class="sh-divider"></div>
     <button class="sh-section sh-section--apps" type="button">Apps ${ic('chevron-right')}</button>
     <a class="sh-item sh-only-collapsed sh-appsrail" href="#/" data-nav="page" aria-current="page">${ic('apps')}</a>
@@ -336,7 +337,13 @@ ${shell}
 ${bld('code-notice.js')}
 </script>
 <script>
-${(() => { const [dataPart, uiPart] = bld('promotion.js').split('/*--UI--*/'); return bld('app.js').replace('/*PROMOTION_DATA*/', () => dataPart).replace('/*PROMOTION_MODULE*/', () => uiPart); })()}
+${bld('demo.js')}
+</script>
+<script>
+${bld('watermark.js')}
+</script>
+<script>
+${(() => { const [dataPart, uiPart] = bld('promotion.js').split('/*--UI--*/'); return bld('app.js').replace('/*PROMOTION_DATA*/', () => dataPart).replace('/*PROMOTION_MODULE*/', () => uiPart).replace('/*WATERMARK_MASTER*/', () => bld('master-watermark.js')); })()}
 </script>
 </body>
 </html>

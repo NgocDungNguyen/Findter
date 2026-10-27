@@ -709,3 +709,15 @@
 .mf-tip--down{margin-left:4px;vertical-align:middle}
 .mf-tip--down .mf-tip__bubble{bottom:auto;top:-8px;left:26px;transform:none;z-index:40;width:300px;max-width:300px;white-space:normal}
 .mf-field .Polaris-Label{display:flex;align-items:center}
+
+/* Search settings: the "Remove “Powered by Findter” badge" card (the "Powered by Findter" badge) */
+[data-wm-card]{position:relative;z-index:50}   /* above the banner and the "Search field" card, so the tooltip is never covered */
+[data-wm-card] .Polaris-ShadowBevel{overflow:visible}   /* Polaris clips the card; the tooltip bubble has to be able to leave it */
+[data-wm-card] .Polaris-Box{border-radius:var(--p-border-radius-300)}
+[data-wm-card][hidden]{display:none}
+.wm-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.wm-label{display:inline-flex;align-items:center;gap:4px;font-size:13px;line-height:20px;font-weight:550;color:#303030}
+.wm-label .mf-tip{align-items:center;height:20px}
+.wm-label .Polaris-Icon{display:grid;place-items:center;height:20px}
+.wm-label .mf-tip__bubble{z-index:60;font-weight:400}
+.wm-badge{display:inline-block;padding:2px 8px;border-radius:8px;background:#affebf;color:#014b40;font-size:12px;line-height:16px;font-weight:550}

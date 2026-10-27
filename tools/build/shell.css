@@ -99,6 +99,10 @@ a{color:inherit}
 .chat-panel__head small{display:block;font-weight:400;opacity:.85;font-size:12px}
 .chat-panel__body{flex:1;background:#f6f6f7;padding:14px;overflow:auto}
 .chat-msg{background:#fff;border-radius:12px;padding:10px 12px;max-width:85%;box-shadow:0 1px 2px #0001}
+.chat-choices{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0}
+.chat-choice{height:32px;padding:0 14px;border:1px solid #9b2423;border-radius:16px;background:#fff;color:#9b2423;font:inherit;font-size:13px;font-weight:550;cursor:pointer}
+.chat-choice:hover{background:#fbeeee}
+.chat-choice:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
 .chat-panel__foot{border-top:1px solid #e3e3e3;padding:10px;display:flex;gap:8px}
 .chat-panel__foot input{flex:1;border:0;outline:0;font:inherit}
 

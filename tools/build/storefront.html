@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalog – Sample store</title>
+<link rel="stylesheet" href="assets/storefront.css">
+</head>
+<body>
+<div class="sf-announce">Welcome to our store</div>
+<header class="sf-header" id="sf-header">
+  <div class="sf-header__bar">
+    <a class="sf-logo" href="storefront.html">Sample store</a>
+    <nav class="sf-nav" aria-label="Main">
+      <a href="#">Home</a><a href="#" aria-current="page">Catalog</a><a href="#">Contact</a><a href="#">Accessory</a>
+    </nav>
+    <div class="sf-icons">
+      <button type="button" class="sf-iconbtn" id="sf-open-search" aria-label="Search" aria-expanded="false" aria-controls="sf-search">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.75"/><path d="m13 13 4.5 4.5"/></svg>
+      </button>
+      <button type="button" class="sf-iconbtn" aria-label="Log in"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="6.5" r="3.5"/><path d="M3.5 17c.6-3.2 3.2-5 6.5-5s5.9 1.8 6.5 5"/></svg></button>
+      <button type="button" class="sf-iconbtn" aria-label="Cart"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 7h12l-1 10H5L4 7Z"/><path d="M7.5 9V6a2.5 2.5 0 0 1 5 0v3"/></svg></button>
+    </div>
+  </div>
+  <div class="sf-search" id="sf-search" role="search" hidden>
+    <div class="sf-search__wrap">
+      <div class="sf-search__field">
+        <label class="sf-search__label" for="sf-q">Search</label>
+        <input class="sf-search__input" id="sf-q" type="text" autocomplete="off" aria-expanded="false" aria-controls="sf-suggest">
+        <button type="button" class="sf-search__clear" id="sf-clear" aria-label="Clear" hidden><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="m7.5 7.5 5 5m0-5-5 5"/></svg></button>
+        <button type="button" class="sf-search__go" aria-label="Search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.75"/><path d="m13 13 4.5 4.5"/></svg></button>
+        <div class="sf-suggest" id="sf-suggest" hidden>
+          <div class="sf-suggest__box">
+            <div class="sf-suggest__list" id="sf-suggest-list"></div>
+            <a class="sf-suggest__all" href="#" id="sf-suggest-all"></a>
+          </div>
+          <div class="sf-powered" id="sf-powered" hidden><img class="sf-powered__logo" src="assets/img/findter-logo.svg" alt="" width="14" height="14"><span>Powered by Findter</span></div>
+        </div>
+      </div>
+      <button type="button" class="sf-iconbtn sf-search__close" id="sf-close-search" aria-label="Close"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4.5 4.5 11 11m0-11-11 11"/></svg></button>
+    </div>
+  </div>
+</header>
+<div class="sf-scrim" id="sf-scrim" hidden></div>
+
+<main class="sf-main">
+  <aside class="sf-filters" aria-label="Filter">
+    <h2 class="sf-filters__title">Filter</h2>
+    <details class="sf-group" open><summary>Availability</summary>
+      <label class="sf-check"><input type="checkbox"><span>In stock</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Out of stock</span></label>
+    </details>
+    <details class="sf-group" open><summary>Price</summary>
+      <div class="sf-range" aria-hidden="true"><span></span><i></i><i></i></div>
+      <div class="sf-price"><label>From ($)<input type="text" value="9.00" aria-label="Minimum price"></label><label>To ($)<input type="text" value="89.00" aria-label="Maximum price"></label></div>
+    </details>
+    <details class="sf-group" open><summary>Color</summary>
+      <div class="sf-boxes sf-boxes--list"><span>Dawn</span><span>Electric</span><span>Ice</span><span>Powder</span></div>
+    </details>
+    <details class="sf-group" open><summary>Size</summary>
+      <div class="sf-boxes"><span>10</span><span>11</span><span>12</span></div>
+    </details>
+  </aside>
+  <section class="sf-results" aria-label="Products">
+    <div class="sf-toolbar">
+      <label for="sf-sort">Sort by</label>
+      <select id="sf-sort"><option>Featured</option><option>Price, low to high</option><option>Price, high to low</option></select>
+      <span class="sf-count" id="sf-count"></span>
+    </div>
+    <ul class="sf-grid" id="sf-grid"></ul>
+  </section>
+</main>
+<footer class="sf-footer">Sample storefront for testing the Findter widgets. The “Powered by Findter” badge under the search suggestions follows the app: Master → Features, the store type, and Remove request.</footer>
+<script src="assets/demo.js"></script>
+<script src="assets/watermark.js"></script>
+<script src="assets/storefront.js"></script>
+</body>
+</html>

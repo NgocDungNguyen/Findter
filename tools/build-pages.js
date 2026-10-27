@@ -7,7 +7,7 @@ const rd = p => fs.readFileSync(path.join(__dirname, p), 'utf8');
 // flat: false = plain Polaris capture (wrapped by the pg-* classes); flat: true = Shopify web components flattened from the live app (cap/pages/<key>.flat.html)
 const PAGES = [
   { key: 'filter', file: 'filter.html', active: 'Filter' },
-  { key: 'search', file: 'search.html', active: 'Search' },
+  { key: 'search', file: 'search.html', active: 'Search', script: 'assets/watermark-card.js' },
   { key: 'metafield', file: 'metafield.html', active: 'Metafield' },
   { key: 'filter-booster', file: 'filter-boost.html', active: 'Filter', flat: true },
   { key: 'search-booster', file: 'search-boost.html', active: 'Search', flat: true },
@@ -16,28 +16,35 @@ const PAGES = [
   { key: 'design', file: 'design.html', active: 'Filter & product grid design', flat: true },
   { key: 'pricing', file: 'pricing.html', active: 'Pricing', srcdoc: true },
   { key: 'sort', file: 'sort.html', active: 'Sort', custom: true, script: 'assets/sort.js' },       // written by hand (no capture): ported from the app's Settings/SortBody.jsx
+  { key: 'search-translation', file: 'search-translation.html', active: 'Search', custom: 'extra', script: 'assets/extra.js' },    // written by hand: ported from the app's pages/search/locales.jsx
+  { key: 'search-synonym', file: 'search-synonym.html', active: 'Search', custom: 'extra', script: 'assets/extra.js' },        // ported from components/Synonym/*
+  { key: 'filter-translate', file: 'filter-translate.html', active: 'Filter', custom: 'extra', script: 'assets/extra.js' },  // ported from pages/filter/set/[name]/translations.jsx + TranslationEditor.jsx
   { key: 'design-tab2', file: 'design-product-grid.html', active: 'Filter & product grid design', flat: true },
 ];
 // tabs that are separate pages
-const TAB_PAGES = { 'Manage filter set': 'filter.html', 'Collection booster': 'filter-boost.html', 'Search settings': 'search.html', 'Search booster': 'search-boost.html', 'Filter design': 'design.html', 'Product grid design': 'design-product-grid.html' };
+const TAB_PAGES = { 'Manage filter set': 'filter.html', 'Collection booster': 'filter-boost.html', 'Search settings': 'search.html', 'Search booster': 'search-boost.html', 'Translations': 'search-translation.html', 'Synonyms Search': 'search-synonym.html', 'Filter design': 'design.html', 'Product grid design': 'design-product-grid.html' };
 const APP_ASSETS = 'https://findter-production.flintverse.com/assets/';
 const CHEVRON = '<span type="chevron-right" class="pg-chevron" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5.72 12.53a.75.75 0 0 1 0-1.06l3.47-3.47-3.47-3.47a.749.749 0 1 1 1.06-1.06l4 4a.75.75 0 0 1 0 1.06l-4 4a.75.75 0 0 1-1.06 0"></path></svg></span>';
 
 /* ---------- shared assets ---------- */
 const home = new JSDOM(fs.readFileSync(path.join(root, 'index.html'), 'utf8')).window.document;
 fs.mkdirSync(path.join(root, 'assets'), { recursive: true });
-const css = [...home.querySelectorAll('style')].map(s => s.textContent).join('\n') + '\n' + rd('build/pages.css') + '\n' + rd('build/sort.css');
+const css = [...home.querySelectorAll('style')].map(s => s.textContent).join('\n') + '\n' + rd('build/pages.css') + '\n' + rd('build/sort.css') + String.fromCharCode(10) + rd('build/extra.css');
 fs.writeFileSync(path.join(root, 'assets', 'common.css'), css);
 
 // shell behaviour = the first part of the home script (nav, menus, search, Sidekick, chat); home-only features are stubbed
 const app = rd('build/app.js'); const cut = app.indexOf('  /* ---------- app: collapsibles');
 if (cut < 0) throw new Error('shell/app split marker not found in build/app.js');
 let shell = app.slice(0, cut).replace("'use strict';", "'use strict';\n  const updateCarousel = () => {}, closeDatePicker = () => {}, hideTip = () => {}, closeThemeModal = () => {};   // home-page features that do not exist on these pages");
-shell += '\n  window.__shell = { toast, closePops, openChatWith: (text, reply) => { toggleChat(true); sendChat(text); if (reply) setTimeout(() => replyChat(reply), 800); } };\n  applyNav();\n})();\n';
+shell += '\n  window.__shell = { toast, closePops, sendChat, replyChat, replyChoices, toggleChat, openChatWith: (text, reply) => { toggleChat(true); sendChat(text); if (reply) setTimeout(() => replyChat(reply), 800); } };\n  applyNav();\n})();\n';
 fs.writeFileSync(path.join(root, 'assets', 'shell.js'), shell);
 fs.writeFileSync(path.join(root, 'assets', 'pages.js'), rd('build/pages.js'));
 fs.writeFileSync(path.join(root, 'assets', 'sort.js'), rd('build/sort.js'));
+fs.writeFileSync(path.join(root, 'assets', 'extra.js'), rd('build/extra.js'));
 fs.writeFileSync(path.join(root, 'assets', 'code-notice.js'), rd('build/code-notice.js'));
+fs.writeFileSync(path.join(root, 'assets', 'demo.js'), rd('build/demo.js'));
+fs.writeFileSync(path.join(root, 'assets', 'watermark.js'), rd('build/watermark.js'));
+fs.writeFileSync(path.join(root, 'assets', 'watermark-card.js'), rd('build/watermark-card.js'));
 
 /* ---------- shell pieces copied from index.html so every page stays in sync with it ---------- */
 const pick = sel => [...home.querySelectorAll(sel)].map(e => e.outerHTML).join('\n');
@@ -98,7 +105,44 @@ function pricingContent() {
 function sortContent() {
   return '<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack so-page"><div class="fdt-header"><h1 class="fdt-header__title">Sort</h1><p class="fdt-header__description">Manage available sort options and customize their display order</p></div><div id="so-body"></div></div></div></main></div></div>';
 }
+/* Search tabs: the capture only has "Search settings" and "Search booster"; the real app also shows Translations and Synonyms Search (pages/search/locales.jsx, synonym.jsx).
+   active = the id of the tab to mark as current (new pages); omitted on the captured pages, which keep their own. */
+const GUIDE = 'https://flintverse.gitbook.io/docs/findter-custom-filter-search/user-guide/';
+function addSearchTabs(root, active) {
+  const ul = root.querySelector('ul.Polaris-Tabs'); if (!ul) throw new Error('search tabs: tab list not found');
+  root.querySelectorAll('.Polaris-Tabs__TabsMeasurer, .Polaris-Tabs__DisclosureTab').forEach(e => e.remove());
+  const tpl = [...ul.querySelectorAll('.Polaris-Tabs__Tab')].pop().closest('li');
+  for (const [id, label] of [['locales', 'Translations'], ['synonym-search', 'Synonyms Search']]) {
+    const li = tpl.cloneNode(true), b = li.querySelector('.Polaris-Tabs__Tab');
+    b.id = id; b.setAttribute('aria-label', label); b.querySelector('.Polaris-Text--root').textContent = label; ul.appendChild(li);
+  }
+  ul.querySelectorAll('.Polaris-Tabs__Tab').forEach(b => { if (b.id === 'locales' || b.id === 'synonym-search') { b.classList.remove('Polaris-Tabs__Tab--active'); b.setAttribute('aria-selected', 'false'); b.setAttribute('tabindex', '-1'); } });
+  if (active) ul.querySelectorAll('.Polaris-Tabs__Tab').forEach(b => { const on = b.id === active; b.classList.toggle('Polaris-Tabs__Tab--active', on); b.setAttribute('aria-selected', String(on)); b.setAttribute('tabindex', on ? '0' : '-1'); });
+}
+const guideLink = (href, text) => `<p class="fdt-header__description"><a class="fdt-header__link" href="${href}" target="_blank" rel="noopener noreferrer">${text}</a></p>`;
+const BACK_ICON = '<svg viewBox="0 0 20 20" class="Polaris-Icon__Svg" focusable="false" aria-hidden="true"><path d="M17 10a.75.75 0 0 1-.75.75H6.56l3.22 3.22a.75.75 0 1 1-1.06 1.06l-4.5-4.5a.75.75 0 0 1 0-1.06l4.5-4.5a.75.75 0 1 1 1.06 1.06L6.56 9.25h9.69A.75.75 0 0 1 17 10Z"></path></svg>';
+// Search > Translations, Search > Synonyms Search, Filter set > Translate: header + (tabs) + the container extra.js fills
+function extraContent(p) {
+  let head = '', tabs = '', kind = '';
+  if (p.key === 'filter-translate') {
+    kind = 'filter-translate';
+    head = `<div class="fdt-header"><div class="ex-titlebar"><a class="ex-back" href="filter.html" aria-label="Back"><span class="Polaris-Icon">${BACK_ICON}</span></a><h1 class="fdt-header__title">Translate Default filter set</h1></div><p class="fdt-header__description">Add translated labels for this filter set's options, values, and groups.</p>${guideLink(GUIDE + 'advanced-features/auto-translate', 'Multi-language filter value here')}</div>`;
+  } else {
+    const doc = new JSDOM(`<body>${rd('cap/pages/search.html')}</body>`).window.document, stack = doc.querySelector('s-stack');
+    const inner = doc.createElement('div'); [...stack.childNodes].forEach(n => inner.appendChild(n));
+    const tabSection = inner.querySelector('.fdt-menu-tabs').closest('.Polaris-Layout__Section');
+    const translation = p.key === 'search-translation';
+    kind = translation ? 'translations' : 'synonyms';
+    addSearchTabs(tabSection, translation ? 'locales' : 'synonym-search'); markTabs(tabSection);
+    tabs = `<div class="Polaris-Layout">${tabSection.outerHTML}</div>`;
+    head = translation
+      ? `<div class="fdt-header"><h1 class="fdt-header__title">Search</h1>${guideLink(GUIDE + 'advanced-features/auto-translate', 'Multi-language search guideline here')}</div>`
+      : `<div class="fdt-header"><h1 class="fdt-header__title">Synonyms Search</h1><p class="fdt-header__description">Help customers find products even if they type typos, abbreviations, or similar words.</p>${guideLink(GUIDE + 'advanced-features/synonym-search', 'Synonyms search guideline here')}</div>`;
+  }
+  return `<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack ex-page">${head}${tabs}<div id="ex-body" data-page="${kind}"></div></div></div></main></div></div>`;
+}
 function contentFor(p) {
+  if (p.custom === 'extra') return extraContent(p);
   if (p.custom) return sortContent();
   if (p.srcdoc) return pricingContent();
   if (p.flat) {
@@ -106,6 +150,7 @@ function contentFor(p) {
     doc.querySelectorAll('#PolarisPortalsContainer, .Polaris-Tabs__TabsMeasurer, .Polaris-Tabs__DisclosureTab').forEach(e => e.remove());
     doc.querySelectorAll('[aria-owns]').forEach(e => e.removeAttribute('aria-owns'));
     doc.querySelectorAll('[data-state]').forEach(e => e.removeAttribute('data-state'));
+    if (p.key === 'search-booster') addSearchTabs(doc);
     markTabs(doc);
     chatWiring(p, doc, doc.body);
     return doc.querySelector('#app').outerHTML.split(APP_ASSETS).join('assets/img/');
@@ -117,6 +162,7 @@ function contentFor(p) {
   inner.querySelectorAll('s-icon[type="chevron-right"]').forEach(e => { const w = doc.createElement('span'); w.innerHTML = CHEVRON; e.replaceWith(w.firstChild); });
   inner.querySelectorAll('[aria-owns]').forEach(e => e.removeAttribute('aria-owns'));
   inner.querySelectorAll('[data-state]').forEach(e => e.removeAttribute('data-state'));
+  if (p.key === 'search') addSearchTabs(inner);
   markTabs(inner);
   chatWiring(p, doc, inner);
   return `<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack">${inner.innerHTML}</div></div></main></div></div>`;
@@ -144,7 +190,9 @@ function chatWiring(p, doc, root) {
   switch (p.key) {
     case 'filter': case 'filter-booster': contactBanner(doc, root, 'filter'); break;
     case 'search-booster': contactBanner(doc, root, 'search'); break;
-    case 'search': mark(inBanner('Contact us'), 'search'); break;
+    case 'search': { mark(inBanner('Contact us'), 'search');
+      const slot = doc.createElement('div'); slot.className = 'Polaris-Layout__Section'; slot.hidden = true; slot.setAttribute('data-wm-card', '');   // the "Remove “Powered by Findter” badge" card (watermark-card.js) goes between the info banner and "Search field"
+      inBanner('Contact us').closest('.Polaris-Layout__Section').after(slot); break; }
     case 'metafield': mark(root.querySelector('a.fdt-header__link:not([href])'), 'metafield'); break;            // "For additional metafields, please contact us"
     case 'features': mark(root.querySelector('.fdt-contact-us-link').closest('a'), 'feature'); break;            // "Contact us now" in the bottom banner
     case 'design': case 'design-tab2': contactBanner(doc, root, 'design'); break;                                 // both design tabs: under the tabs (replaces the bottom "Got feedback..." banner)
@@ -185,6 +233,8 @@ ${parts.pops}
 ${parts.search}
 ${parts.toast}
 <script src="assets/code-notice.js"></script>
+<script src="assets/demo.js"></script>
+<script src="assets/watermark.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/pages.js"></script>
 ${p.script ? `<script src="${p.script}"></script>
@@ -195,4 +245,10 @@ ${p.script ? `<script src="${p.script}"></script>
   fs.writeFileSync(path.join(root, p.file), html);
   console.log('wrote', p.file.padEnd(26), (html.length / 1024).toFixed(0) + ' KB');
 }
+// Sample storefront: a stand-alone collection page with the header search (hand-written, not a capture) to test where the "Powered by Findter" badge goes
+fs.writeFileSync(path.join(root, 'storefront.html'), rd('build/storefront.html'));
+fs.writeFileSync(path.join(root, 'assets', 'storefront.css'), rd('build/storefront.css'));
+fs.writeFileSync(path.join(root, 'assets', 'storefront.js'), rd('build/storefront.js'));
+fs.writeFileSync(path.join(root, 'assets', 'img', 'findter-logo.svg'), rd('build/findter-logo.svg'));      // the app's own 1 KB logo, shown left of the badge text
+console.log('wrote storefront.html + assets/storefront.css, storefront.js');
 console.log('wrote assets/common.css', (css.length / 1024).toFixed(0) + ' KB, assets/shell.js, assets/pages.js');
