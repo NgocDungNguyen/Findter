@@ -246,7 +246,7 @@
     /* --- index banner: yellow while the app collects the values, green when it is done --- */
     const section = $('.Polaris-Layout__Section > .Polaris-BlockStack'); const bannerBox = document.createElement('div'); bannerBox.setAttribute('data-mfp', ''); if (section) section.prepend(bannerBox);
     function renderBanner() {
-      const guide = $('[data-mf-search-guide]'); if (guide) guide.hidden = !searchIdsOf(mfsLoad()).length;   // "Search by metafield guideline here": only while a saved metafield is searchable
+      const guide = $('[data-mf-search-guide]'); if (guide) guide.hidden = !searchIdsOf(mfsLoad()).length;   // "Search by metafield guidelines here": only while a saved metafield is searchable
       const i = idxLoad(), pending = i.pendingUntil > Date.now();
       if (pending && !hidePending) bannerBox.innerHTML = `<div class="mf-banner mf-banner--warn" role="status"><div class="mf-banner__head"><span class="mf-banner__icon">${ICON_ALERT}</span><strong>Collecting data</strong><button type="button" class="mf-banner__x" data-banner="hide" aria-label="Dismiss">${ICON_CLOSE}</button></div><p class="mf-banner__body">We are collecting metafield values, please wait.</p></div>`;
       else if (!pending && i.notice === 'done') bannerBox.innerHTML = `<div class="mf-banner mf-banner--ok" role="status"><span class="mf-banner__icon">${ICON_OK}</span><span class="mf-banner__text">Data indexing is completed. You can use selected metafields in <a href="filter.html">filter</a> and <a href="search.html">search</a> now.</span><button type="button" class="mf-banner__x" data-banner="done" aria-label="Dismiss">${ICON_CLOSE}</button></div>`;

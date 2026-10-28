@@ -1,4 +1,4 @@
-# Builds "CSE Guide_ YMM x Multi source (VN).docx" (RDS_SHOPIFY-775). No live screenshots yet, so every figure is a Placeholder().
+# Builds "CSE Guide_ YMM x Multi source (VN).docx" (RDS_SHOPIFY-775). Screenshots in docs/cse-guides/ymm-multi-source/img (demo store); screens not captured yet are Placeholder().
 # Frame (styles, numbering, footer) = "CSE Guide_ Search by Metafield (v2).docx". Run from PowerShell:
 #   $s=[IO.File]::ReadAllText('<this file>',[Text.Encoding]::UTF8); Invoke-Expression $s
 $ErrorActionPreference = 'Stop'
@@ -60,6 +60,7 @@ function Tbl($widths, $rows, [bool]$header, [bool]$firstColShade) {
         [void]$sb.Append('<w:tr><w:trPr><w:cantSplit/>' + $(if ($isHead) { '<w:tblHeader/>' } else { '' }) + '</w:trPr>')
         for ($c = 0; $c -lt $widths.Count; $c++) {
             $txt = $rows[$r][$c]; $shd = ''
+            if ($isHead -or ($firstColShade -and $c -eq 0)) { $txt = $txt -replace '\*\*', '' }   # these cells are always bold, so drop the markers
             if ($isHead) { $shd = '<w:shd w:val="clear" w:color="auto" w:fill="1F3A5F"/>' } elseif ($firstColShade -and $c -eq 0) { $shd = '<w:shd w:val="clear" w:color="auto" w:fill="EEF3F8"/>' }
             if ($isHead) { $content = '<w:r><w:rPr><w:b/><w:bCs/><w:color w:val="FFFFFF"/></w:rPr><w:t xml:space="preserve">' + (Esc $txt) + '</w:t></w:r>' }
             elseif ($firstColShade -and $c -eq 0) { $content = '<w:r><w:rPr><w:b/><w:bCs/></w:rPr><w:t xml:space="preserve">' + (Esc $txt) + '</w:t></w:r>' }
@@ -87,12 +88,12 @@ function H2([string]$t) { NextList; '<w:p><w:pPr><w:pStyle w:val="Heading2"/></w
 $b = New-Object Text.StringBuilder
 function Add([string]$x) { [void]$script:b.Append($x) }
 
-Add (Banner 'HƯỚNG DẪN CSE' 'YMM x Multi source' 'Nhiều dropdown YMM từ cùng 1 metafield  ·  Dành cho đội CSE  ·  Cập nhật 27/10/2026')
+Add (Banner 'HƯỚNG DẪN CSE' 'YMM x Multi source' 'Nhiều dropdown YMM từ cùng 1 metafield  ·  Dành cho đội CSE  ·  Cập nhật 28/10/2026')
 
 Add (Tbl @(2500, 7138) @(
     @('Task', '**RDS_SHOPIFY-775**. Đang ở nhánh **develop** (staging), chưa lên master. Chưa dùng được trên store thật cho tới khi release'),
     @('Câu hỏi của khách', '“Tôi đã tạo 1 option YMM từ metafield **Compatible Vehicles**, muốn thêm 2 option nữa cũng từ metafield này để tạo cascading dropdown. Có cách nào dùng **cùng 1 metafield cho nhiều option** không?”'),
-    @('Trả lời', '**Có**, khi store bật **Multi-filters by one source**. Mỗi option là 1 dropdown, cùng chọn source **Compatible Vehicles**, mỗi option giữ một nhóm giá trị riêng (ví dụ năm, hãng, dòng xe). Khi chưa bật thì mỗi source chỉ dùng được 1 lần trong YMM'),
+    @('Trả lời', '**Có**, khi store bật **Multi-filters by one source**. Mỗi option là 1 dropdown, cùng chọn 1 source, mỗi option giữ một nhóm giá trị riêng. Khi chưa bật thì mỗi source chỉ dùng được 1 lần trong YMM'),
     @('Không phải tính năng mới', 'Hai tính năng cũ (YMM và Multi source) giờ chạy cùng nhau. Widget trên theme và cách khách chọn trên storefront **không đổi**'),
     @('Khi nào cần', 'Dữ liệu nhiều cấp nằm **chung trong 1 metafield** (hoặc 1 source như Tag, Product type). Nếu khách đã tách **Year, Make, Model thành 3 metafield riêng** thì **không cần** Multi source, mỗi metafield là 1 option như YMM cũ'),
     @('Cần có', '(1) **Year Make Model** đã bật, widget đã thêm vào theme. (2) Đã unlock **Multi-filters by one source**. (3) Metafield đã được thêm vào Findter và có dữ liệu trên sản phẩm'),
@@ -100,27 +101,24 @@ Add (Tbl @(2500, 7138) @(
     @('Khác Filter', 'Ở Filter có ô **Alias name** khi dùng Multi source. Ở YMM **không có ô này**, app tự đặt tên (khách không phải nhập)')
 ) $false $true)
 
+Add (Callout 'Ảnh trong guide:' 'Chụp từ store demo. Demo có metafield **Year** (List of single-line text) dùng cho **2 option** (**Year #1**, **Year #2**), cùng với **Make** và **Model**. Case **Compatible Vehicles** của khách làm **y hệt**, chỉ khác Source và số option (xem mục “Áp dụng cho case Compatible Vehicles”).' 'info')
+
 Add (H1 'Chọn đúng loại metafield')
 Add (Para 'Hỏi khách “multi text” là loại nào, vì kết quả khác nhau:')
 Add (Tbl @(3200, 6438) @(
     @('Loại metafield', 'Dùng cho nhiều cấp YMM'),
-    @('**List of single-line text** (list.single_line_text_field)', '**Khuyên dùng.** Mỗi phần tử trong list là 1 giá trị riêng, ví dụ “2022”, “Toyota”, “Camry”'),
+    @('**List of single-line text** (list.single_line_text_field)', '**Khuyên dùng.** Mỗi phần tử trong list là 1 giá trị riêng, ví dụ “2021”, “2022”, “2023”'),
     @('Single-line text', 'Mỗi sản phẩm chỉ có **1 giá trị**, không đủ để làm nhiều cấp'),
     @('Multi-line text', '**Không phù hợp.** App coi cả đoạn text là 1 giá trị, không tách thành từng dòng. Đề nghị khách đổi sang List of single-line text')
 ) $true $true)
 
 Add (H1 'Phase 1: Chuẩn bị dữ liệu')
-Add (Para 'Ví dụ dùng trong guide: metafield **Compatible Vehicles** (List of single-line text) trên sản phẩm:')
-Add (Tbl @(3000, 6638) @(
-    @('Sản phẩm', 'Giá trị trong Compatible Vehicles'),
-    @('Brake pad A', '2021, 2022, Toyota, Camry'),
-    @('Brake pad B', '2022, Honda, Civic'),
-    @('Brake pad C', '2021, Toyota, Corolla')
-) $true $true)
-Add (Step '**Thêm metafield vào Findter.** Vào **Metafield** → thêm metafield **Compatible Vehicles** (nếu chưa có) và chờ app đồng bộ. Source chỉ xuất hiện trong YMM khi metafield đã được thêm vào Findter.' $script:L)
-Add (Placeholder 'Trang Metafield của Findter có metafield Compatible Vehicles' 'Metafield Compatible Vehicles trong Findter')
-Add (Step '**Kiểm tra dữ liệu sản phẩm.** Mỗi sản phẩm có đủ các giá trị năm, hãng, dòng xe trong cùng metafield.' $script:L)
-Add (Placeholder 'Trang sản phẩm Shopify, metafield Compatible Vehicles với các giá trị' 'Giá trị metafield trên sản phẩm')
+Add (Step '**Thêm metafield vào Findter.** Vào **Metafield** → thêm metafield cần dùng (demo: **Year**) và chờ app đồng bộ. Source chỉ xuất hiện trong YMM khi metafield đã được thêm vào Findter.' $script:L)
+Add (Placeholder 'Trang Metafield của Findter có metafield Year' 'Metafield Year trong Findter')
+Add (Step '**Kiểm tra kiểu metafield.** Trong Shopify admin, **Settings > Custom data > Products** → mở metafield. **Type** phải là **List > Single line text**.' $script:L)
+Add (Figure 'ymm_05_metafield_def' 'Metafield Year: Type = List, Single line text')
+Add (Step '**Kiểm tra dữ liệu sản phẩm.** Mỗi sản phẩm có nhiều giá trị trong cùng metafield. Ví dụ sản phẩm demo có Year gồm **2021, 2022, 2023**, Make là **BMW**, Model là **X5 xDrive40i**.' $script:L)
+Add (Figure 'ymm_06_product_values' 'Giá trị metafield trên một sản phẩm')
 
 Add (H1 'Phase 2: Bật Multi source')
 Add (Step '**C1: Advanced features** (khách tự bật). Vào **Advanced features** → thẻ **Multi-filters by one source** → **Enable**.' $script:L)
@@ -129,32 +127,37 @@ Add (Step '**C2: Master** (CSE bật giúp khách). Mở **Master** → nhập s
 Add (Placeholder 'Master, mục Feature, dòng Multi filter source' 'Dòng Multi filter source trong Master')
 Add (Callout 'Lưu ý:' 'Khi unlock hoặc revert Multi source, app **tự đồng bộ lại cấu hình YMM** lên storefront (chỉ khi YMM đang bật). CSE không cần làm thêm gì.' 'info')
 
-Add (H1 'Phase 3: Tạo 3 option từ cùng 1 metafield')
-Add (Step '**Option 1 (Year).** Vào **Year Make Model** → **Add option** → **Source** chọn **Compatible Vehicles**. Ô **Label** tự điền “Compatible Vehicles” → đổi thành **Year**. Ô **Values** chọn **Manually** → chỉ giữ 2021, 2022 → **Save**.' $script:L)
-Add (Placeholder 'Form Add Year Make Model option: Source = Compatible Vehicles, Label = Year, Values = Manually' 'Option đầu tiên')
-Add (Step '**Option 2 (Make).** **Add option** lần nữa. **Compatible Vehicles vẫn còn trong danh sách Source** (chưa bật Multi source thì đã biến mất). Chọn lại → Label tự điền **“Compatible Vehicles 1”** → đổi thành **Make**, **Manually**, chỉ giữ Toyota, Honda → **Save**.' $script:L)
-Add (Placeholder 'Form Add option lần 2: Source = Compatible Vehicles, Label tự điền “Compatible Vehicles 1”' 'Option thứ hai dùng lại cùng metafield')
-Add (Step '**Option 3 (Model).** Làm tương tự, Label tự điền **“Compatible Vehicles 2”** → đổi thành **Model**, **Manually**, chỉ giữ Camry, Civic, Corolla → **Save**.' $script:L)
-Add (Step '**Sắp xếp.** Kéo thả các dòng trong bảng **Year Make Model options** thành Year → Make → Model. Xem **Preview** bên phải.' $script:L)
-Add (Placeholder 'Bảng Year Make Model options: 3 dòng cùng Source Compatible Vehicles, Preview bên phải' 'Ba option cùng metafield Compatible Vehicles')
-Add (Callout 'Quan trọng:' 'Với metafield dùng chung, **luôn chọn Manually** cho từng option và chỉ giữ giá trị của đúng cấp đó. Để **All values** thì cả 3 dropdown đều liệt kê **toàn bộ** giá trị của metafield (cả năm, hãng lẫn dòng xe).' 'warn')
-Add (Callout 'Lưu ý:' 'Label các option trong YMM **không được trùng nhau** (tối đa 40 ký tự), trùng sẽ báo **“Label already used”**. Nên đổi label tự điền sang tên dễ hiểu cho khách (Year, Make, Model).' 'info')
+Add (H1 'Phase 3: Tạo nhiều option từ cùng 1 metafield')
+Add (Step '**Mở Year Make Model.** Demo đang có 3 option: **Year #1** (từ metafield Year), **Make**, **Model**. Cột **Source** hiển thị tên kỹ thuật của source (ví dụ metafield_custom_year).' $script:L)
+Add (Figure 'ymm_01_options_before' 'Year Make Model trước khi thêm option, 3 option')
+Add (Step '**Thêm option mới từ metafield đã dùng.** Nhấn **Add option** → ô **Source** chọn lại **Year**. **Year vẫn còn trong danh sách Source** (chưa bật Multi source thì đã biến mất). Ô **Label** tự điền, đổi thành tên dễ phân biệt, ở demo là **Year #2**.' $script:L)
+Add (Step 'Ở ô **Values** chọn **Manually** → chỉ bật **2019, 2020, 2021**, tắt phần còn lại → **Save**.' $script:L)
+Add (Figure 'ymm_02_add_option' 'Add option: Source Year, Label Year #2, Manually 2019 đến 2021')
+Add (Step '**Chia lại giá trị cho option cũ.** Mở option **Year #1** → **Manually** → chỉ bật **2022, 2023, 2024** → **Save**. Hai option cùng 1 metafield nên giá trị phải **chia riêng** cho từng option.' $script:L)
+Add (Figure 'ymm_03_edit_year1' 'Edit option Year #1: Manually, 2022 đến 2024')
+Add (Step '**Kiểm tra bảng và Preview.** Bảng có 4 dòng, 2 dòng đầu **cùng Source** (metafield_custom_year). Preview bên phải hiện đủ 4 dropdown theo thứ tự trong bảng. Kéo thả dòng để đổi thứ tự.' $script:L)
+Add (Figure 'ymm_04_options_after' 'Hai option Year #1 và Year #2 dùng chung 1 metafield')
+Add (Callout 'Quan trọng:' 'Với metafield dùng chung, **luôn chọn Manually** cho từng option và chỉ giữ giá trị của đúng cấp đó. Để **All values** thì cả hai dropdown đều liệt kê **toàn bộ** giá trị của metafield (2019 đến 2024).' 'warn')
+Add (Callout 'Lưu ý:' 'Label các option trong YMM **không được trùng nhau** (tối đa 40 ký tự), trùng sẽ báo **“Label already used”**. Label tự điền khi chọn lại source đã dùng là tên source kèm số (ví dụ “Year 1”), nên đổi sang tên dễ hiểu cho khách.' 'info')
 
 Add (H1 'Phase 4: Kiểm tra trên storefront')
-Add (Step '**Chọn từng cấp.** Ở trang chủ chọn **Year** (2021) → dropdown **Make** mở ra, chỉ còn **Toyota** (chỉ sản phẩm A và C có 2021) → chọn → **Model** chỉ còn **Camry**, **Corolla** → chọn → nhấn **Find**.' $script:L)
-Add (Placeholder 'Widget YMM trên storefront: Year 2021, Make Toyota, Model Camry' 'Widget trên trang chủ')
-Add (Step '**Xem kết quả.** Trang kết quả chỉ hiện sản phẩm khớp **cả 3** lựa chọn (ví dụ 2021 + Toyota + Camry ra Brake pad A). Widget hiện lại ở đầu trang để khách đổi cấp nào cũng được. Panel filter bên trái hiện đúng giá trị đã chọn của **từng** option.' $script:L)
-Add (Placeholder 'Trang kết quả có widget YMM ở đầu trang' 'Trang kết quả sau khi bấm Find')
-Add (Callout 'Lưu ý khi tư vấn:' 'YMM tìm sản phẩm **có đủ các giá trị đã chọn**, không biết giá trị nào đi với giá trị nào. Sản phẩm A (2021, 2022, Toyota, Camry) và sản phẩm B (2022, Honda, Civic): chọn **2022** thì Make hiện cả Toyota lẫn Honda, đúng. Nhưng nếu **một sản phẩm** liệt kê nhiều xe trong cùng metafield (ví dụ cả Toyota Camry 2021 và Honda Civic 2022) thì có thể ra tổ hợp không có thật như “2021 + Honda”. Cách này cũng đúng với 3 metafield riêng. Nếu khách cần ghép cặp chính xác, đề nghị chia sản phẩm theo từng xe hoặc dùng cách khác.' 'warn')
+Add (Step '**Mở widget.** Ở trang có widget YMM, thấy đủ 4 dropdown **Year #1, Year #2, Make, Model**. Chỉ dropdown đầu mở, nút **Find** chưa bấm được. **Reset** xoá hết lựa chọn.' $script:L)
+Add (Figure 'ymm_07_widget' 'Widget YMM trên storefront, chưa chọn gì')
+Add (Step '**Chọn từng cấp.** Chọn **Year #1** (2022) → **Year #2** mở ra, chọn **2021** → **Make** mở ra. Mỗi dropdown chỉ hiện các giá trị còn sản phẩm khớp với lựa chọn ở cấp trên (trong danh sách Manually của chính option đó). Nhấn **Find**.' $script:L)
+Add (Figure 'ymm_08_widget_selected' 'Đã chọn Year #1 = 2022, Year #2 = 2021')
+Add (Step '**Xem kết quả.** Trang kết quả chỉ hiện sản phẩm có **đủ các giá trị đã chọn** (ở demo ra 6 sản phẩm). Widget hiện lại ở đầu trang để khách đổi cấp nào cũng được, filter bên trái dùng chung với kết quả.' $script:L)
+Add (Figure 'ymm_09_results' 'Trang kết quả sau khi bấm Find')
+Add (Callout 'Lưu ý khi tư vấn:' 'YMM tìm sản phẩm **có đủ các giá trị đã chọn**, không biết giá trị nào đi với giá trị nào. Nếu **một sản phẩm** liệt kê nhiều xe trong cùng metafield (ví dụ cả Toyota Camry 2021 và Honda Civic 2022) thì có thể ra tổ hợp không có thật như “2021 + Honda”. Cách này cũng đúng với 3 metafield riêng. Khách cần ghép cặp chính xác thì nên liệt kê mỗi sản phẩm một xe.' 'warn')
 
-Add (H1 'Test trên demo (đang có Year, Make, Model)')
-Add (Para 'Demo hiện chỉ có 3 metafield riêng **Year**, **Make**, **Model**. Chọn một trong các cách:')
-Add (Tbl @(2400, 4200, 3038) @(
-    @('Cách', 'Làm gì', 'Kiểm tra được gì'),
-    @('**A. Dựng lại đúng case khách** (khuyên dùng)', 'Tạo metafield **Compatible Vehicles** (List of single-line text), thêm vào Findter, điền cho 3 đến 4 sản phẩm như bảng ở Phase 1. Làm theo Phase 2 đến 4', 'Toàn bộ luồng, kể cả cascading'),
-    @('**B. Chỉ thử cơ chế**, không thêm dữ liệu', 'Bật Multi source, tạo 2 đến 3 option cùng chọn **Make** (hoặc Model). Xem label tự đánh số, source vẫn chọn lại được, Save được. Tắt Multi source xem option thừa bị ẩn', 'Form, label, Save, tắt/bật. **Không** kiểm tra được cascade có ý nghĩa'),
-    @('**C. So sánh với cách cũ**', 'Tạo 3 option Year, Make, Model từ 3 metafield có sẵn, **không cần** Multi source', 'Cho thấy khi nào không cần Multi source')
-) $true $false)
+Add (H1 'Áp dụng cho case Compatible Vehicles')
+Add (Para 'Khách có **1 metafield Compatible Vehicles** (List of single-line text) chứa cả năm, hãng và dòng xe. Làm y hệt Phase 3, nhưng **3 option cùng chọn Source Compatible Vehicles**:')
+Add (Tbl @(1800, 2700, 5138) @(
+    @('Option', 'Source', 'Values (chọn Manually, chỉ giữ đúng nhóm)'),
+    @('**Year**', 'Compatible Vehicles', '2021, 2022'),
+    @('**Make**', 'Compatible Vehicles', 'Toyota, Honda'),
+    @('**Model**', 'Compatible Vehicles', 'Camry, Civic, Corolla')
+) $true $true)
+Add (Para 'Ví dụ dữ liệu sản phẩm: Brake pad A (2021, 2022, Toyota, Camry), Brake pad B (2022, Honda, Civic), Brake pad C (2021, Toyota, Corolla). Chọn **2021** thì Make chỉ còn **Toyota**, Model chỉ còn **Camry**, **Corolla**.')
 
 Add (H1 'Quy tắc và giới hạn')
 Add (Tbl @(3200, 6438) @(
@@ -171,7 +174,7 @@ Add (Para 'Khi Multi source bị **tắt** (revert trong Master hoặc hết quy
 Add (Bullet 'Option được giữ là option **tạo sớm nhất** của source đó. Các option còn lại **bị ẩn** khỏi storefront và khỏi bảng YMM trong app.')
 Add (Bullet 'Option bị ẩn **không bị xoá**. Bật lại Multi source thì chúng quay lại nguyên trạng, không cần tạo lại.')
 Add (Bullet 'Cấu hình YMM trên storefront được đồng bộ lại tự động ngay khi bật hoặc tắt (chỉ khi YMM đang bật).')
-Add (Callout 'Lưu ý:' 'Khách báo “mất dropdown Make/Model” thì kiểm tra Multi source còn bật không trước khi nghi ngờ lỗi.' 'info')
+Add (Callout 'Lưu ý:' 'Khách báo “mất dropdown” (ví dụ mất Year #2) thì kiểm tra Multi source còn bật không trước khi nghi ngờ lỗi.' 'info')
 
 Add (H1 'Các case thường gặp')
 Add (Tbl @(2700, 3400, 3538) @(
@@ -180,9 +183,9 @@ Add (Tbl @(2700, 3400, 3538) @(
     @('Metafield của khách **không có** trong danh sách Source', 'Metafield chưa được thêm vào Findter, hoặc chưa đồng bộ xong', 'Thêm ở trang Metafield, chờ đồng bộ rồi tải lại trang YMM'),
     @('Báo **“Label already used”**', 'Label trùng option khác trong YMM (kể cả label tự điền)', 'Đổi sang label khác'),
     @('Save báo lỗi trùng tên tham số hoặc trùng source', 'Tab cũ chưa tải lại, hoặc Multi source vừa bị tắt', 'Tải lại trang, kiểm tra Multi source còn bật, tạo lại option'),
-    @('Cả 3 dropdown hiện cùng một danh sách giá trị', 'Các option để **All values**', 'Đổi từng option sang **Manually**, chỉ giữ giá trị của cấp đó'),
+    @('Các dropdown hiện cùng một danh sách giá trị', 'Các option để **All values**', 'Đổi từng option sang **Manually**, chỉ giữ giá trị của cấp đó'),
     @('Metafield là Multi-line text, dropdown không tách được giá trị', 'Multi-line text không tách thành từng giá trị', 'Đổi metafield sang List of single-line text và nhập lại dữ liệu'),
-    @('Dropdown cấp sau hiện **“No options available”**', 'Không có sản phẩm nào khớp lựa chọn ở cấp trên, hoặc giá trị Manually của cấp đó không có trong các sản phẩm đó', 'Kiểm tra giá trị metafield trên sản phẩm. Giá trị đã tick phải còn tồn tại trên sản phẩm'),
+    @('Dropdown cấp sau hiện **“No options available”**', 'Không có sản phẩm nào khớp lựa chọn ở cấp trên, hoặc giá trị Manually của cấp đó không có trong các sản phẩm đó', 'Kiểm tra giá trị metafield trên sản phẩm. Giá trị đã bật phải còn tồn tại trên sản phẩm'),
     @('Chọn xong ra tổ hợp không có thật (ví dụ 2021 + Honda)', 'Một sản phẩm liệt kê nhiều xe trong cùng metafield', 'Xem lưu ý ở Phase 4'),
     @('Mất bớt dropdown trên storefront và trong bảng YMM', 'Multi source đã tắt, chỉ giữ option tạo sớm nhất mỗi source', 'Bật lại Multi source, các option quay lại'),
     @('Widget không đổi sau khi sửa option', 'Cấu hình storefront chưa cập nhật hoặc bị cache trình duyệt', 'Tải lại cứng (Ctrl+F5). Vẫn không đổi thì chuyển dev kiểm tra metafield **ymm** của store')
@@ -196,7 +199,7 @@ Add (Step 'YMM đã bật chưa, widget đã có trong theme chưa?' $script:L)
 Add (Step 'Multi-filters by one source đã bật (Advanced features hoặc Master) và còn đang bật không?' $script:L)
 Add (Step 'Metafield có kiểu **List of single-line text** không, đã thêm vào Findter và có dữ liệu chưa?' $script:L)
 Add (Step 'Mỗi option đã có **label khác nhau**, và chọn **Manually** với đúng giá trị của cấp đó chưa?' $script:L)
-Add (Step 'Thứ tự các dòng trong bảng đã đúng (Year → Make → Model) chưa?' $script:L)
+Add (Step 'Thứ tự các dòng trong bảng đã đúng chưa?' $script:L)
 Add (Step 'Sản phẩm có liệt kê nhiều xe trong cùng metafield không (có thể ra tổ hợp không có thật)?' $script:L)
 Add (Step 'Đã tải cứng storefront (Ctrl+F5) và thử lại chưa?' $script:L)
 

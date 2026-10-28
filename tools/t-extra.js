@@ -24,7 +24,7 @@ let fails = 0; const ok = (name, cond, extra) => { if (!cond) fails++; console.l
 
   // Translations
   let p = await open('search-translation.html');
-  ok('Translations: title Search + guide link', await p.locator('h1').innerText() === 'Search' && await guide(p, 'Multi-language search guideline here', G + 'auto-translate'));
+  ok('Translations: title Search + guide link', await p.locator('h1').innerText() === 'Search' && await guide(p, 'Multi-language search guidelines here', G + 'auto-translate'));
   ok('Translations: active tab', await p.locator('.Polaris-Tabs__Tab--active').innerText() === 'Translations');
   ok('Translations: 2 saved tags, Save disabled', await p.locator('.ex-tag').count() === 2 && await p.locator('[data-act=save]').isDisabled());
   await p.locator('#ex-loc-input').click(); ok('Translations: list opens', await p.locator('#ex-loc-pop').isVisible());
@@ -38,7 +38,7 @@ let fails = 0; const ok = (name, cond, extra) => { if (!cond) fails++; console.l
 
   // Synonyms
   p = await open('search-synonym.html');
-  ok('Synonyms: title, sub text, guide link', await p.locator('h1').innerText() === 'Synonyms Search' && (await p.locator('.fdt-header__description').count()) === 1 && (await p.locator('.fdt-header__description').innerText()).endsWith('similar words. Synonyms search guideline here') && await guide(p, 'Synonyms search guideline here', G + 'synonym-search'));
+  ok('Synonyms: title, sub text, guide link', await p.locator('h1').innerText() === 'Search' && (await p.locator('.fdt-header__description').count()) === 1 && (await p.locator('.fdt-header__description').innerText()).endsWith('similar words. Synonyms search guidelines here') && await guide(p, 'Synonyms search guidelines here', G + 'synonym-search'));
   ok('Synonyms: 3 rows', await p.locator('.ex-table tbody tr').count() === 3);
   await p.locator('.ex-info').hover(); await shot(p, 'synonym');
   await p.locator('tr[data-id="3"] [data-act=toggle]').click(); ok('Synonyms: toggle toast', (await p.locator('#toast').innerText()).includes('Change status success'));
@@ -52,7 +52,7 @@ let fails = 0; const ok = (name, cond, extra) => { if (!cond) fails++; console.l
   p = await open('filter-translate.html');
   ok('Translate: title + 2 sub lines', await p.locator('h1').innerText() === 'Translate Default filter set');
   const lines = await p.locator('.fdt-header__description').allInnerTexts();
-  ok('Translate: sub text with the guide link on the same line', lines.length === 1 && lines[0] === "Add translated labels for this filter set's options, values, and groups. Multi-language filter value guideline here" && await guide(p, 'Multi-language filter value guideline here', G + 'auto-translate'), lines.join(' / '));
+  ok('Translate: sub text with the guide link on the same line', lines.length === 1 && lines[0] === "Add translated labels for this filter set's options, values, and groups. Multi-language filter value guidelines here" && await guide(p, 'Multi-language filter value guidelines here', G + 'auto-translate'), lines.join(' / '));
   await shot(p, 'filter-translate');
   await p.locator('input[data-k="o1:v:In Stock"]').fill('En stock'); ok('Translate: save bar shows', await p.locator('.so-savebar').evaluate(e => !e.hidden));
   await p.selectOption('#ex-lang', 'de'); ok('Translate: discard modal on language switch', await p.locator('.mf-modal').count() === 1);

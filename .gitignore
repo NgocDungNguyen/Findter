@@ -31,3 +31,6 @@ theme_check/
 # theme data exports from the DB (store domains, emails): never commit
 theme-data*.csv
 *.theme-export.csv
+
+# theme canary tool: store domain, saved admin login profile and raw captures (repo is public)
+tools/theme-canary/

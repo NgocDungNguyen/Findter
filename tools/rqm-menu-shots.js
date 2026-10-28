@@ -74,16 +74,17 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
 
   // ---- 5-6 Synonyms Search
   await open('search-synonym.html', { before: 'link' });
-  await capture('synonyms-before', 'Synonyms Search hien tai (real-app): chi co subtext, chua co link guideline', [['.fdt-header__description', 1]], 'header');
+  await p.evaluate(() => { document.querySelector('.fdt-header__title').textContent = 'Synonyms Search'; });   // the heading the real app shows today
+  await capture('synonyms-before', 'Synonyms Search hien tai (real-app): heading "Synonyms Search", chi co subtext, chua co link guideline', [['.fdt-header__title', 1], ['.fdt-header__description', 2]], 'header');
   await open('search-synonym.html');
-  await capture('synonyms-after', 'Synonyms Search moi: link "Synonyms search guideline here" cung dong sau subtext', [['a.fdt-header__link', 1]], 'header');
+  await capture('synonyms-after', 'Synonyms Search moi: heading doi thanh "Search" (giong 3 tab con lai) + link "Synonyms search guidelines here" cung dong sau subtext', [['.fdt-header__title', 1], ['a.fdt-header__link', 2]], 'header');
 
   // ---- 7-9 Metafield
   await open('metafield.html', { before: 'link' });
   await p.evaluate(() => { const g = document.querySelector('[data-mf-search-guide]'); if (g) g.hidden = true; });
   await capture('metafield-before', 'Metafield hien tai (real-app): chi co subtext "Metafield guidelines here! ..." (du da bat Search)', [['.fdt-header__description', 1]], 'header');
   await open('metafield.html');
-  await capture('metafield-after-on', 'Metafield moi, DA bat Search by metafield (co metafield text tick Search): them dong "Search by metafield guideline here" duoi subtext', [['[data-mf-search-guide]', 1]], 'header');
+  await capture('metafield-after-on', 'Metafield moi, DA bat Search by metafield (co metafield text tick Search): them dong "Search by metafield guidelines here" duoi subtext', [['[data-mf-search-guide]', 1]], 'header');
   await p.evaluate(() => localStorage.setItem('findter.metafields.v1', JSON.stringify([{ id: 'multi', applies: ['filter'] }, { id: 'height', applies: ['filter'] }])));
   await p.reload(); await p.waitForTimeout(500); await p.addStyleTag({ content: '#toast{display:none!important}.m-fab,.sk,.chat-bubble{display:none!important}' }); await p.evaluate(MARK);
   await capture('metafield-after-off', 'Metafield moi, CHUA bat Search (chi co Filter): khong co dong guideline, khong co khoang trong thua', [['.fdt-header__description', 1]], 'header');
@@ -93,7 +94,7 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   await open('filter-translate.html', { before: 'link' });
   await capture('translate-before', 'Translate filter set hien tai (real-app): chi co subtext', [['.fdt-header__description', 1]], 'header');
   await open('filter-translate.html');
-  await capture('translate-after', 'Translate filter set moi: link "Multi-language filter value guideline here" cung dong sau subtext', [['a.fdt-header__link', 1]], 'header');
+  await capture('translate-after', 'Translate filter set moi: link "Multi-language filter value guidelines here" cung dong sau subtext', [['a.fdt-header__link', 1]], 'header');
 
   // ---- 12 Filter and grid design page: menu changed, page heading kept
   await open('design.html');
@@ -103,8 +104,8 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   // ---- 13-16 phone width
   for (const [file, name, title, sels] of [
     ['sort.html', 'mobile-custom-sort', 'Dien thoai (390px): Custom sort, link xuong dong gon', [['.fdt-header__title', 1], ['a.fdt-header__link', 2]]],
-    ['search-synonym.html', 'mobile-synonyms', 'Dien thoai (390px): Synonyms Search', [['a.fdt-header__link', 1]]],
-    ['metafield.html', 'mobile-metafield', 'Dien thoai (390px): Metafield, dong "Search by metafield guideline here"', [['[data-mf-search-guide]', 1]]],
+    ['search-synonym.html', 'mobile-synonyms', 'Dien thoai (390px): Synonyms Search, heading "Search"', [['.fdt-header__title', 1], ['a.fdt-header__link', 2]]],
+    ['metafield.html', 'mobile-metafield', 'Dien thoai (390px): Metafield, dong "Search by metafield guidelines here"', [['[data-mf-search-guide]', 1]]],
     ['filter-translate.html', 'mobile-translate', 'Dien thoai (390px): Translate filter set', [['a.fdt-header__link', 1]]],
   ]) {
     await open(file, { width: 390, height: 640 });
