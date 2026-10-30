@@ -720,7 +720,6 @@
 .wm-label .mf-tip{align-items:center;height:20px}
 .wm-label .Polaris-Icon{display:grid;place-items:center;height:20px}
 .wm-label .mf-tip__bubble{z-index:60;font-weight:400}
-.wm-badge{display:inline-block;padding:2px 8px;border-radius:8px;background:#affebf;color:#014b40;font-size:12px;line-height:16px;font-weight:550}
 /* the index banner's box is empty most of the time: an empty box inside the page's flex/grid stack would still add one row gap above the first card */
 [data-mfp]:empty{display:none}
 /* one rhythm between sections: 16px (header to first block is 24px = 8px under the header + 16px). The captured Advanced features grid used 20px and the Metafield stack 20px */

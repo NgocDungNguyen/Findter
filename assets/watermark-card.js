@@ -20,7 +20,7 @@
   function render() {
     const show = WM.cardShown(); host.hidden = !show; if (!show) { host.textContent = ''; return; }
     const removed = WM.removed(); if (removed) pending = false;
-    const control = removed ? '<span class="wm-badge">Removed</span>'
+    const control = removed ? '<span class="wm-badge Polaris-Badge Polaris-Badge--toneSuccess"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">Removed</span></span>'
       : '<button type="button" class="Polaris-Button Polaris-Button--pressable Polaris-Button--variantSecondary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter" data-wm-btn aria-label="Remove “Powered by Findter” badge"' + (pending ? ' aria-disabled="true" aria-busy="true"' : '') + '><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">' + (pending ? 'Removing…' : 'Remove') + '</span></button>';
     host.innerHTML = CARD + '<div class="wm-row">' + label + control + '</div></div></div></div>';
   }
