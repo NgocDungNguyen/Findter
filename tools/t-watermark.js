@@ -9,6 +9,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.goto(url('index.html')); await p.evaluate(() => localStorage.clear());
   const store = async v => { await p.selectOption('.demo-select[data-key=plan]', v); await p.waitForTimeout(60); };
   const card = () => p.locator('[data-wm-card]:not([hidden])');
+  const busy = async () => (await p.locator('[data-wm-btn]').getAttribute('aria-disabled')) === 'true';
 
   /* ---- Master -> Features ---- */
   await p.goto(url('index.html') + '#/master/features'); await p.waitForTimeout(400);
@@ -34,10 +35,11 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.goto(url('search.html')); await p.waitForTimeout(400);
   const order = await p.evaluate(() => [...document.querySelector('.Polaris-Layout').children].map(s => s.hasAttribute('data-wm-card') ? 'card' : /custom search solution/.test(s.textContent) ? 'banner' : /Search field/.test(s.textContent) ? 'fields' : 'other'));
   ok(order.join() === 'other,banner,card,fields', 'card sits between the info banner and "Search field" (' + order.join(' > ') + ')');
-  const shape = async v => { await store(v); return p.evaluate(() => { const c = document.querySelector('[data-wm-card]'); return c.hidden ? 'hidden' : c.querySelector('[data-wm-request]') ? 'button' : c.querySelector('[data-wm-switch]') ? (c.querySelector('[data-wm-switch]').checked ? 'switch-on' : 'switch-off') : c.querySelector('.wm-badge') ? 'removed' : '?'; }); };
-  const want = { Trial: 'switch-off', Free: 'switch-off', 'Paid before': 'switch-off', Service: 'switch-off', Starter: 'switch-off', Enterprise: 'switch-off', Development: 'hidden' };
+  const shape = async v => { await store(v); return p.evaluate(() => { const c = document.querySelector('[data-wm-card]'); const bt = c.querySelector('[data-wm-btn]'); return c.hidden ? 'hidden' : bt ? (bt.getAttribute('aria-disabled') === 'true' ? 'button-busy' : 'button') : c.querySelector('.wm-badge') ? 'removed' : '?'; }); };
+  const want = { Trial: 'button', Free: 'button', 'Paid before': 'button', Service: 'button', Starter: 'button', Enterprise: 'button', Development: 'hidden' };
   for (const [plan, w] of Object.entries(want)) { const got = await shape(plan); ok(got === w, `${plan}: ${w} (${got})`); }
-  ok((await p.locator('[data-wm-card] button').count()) === 0, 'no Remove request button anywhere in the card');
+  await store('Free');
+  ok((await p.locator('[data-wm-card] button').count()) === 1 && (await p.locator('[data-wm-btn]').textContent()).trim() === 'Remove' && (await p.locator('[data-wm-card] input').count()) === 0, 'the card has one text button "Remove" and no switch');
   await store('Free'); await p.hover('.wm-label .mf-tip'); await p.waitForTimeout(100);
   const tip = await p.evaluate(() => { const t = document.querySelector('.wm-label .mf-tip'), bub = t.querySelector('.mf-tip__bubble'), r = bub.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, el = document.elementFromPoint(x, y); const ic = t.querySelector('svg').getBoundingClientRect(), tx = document.querySelector('#wm-label').getBoundingClientRect(); return { shown: getComputedStyle(bub).display !== 'none', onTop: !!el && bub.contains(el), dy: Math.abs((ic.top + ic.height / 2) - (tx.top + tx.height / 2)) }; });
   ok(tip.shown && tip.onTop, 'tooltip: the bubble shows in full on hover, not cut by the card border');
@@ -50,25 +52,25 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   /* ---- Trial / Free: one click -> chat opens, message goes out, then the badge is removed ---- */
   await store('Free');
   const before = (await msgs()).length;
-  await p.click('[data-wm-switch]'); await p.waitForTimeout(150);
-  ok(await p.locator('[data-wm-switch]').isChecked(), 'Free: the switch turns on while the chat works');
-  ok(await p.locator('.chat-panel.open').count() === 1, 'Free: turning the switch on opens the chat');
+  await p.click('[data-wm-btn]'); await p.waitForTimeout(150);
+  ok(await busy(), 'Free: the button reads "Removing…" while the chat works');
+  ok(await p.locator('.chat-panel.open').count() === 1, 'Free: turning the button on opens the chat');
   ok(!/not part of this copy/.test(await toastNow()), 'no "not part of this copy" toast');
   let m = await msgs(); ok(m.length === before + 1 && /remove the “Powered by Findter” badge/.test(m[m.length - 1]), 'Free: the shop’s message is sent by itself');
   ok(await p.locator('.chat-choice').count() === 0, 'Free: no Yes / No question in the chat');
   ok(!(await p.evaluate(() => FindterWatermark.removed())) && await p.locator('.wm-badge').count() === 0, 'Free: nothing is removed in the first moment (loading)');
   await p.waitForTimeout(1400);
   m = await msgs(); ok(m.length === before + 2 && /I have already removed the “Powered by Findter” badge/.test(m[m.length - 1]) && /feedback/.test(m[m.length - 1]), 'Free: then the auto reply "I have already removed…" with a question about help or feedback');
-  ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-switch]').count() === 0, 'Free: badge removed, the switch becomes the green "Removed" badge (no way back)');
+  ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-btn]').count() === 0, 'Free: badge removed, the button becomes the green "Removed" badge (no way back)');
   ok(await p.locator('.demo-btn[data-key=wm][data-val=removed]').getAttribute('aria-pressed') === 'true', 'the demo bar Badge group follows (Removed)');
   await p.click('.demo-btn[data-key=wm][data-val=shown]'); await p.waitForTimeout(100);
-  ok(await p.locator('[data-wm-switch]').isVisible() && !(await p.locator('[data-wm-switch]').isChecked()), 'demo bar Badge = Shown: the switch is back, off');
+  ok(await p.locator('[data-wm-btn]').isVisible() && !(await busy()), 'demo bar Badge = Shown: the Remove button is back');
   ok(await p.locator('.demo-group[aria-label=CSE]').count() === 0, 'the demo bar has no CSE group any more');
 
   /* ---- Trial and Free (never paid) go through the chat ---- */
   for (const plan of ['Trial']) {
     await store(plan); const n = (await msgs()).length;
-    await p.click('[data-wm-switch]'); await p.waitForTimeout(1500);
+    await p.click('[data-wm-btn]'); await p.waitForTimeout(1500);
     ok((await msgs()).length === n + 2 && await p.locator('.wm-badge').isVisible(), plan + ': message, auto reply, "Removed"');
     await p.click('.demo-btn[data-key=wm][data-val=shown]');
   }
@@ -77,31 +79,31 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   for (const plan of ['Starter', 'Paid before', 'Service']) {
     await store(plan);
     const b3 = (await msgs()).length;
-    await p.click('[data-wm-switch]'); await p.waitForTimeout(300);
-    ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-switch]').count() === 0, plan + ': the switch becomes "Removed" right away');
+    await p.click('[data-wm-btn]'); await p.waitForTimeout(300);
+    ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-btn]').count() === 0, plan + ': the button becomes "Removed" right away');
     ok((await msgs()).length === b3 && await p.locator('.chat-choice').count() === 0, plan + ': the chat is not touched');
     await p.click('.demo-btn[data-key=wm][data-val=shown]');
   }
 
   /* ---- demo bar Reset ---- */
-  await store('Starter'); await p.click('[data-wm-switch]'); await p.waitForTimeout(200);
+  await store('Starter'); await p.click('[data-wm-btn]'); await p.waitForTimeout(200);
   ok(await p.locator('.wm-badge').isVisible(), 'before Reset: a paid store with the badge removed shows "Removed"');
   await p.click('.demo-reset'); await p.waitForTimeout(150);
   const st = await p.evaluate(() => JSON.stringify(FindterDemo.DEMO));
   ok(st === '{"plan":"Trial","sub":"active","days":14,"over":"normal","lang":"en","wm":"shown"}', 'Reset: every demo value is back to its start value (' + st + ')');
-  ok(await p.locator('[data-wm-switch]').isVisible() && !(await p.locator('[data-wm-switch]').isChecked()) && await p.locator('.wm-badge').count() === 0, 'Reset: the card shows the switch, off (no "Removed")');
-  for (const v of ['Trial', 'Free', 'Starter']) { await store(v); ok(await p.locator('[data-wm-switch]').isVisible() && await p.locator('.wm-badge').count() === 0, 'after Reset, ' + v + ' shows the switch (not "Removed")'); }
-  await store('Free'); await p.click('[data-wm-switch]'); await p.waitForTimeout(200);
+  ok(await p.locator('[data-wm-btn]').isVisible() && !(await busy()) && await p.locator('.wm-badge').count() === 0, 'Reset: the card shows the Remove button (no "Removed")');
+  for (const v of ['Trial', 'Free', 'Starter']) { await store(v); ok(await p.locator('[data-wm-btn]').isVisible() && await p.locator('.wm-badge').count() === 0, 'after Reset, ' + v + ' shows the Remove button (not "Removed")'); }
+  await store('Free'); await p.click('[data-wm-btn]'); await p.waitForTimeout(200);
   await p.click('.demo-reset'); await p.waitForTimeout(1600);
-  ok(!(await p.locator('[data-wm-switch]').isChecked()) && await p.locator('.wm-badge').count() === 0, 'Reset in the middle of a request: the switch is off, nothing ends up removed or checked');
+  ok(!(await busy()) && await p.locator('.wm-badge').count() === 0, 'Reset in the middle of a request: the button is idle, nothing ends up removed');
   await store('Free');
 
-  /* ---- a shop that spams the switch: one request, one message, one reply ---- */
+  /* ---- a shop that spams the button: one request, one message, one reply ---- */
   const hi = () => p.getByText(/Hi, I would like to remove/).count();
   await p.click('.demo-reset'); await p.waitForTimeout(150); await store('Free');
   const h0 = await hi(), r0 = await p.getByText(/I have already removed/).count();   // the chat keeps what earlier checks put in it
-  for (let i = 0; i < 4; i++) { await p.click('[data-wm-switch]'); await p.waitForTimeout(40); }
-  ok(await p.locator('[data-wm-switch]').isChecked(), 'clicking the switch again while the request runs keeps it on');
+  for (let i = 0; i < 4; i++) { await p.click('[data-wm-btn]', { force: true }); await p.waitForTimeout(40); }
+  ok(await busy(), 'clicking the button again while the request runs changes nothing');
   await p.waitForTimeout(1600);
   ok(await hi() === h0 + 1 && await p.getByText(/I have already removed/).count() === r0 + 1 && await p.locator('.wm-badge').isVisible(), 'clicking many times: one message from the shop, one auto reply, one "Removed"');
   await p.click('.demo-reset'); await p.waitForTimeout(150); await store('Free');
@@ -126,11 +128,11 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   const g = await sf.evaluate(() => { const box = document.querySelector('.sf-suggest__box').getBoundingClientRect(), w = document.querySelector('#sf-powered').getBoundingClientRect(); return { dr: Math.abs(w.right - box.right), below: w.top >= box.bottom - 1 }; });
   ok(await sf.evaluate(() => { const i = document.querySelector('.sf-powered__logo'), t = document.querySelector('#sf-powered span'); return i.complete && i.naturalWidth > 0 && i.getBoundingClientRect().right <= t.getBoundingClientRect().left; }), 'storefront: the app logo loads and sits left of "Powered by Findter"');
   ok(g.dr <= 1 && g.below, 'storefront: badge is under the box, aligned to its right corner (outside the box)');
-  await p.bringToFront(); await p.click('[data-wm-switch]'); await p.waitForTimeout(1600);
+  await p.bringToFront(); await p.click('[data-wm-btn]'); await p.waitForTimeout(1600);
   await sf.waitForTimeout(300); ok(!(await powered()), 'storefront (open tab) follows: badge gone after the removal');
   await p.click('.demo-btn[data-key=wm][data-val=shown]'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: Badge = Shown brings it back');
   await store('Development'); await sf.waitForTimeout(300); ok(!(await powered()), 'storefront: Development store never shows the badge (not ticked in Master)');
-  await store('Starter'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: paid store shows it until the switch is used');
+  await store('Starter'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: paid store shows it until the button is used');
   // Master turns the feature off
   await p.goto(url('index.html') + '#/master/features'); await p.waitForTimeout(400); await p.uncheck('[data-wm=enabled]'); await p.click('[data-wm-act=save]'); await sf.waitForTimeout(300);
   ok(!(await powered()), 'storefront: Master → Features off (saved) removes the badge for everyone');

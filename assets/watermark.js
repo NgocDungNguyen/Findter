@@ -2,7 +2,7 @@
    Stand-alone, loaded after demo.js (index.html inlines it, every other page loads assets/watermark.js).
    - Master -> Features sets the config: the feature on/off, and which shop types it applies to (saved in localStorage, like the other Master settings).
    - cardShown()   the admin's "Remove “Powered by Findter” badge" card is shown: feature on AND the shop's type is ticked
-   - removed()     the badge was removed (the switch: at once for a shop that has paid, through the chat for Trial and Free; the demo bar's Badge group)
+   - removed()     the badge was removed (the Remove button: at once for a shop that has paid, through the chat for Trial and Free; the demo bar's Badge group)
    - onStorefront() the badge shows under the storefront's search suggestions: card shown AND not removed
    - hasPaid()     the shop has paid now or before (Subscription, Paid before, Service): its removal needs no chat. Trial and Free never paid: they go through the chat
    In the real app the config comes from the server and "removed" is a shop setting that Master Admin and the chat both write. */

@@ -40,7 +40,7 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
     }
     list.push(name + '  ' + title); console.log('   shot ' + name + '  ' + title);
   };
-  const card = '[data-wm-card]', sw = '[data-wm-switch]';
+  const card = '[data-wm-card]', sw = '[data-wm-btn]';
   const band = ['.Polaris-Banner', '[data-wm-card]', '.Polaris-Layout > .Polaris-Layout__Section:last-child'];   // info banner, the new card, the Search field card
 
   // ---- Master -> Features (taller window so the Recommended Apps + badge containers fit with their bottom edge)
@@ -57,20 +57,20 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
 
   // ---- Search settings card, Trial
   await open('search.html', { plan: 'Trial' });
-  await capture('Search settings (Trial): card "Remove Powered by Findter badge", cong tac tat', [[card, 1], [sw, 2], ['.wm-label .mf-tip', 3]], band);
+  await capture('Search settings (Trial): card "Remove Powered by Findter badge", nut Remove', [[card, 1], [sw, 2], ['.wm-label .mf-tip', 3]], band);
   await p.hover('.wm-label .mf-tip'); await p.waitForTimeout(150);
   await capture('Tooltip cua card (hover)', [['.wm-label .mf-tip__bubble', 1]], band);
   await p.mouse.move(5, 5);
   await p.click(sw); await p.waitForTimeout(350);
-  await capture('Trial: bat cong tac -> chat mo va tu gui tin nhan cua merchant, chua co cau hoi hay nut nao', [[sw, 1], ['.chat-panel__body', 2]]);
+  await capture('Trial: bam nut Remove -> chat mo va tu gui tin nhan cua merchant, chua co cau hoi hay nut nao', [[sw, 1], ['.chat-panel__body', 2]]);
   await p.waitForTimeout(1400);
-  await capture('Sau khoang 1 giay: tin tu dong "I have already removed..." hoi them ho tro / feedback, cong tac doi thanh badge Removed', [['.wm-badge', 1], ['.chat-panel__body', 2]]);
+  await capture('Sau khoang 1 giay: tin tu dong "I have already removed..." hoi them ho tro / feedback, nut doi thanh badge Removed', [['.wm-badge', 1], ['.chat-panel__body', 2]]);
 
   // ---- paid store: same card, removed at once, no chat
   await open('search.html', { plan: 'Starter' });
   await capture('Plan tra phi (Subscription): card truoc khi bam, cong tac tat', [[card, 1], [sw, 2]], band);
   await p.click(sw); await p.waitForTimeout(500);
-  await capture('Plan tra phi sau khi bam: cong tac doi thanh Removed ngay, chat khong mo', [['.wm-badge', 1]], band);
+  await capture('Plan tra phi sau khi bam: nut doi thanh Removed ngay, chat khong mo', [['.wm-badge', 1]], band);
 
   // ---- demo bar
   await p.setViewportSize({ width: 1920, height: 400 });
