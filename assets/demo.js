@@ -25,7 +25,7 @@
   const NO_PRODUCT_STATES = ['Development', 'Enterprise'];                    // no "over" / "90%" case: free under 50,000 / no limit
   const LANGS = { en: 'English', fr: 'Français', de: 'Deutsch', vi: 'Tiếng Việt', ja: '日本語' };
   const DEMO_KEY = 'findter.demoStatus';
-  const DEFAULTS = { plan: 'Trial', sub: 'active', days: 14, over: 'normal', lang: 'en', wm: 'shown', cse: 'online' };
+  const DEFAULTS = { plan: 'Trial', sub: 'active', days: 14, over: 'normal', lang: 'en', wm: 'shown' };
   const DEMO = { ...DEFAULTS };
   const load = () => {
     try {
@@ -35,7 +35,6 @@
       if ([14, 7, 3, 1, 0].includes(s.days)) DEMO.days = s.days;
       DEMO.over = s.over === true ? 'over' : ['normal', 'near', 'over'].includes(s.over) ? s.over : 'normal';   // older saves stored a boolean
       if (LANGS[s.lang]) DEMO.lang = s.lang;
-      if (['online', 'offline'].includes(s.cse)) DEMO.cse = s.cse;              // is a CSE online in the chat (a paid shop's badge request is answered at once when nobody is)
       if (['shown', 'removed'].includes(s.wm)) DEMO.wm = s.wm;                // the "Powered by Findter" badge: still on the storefront, or removed
     } catch (e) { /* storage blocked */ }
   };
@@ -58,7 +57,6 @@
     ['Products', 'over', [['normal', 'Normal'], ['near', '90%'], ['over', 'Over limit']]],
     ['Language', 'lang', Object.entries(LANGS), 'select'],
     ['Badge', 'wm', [['shown', 'Shown'], ['removed', 'Removed']]],
-    ['CSE', 'cse', [['online', 'Online'], ['offline', 'Offline']]],
   ];
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   bar.innerHTML = '<button type="button" class="demo-toggle" aria-expanded="false" aria-controls="demo-panel">Demo data</button><div class="demo-panel" id="demo-panel" role="group" aria-label="Demo data for the shop">'
@@ -66,7 +64,7 @@
       + (kind === 'select'
         ? '<select class="demo-select" data-key="' + key + '" aria-label="' + label + '">' + opts.map(([v, t]) => '<option value="' + esc(v) + '">' + esc(t) + '</option>').join('') + '</select>'
         : opts.map(([v, t]) => '<button type="button" class="demo-btn" data-key="' + key + '" data-val="' + v + '" aria-pressed="false">' + t + '</button>').join(''))
-      + '</div>').join('') + '<button type="button" class="demo-reset" data-act="reset" title="Back to the start values: Trial store, badge shown, CSE online">Reset</button></div>';
+      + '</div>').join('') + '<button type="button" class="demo-reset" data-act="reset" title="Back to the start values: Trial store, badge shown">Reset</button></div>';
   top.insertBefore(bar, $('.sh-more', top));
   paint = () => {
     const p = PLANS[DEMO.plan];

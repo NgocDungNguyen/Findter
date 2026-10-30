@@ -47,76 +47,63 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   const msgs = () => p.locator('.chat-panel__body .chat-msg').allTextContents();
   const toastNow = () => p.textContent('#toast');
 
-  /* ---- Trial / Free: switch on -> chat -> "Yes, remove it" ---- */
+  /* ---- Trial / Free: one click -> chat opens, message goes out, then the badge is removed ---- */
   await store('Free');
   const before = (await msgs()).length;
   await p.click('[data-wm-switch]'); await p.waitForTimeout(150);
-  ok(await p.locator('[data-wm-switch]').isChecked(), 'Free: the switch turns on and waits for the answer');
+  ok(await p.locator('[data-wm-switch]').isChecked(), 'Free: the switch turns on while the chat works');
   ok(await p.locator('.chat-panel.open').count() === 1, 'Free: turning the switch on opens the chat');
   ok(!/not part of this copy/.test(await toastNow()), 'no "not part of this copy" toast');
-  let m = await msgs(); ok(m.length === before + 1 && /remove the “Powered by Findter” badge/.test(m[m.length - 1]), 'Free: the shop’s message is sent');
-  await p.waitForSelector('.chat-choice', { timeout: 3000 });
-  ok((await p.locator('.chat-choice').allTextContents()).join('|') === 'No|Yes, remove it', 'Free: two quick replies: No / Yes, remove it');
-  ok(!(await p.evaluate(() => FindterWatermark.removed())) && await p.locator('.wm-badge').count() === 0, 'Free: nothing is removed before "Yes"');
-  const n1 = (await msgs()).length;
-  await p.click('.chat-choice:has-text("No")'); await p.waitForTimeout(1200);
-  ok(await p.locator('.chat-choice').count() === 0 && (await msgs()).length === n1 && !(await p.evaluate(() => FindterWatermark.removed())), 'No: nothing happens in the chat, the badge stays');
-  ok(await p.locator('[data-wm-switch]').isVisible() && !(await p.locator('[data-wm-switch]').isChecked()), 'No: the switch goes back off');
-  await p.click('[data-wm-switch]'); await p.waitForSelector('.chat-choice', { timeout: 3000 });
-  await p.click('.chat-choice:has-text("Yes, remove it")'); await p.waitForTimeout(1300);
-  m = await msgs(); ok(m.includes('Yes, remove it') && /I have already removed/.test(m[m.length - 1]), 'Yes: the shop’s answer, then the auto reply "I have already removed…"');
-  ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-switch]').count() === 0, 'Yes: badge removed, the switch becomes the green "Removed" badge (no way back)');
+  let m = await msgs(); ok(m.length === before + 1 && /remove the “Powered by Findter” badge/.test(m[m.length - 1]), 'Free: the shop’s message is sent by itself');
+  ok(await p.locator('.chat-choice').count() === 0, 'Free: no Yes / No question in the chat');
+  ok(!(await p.evaluate(() => FindterWatermark.removed())) && await p.locator('.wm-badge').count() === 0, 'Free: nothing is removed in the first moment (loading)');
+  await p.waitForTimeout(1400);
+  m = await msgs(); ok(m.length === before + 2 && /I have already removed the “Powered by Findter” badge/.test(m[m.length - 1]) && /feedback/.test(m[m.length - 1]), 'Free: then the auto reply "I have already removed…" with a question about help or feedback');
+  ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-switch]').count() === 0, 'Free: badge removed, the switch becomes the green "Removed" badge (no way back)');
   ok(await p.locator('.demo-btn[data-key=wm][data-val=removed]').getAttribute('aria-pressed') === 'true', 'the demo bar Badge group follows (Removed)');
   await p.click('.demo-btn[data-key=wm][data-val=shown]'); await p.waitForTimeout(100);
   ok(await p.locator('[data-wm-switch]').isVisible() && !(await p.locator('[data-wm-switch]').isChecked()), 'demo bar Badge = Shown: the switch is back, off');
+  ok(await p.locator('.demo-group[aria-label=CSE]').count() === 0, 'the demo bar has no CSE group any more');
 
-  /* ---- paid store, CSE online: same chat confirmation ---- */
-  await store('Starter'); await p.click('.demo-btn[data-key=cse][data-val=online]');
-  const b2 = (await msgs()).length;
-  await p.click('[data-wm-switch]'); await p.waitForSelector('.chat-choice', { timeout: 3000 });
-  ok((await msgs()).length === b2 + 2 && !(await p.evaluate(() => FindterWatermark.removed())), 'paid + CSE online: the message goes to the chat, nothing is removed yet');
-  await p.click('.chat-choice:has-text("Yes, remove it")'); await p.waitForTimeout(1300);
-  ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible(), 'paid + CSE online: "Yes, remove it" removes it, the card shows "Removed"');
-  await p.click('.demo-btn[data-key=wm][data-val=shown]');
+  /* ---- Trial and Free (never paid) go through the chat ---- */
+  for (const plan of ['Trial']) {
+    await store(plan); const n = (await msgs()).length;
+    await p.click('[data-wm-switch]'); await p.waitForTimeout(1500);
+    ok((await msgs()).length === n + 2 && await p.locator('.wm-badge').isVisible(), plan + ': message, auto reply, "Removed"');
+    await p.click('.demo-btn[data-key=wm][data-val=shown]');
+  }
 
-  /* ---- paid store, CSE offline: removed at once ---- */
-  await p.click('.demo-btn[data-key=cse][data-val=offline]');
-  const b3 = (await msgs()).length;
-  await p.click('[data-wm-switch]'); await p.waitForTimeout(300);
-  ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-switch]').count() === 0, 'paid + CSE offline: the switch becomes "Removed" right away');
-  ok((await msgs()).length === b3 && await p.locator('.chat-choice').count() === 0, 'paid + CSE offline: no chat confirmation is asked');
-  await p.click('.demo-btn[data-key=wm][data-val=shown]');
-  await store('Free'); await p.click('[data-wm-switch]'); await p.waitForSelector('.chat-choice', { timeout: 3000 });
-  ok(await p.locator('.chat-choice').count() === 2, 'Free + CSE offline: still asks "Yes, remove it" in the chat');
-  await p.click('.chat-choice:has-text("No")'); await p.click('.demo-btn[data-key=cse][data-val=online]');
+  /* ---- a shop that has paid (Subscription, Paid before, Service): one click, no chat ---- */
+  for (const plan of ['Starter', 'Paid before', 'Service']) {
+    await store(plan);
+    const b3 = (await msgs()).length;
+    await p.click('[data-wm-switch]'); await p.waitForTimeout(300);
+    ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-switch]').count() === 0, plan + ': the switch becomes "Removed" right away');
+    ok((await msgs()).length === b3 && await p.locator('.chat-choice').count() === 0, plan + ': the chat is not touched');
+    await p.click('.demo-btn[data-key=wm][data-val=shown]');
+  }
 
   /* ---- demo bar Reset ---- */
-  await store('Starter'); await p.click('.demo-btn[data-key=cse][data-val=offline]'); await p.click('[data-wm-switch]'); await p.waitForTimeout(200);
+  await store('Starter'); await p.click('[data-wm-switch]'); await p.waitForTimeout(200);
   ok(await p.locator('.wm-badge').isVisible(), 'before Reset: a paid store with the badge removed shows "Removed"');
   await p.click('.demo-reset'); await p.waitForTimeout(150);
   const st = await p.evaluate(() => JSON.stringify(FindterDemo.DEMO));
-  ok(st === '{"plan":"Trial","sub":"active","days":14,"over":"normal","lang":"en","wm":"shown","cse":"online"}', 'Reset: every demo value is back to its start value (' + st + ')');
+  ok(st === '{"plan":"Trial","sub":"active","days":14,"over":"normal","lang":"en","wm":"shown"}', 'Reset: every demo value is back to its start value (' + st + ')');
   ok(await p.locator('[data-wm-switch]').isVisible() && !(await p.locator('[data-wm-switch]').isChecked()) && await p.locator('.wm-badge').count() === 0, 'Reset: the card shows the switch, off (no "Removed")');
   for (const v of ['Trial', 'Free', 'Starter']) { await store(v); ok(await p.locator('[data-wm-switch]').isVisible() && await p.locator('.wm-badge').count() === 0, 'after Reset, ' + v + ' shows the switch (not "Removed")'); }
-  await store('Free'); await p.click('[data-wm-switch]'); await p.waitForSelector('.chat-choice', { timeout: 3000 });
-  await p.click('.demo-reset'); await p.waitForTimeout(150);
-  ok(!(await p.locator('[data-wm-switch]').isChecked()), 'Reset also clears a request that was still waiting for an answer');
-  await p.click('.chat-choice:has-text("No")'); await store('Free');
+  await store('Free'); await p.click('[data-wm-switch]'); await p.waitForTimeout(200);
+  await p.click('.demo-reset'); await p.waitForTimeout(1600);
+  ok(!(await p.locator('[data-wm-switch]').isChecked()) && await p.locator('.wm-badge').count() === 0, 'Reset in the middle of a request: the switch is off, nothing ends up removed or checked');
+  await store('Free');
 
-  /* ---- a shop that spams the switch: one request at a time ---- */
+  /* ---- a shop that spams the switch: one request, one message, one reply ---- */
   const hi = () => p.getByText(/Hi, I would like to remove/).count();
   await p.click('.demo-reset'); await p.waitForTimeout(150); await store('Free');
-  const h0 = await hi(), c0 = await p.locator('.chat-choices').count(), r0 = await p.getByText(/I have already removed/).count();   // the chat keeps what earlier checks put in it
-  for (let i = 0; i < 3; i++) { await p.click('[data-wm-switch]'); await p.waitForTimeout(40); await p.click('[data-wm-switch]'); await p.waitForTimeout(40); }
-  await p.click('[data-wm-switch]'); await p.waitForSelector('.chat-choice', { timeout: 3000 }); await p.waitForTimeout(1200);
-  ok(await p.locator('.chat-choices').count() === c0 + 1 && await hi() === h0 + 1, 'switching on and off many times: one message from the shop, one question with one pair of answers');
-  await p.click('[data-wm-switch]'); await p.click('[data-wm-switch]'); await p.waitForTimeout(300);
-  ok(await p.locator('.chat-choices').count() === c0 + 1 && await hi() === h0 + 1 && await p.locator('[data-wm-switch]').isChecked(), 'off, then on again while the question is open: nothing new is sent, the switch is on');
-  await p.click('.chat-choice:has-text("No")'); await p.waitForTimeout(200);
-  await p.click('[data-wm-switch]'); await p.waitForSelector('.chat-choice', { timeout: 3000 }); await p.waitForTimeout(1200);
-  ok(await p.locator('.chat-choices').count() === c0 + 1 && await hi() === h0 + 2, 'after No, switching on asks again (a new request)');
-  await p.click('.chat-choice:has-text("Yes, remove it")'); await p.waitForTimeout(1500);
-  ok(await p.getByText(/I have already removed/).count() === r0 + 1 && await p.locator('.wm-badge').isVisible(), 'Yes: one automatic reply, the badge is Removed');
+  const h0 = await hi(), r0 = await p.getByText(/I have already removed/).count();   // the chat keeps what earlier checks put in it
+  for (let i = 0; i < 4; i++) { await p.click('[data-wm-switch]'); await p.waitForTimeout(40); }
+  ok(await p.locator('[data-wm-switch]').isChecked(), 'clicking the switch again while the request runs keeps it on');
+  await p.waitForTimeout(1600);
+  ok(await hi() === h0 + 1 && await p.getByText(/I have already removed/).count() === r0 + 1 && await p.locator('.wm-badge').isVisible(), 'clicking many times: one message from the shop, one auto reply, one "Removed"');
   await p.click('.demo-reset'); await p.waitForTimeout(150); await store('Free');
 
   /* ---- Master -> Features on a phone: the chat launcher does not cover the Save button of the last container ---- */
@@ -139,8 +126,8 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   const g = await sf.evaluate(() => { const box = document.querySelector('.sf-suggest__box').getBoundingClientRect(), w = document.querySelector('#sf-powered').getBoundingClientRect(); return { dr: Math.abs(w.right - box.right), below: w.top >= box.bottom - 1 }; });
   ok(await sf.evaluate(() => { const i = document.querySelector('.sf-powered__logo'), t = document.querySelector('#sf-powered span'); return i.complete && i.naturalWidth > 0 && i.getBoundingClientRect().right <= t.getBoundingClientRect().left; }), 'storefront: the app logo loads and sits left of "Powered by Findter"');
   ok(g.dr <= 1 && g.below, 'storefront: badge is under the box, aligned to its right corner (outside the box)');
-  await p.bringToFront(); await p.click('[data-wm-switch]'); await p.waitForSelector('.chat-choice'); await p.click('.chat-choice:has-text("Yes, remove it")'); await p.waitForTimeout(400);
-  await sf.waitForTimeout(300); ok(!(await powered()), 'storefront (open tab) follows: badge gone after "Yes, remove it"');
+  await p.bringToFront(); await p.click('[data-wm-switch]'); await p.waitForTimeout(1600);
+  await sf.waitForTimeout(300); ok(!(await powered()), 'storefront (open tab) follows: badge gone after the removal');
   await p.click('.demo-btn[data-key=wm][data-val=shown]'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: Badge = Shown brings it back');
   await store('Development'); await sf.waitForTimeout(300); ok(!(await powered()), 'storefront: Development store never shows the badge (not ticked in Master)');
   await store('Starter'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: paid store shows it until the switch is used');

@@ -1875,7 +1875,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   const NO_PRODUCT_STATES = ['Development', 'Enterprise'];                    // no "over" / "90%" case: free under 50,000 / no limit
   const LANGS = { en: 'English', fr: 'Français', de: 'Deutsch', vi: 'Tiếng Việt', ja: '日本語' };
   const DEMO_KEY = 'findter.demoStatus';
-  const DEFAULTS = { plan: 'Trial', sub: 'active', days: 14, over: 'normal', lang: 'en', wm: 'shown', cse: 'online' };
+  const DEFAULTS = { plan: 'Trial', sub: 'active', days: 14, over: 'normal', lang: 'en', wm: 'shown' };
   const DEMO = { ...DEFAULTS };
   const load = () => {
     try {
@@ -1885,7 +1885,6 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
       if ([14, 7, 3, 1, 0].includes(s.days)) DEMO.days = s.days;
       DEMO.over = s.over === true ? 'over' : ['normal', 'near', 'over'].includes(s.over) ? s.over : 'normal';   // older saves stored a boolean
       if (LANGS[s.lang]) DEMO.lang = s.lang;
-      if (['online', 'offline'].includes(s.cse)) DEMO.cse = s.cse;              // is a CSE online in the chat (a paid shop's badge request is answered at once when nobody is)
       if (['shown', 'removed'].includes(s.wm)) DEMO.wm = s.wm;                // the "Powered by Findter" badge: still on the storefront, or removed
     } catch (e) { /* storage blocked */ }
   };
@@ -1908,7 +1907,6 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     ['Products', 'over', [['normal', 'Normal'], ['near', '90%'], ['over', 'Over limit']]],
     ['Language', 'lang', Object.entries(LANGS), 'select'],
     ['Badge', 'wm', [['shown', 'Shown'], ['removed', 'Removed']]],
-    ['CSE', 'cse', [['online', 'Online'], ['offline', 'Offline']]],
   ];
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   bar.innerHTML = '<button type="button" class="demo-toggle" aria-expanded="false" aria-controls="demo-panel">Demo data</button><div class="demo-panel" id="demo-panel" role="group" aria-label="Demo data for the shop">'
@@ -1916,7 +1914,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
       + (kind === 'select'
         ? '<select class="demo-select" data-key="' + key + '" aria-label="' + label + '">' + opts.map(([v, t]) => '<option value="' + esc(v) + '">' + esc(t) + '</option>').join('') + '</select>'
         : opts.map(([v, t]) => '<button type="button" class="demo-btn" data-key="' + key + '" data-val="' + v + '" aria-pressed="false">' + t + '</button>').join(''))
-      + '</div>').join('') + '<button type="button" class="demo-reset" data-act="reset" title="Back to the start values: Trial store, badge shown, CSE online">Reset</button></div>';
+      + '</div>').join('') + '<button type="button" class="demo-reset" data-act="reset" title="Back to the start values: Trial store, badge shown">Reset</button></div>';
   top.insertBefore(bar, $('.sh-more', top));
   paint = () => {
     const p = PLANS[DEMO.plan];
@@ -1944,10 +1942,9 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
    Stand-alone, loaded after demo.js (index.html inlines it, every other page loads assets/watermark.js).
    - Master -> Features sets the config: the feature on/off, and which shop types it applies to (saved in localStorage, like the other Master settings).
    - cardShown()   the admin's "Remove “Powered by Findter” badge" card is shown: feature on AND the shop's type is ticked
-   - removed()     the badge was removed (the switch + "Yes, remove it" in the chat, or the switch alone for a paid shop while no CSE is online; the demo bar's Badge group)
+   - removed()     the badge was removed (the switch: at once for a shop that has paid, through the chat for Trial and Free; the demo bar's Badge group)
    - onStorefront() the badge shows under the storefront's search suggestions: card shown AND not removed
-   - isPaid()      a paid plan ("Subscription")
-   - cseOnline()   a CSE is online in the chat (demo bar: CSE). Only a paid shop is affected: offline = its removal needs no chat confirmation
+   - hasPaid()     the shop has paid now or before (Subscription, Paid before, Service): its removal needs no chat. Trial and Free never paid: they go through the chat
    In the real app the config comes from the server and "removed" is a shop setting that Master Admin and the chat both write. */
 (() => {
   'use strict';
@@ -1975,8 +1972,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     config: () => ({ enabled: config.enabled, types: config.types.slice() }),
     saveConfig: c => { config = clean(c); try { localStorage.setItem(KEY, JSON.stringify(config)); } catch (e) { /* storage blocked: applies for this visit only */ } changed(); },
     cardShown: () => config.enabled && config.types.includes(shopType()),
-    isPaid: () => shopType() === 'Subscription',
-    cseOnline: () => D.DEMO.cse !== 'offline',
+    hasPaid: () => ['Subscription', 'Paid before', 'Service'].includes(shopType()),
     removed: () => D.DEMO.wm === 'removed',
     setRemoved: on => D.set('wm', on ? 'removed' : 'shown'),
     onStorefront: () => api.cardShown() && !api.removed(),

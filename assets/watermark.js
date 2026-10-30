@@ -2,10 +2,9 @@
    Stand-alone, loaded after demo.js (index.html inlines it, every other page loads assets/watermark.js).
    - Master -> Features sets the config: the feature on/off, and which shop types it applies to (saved in localStorage, like the other Master settings).
    - cardShown()   the admin's "Remove “Powered by Findter” badge" card is shown: feature on AND the shop's type is ticked
-   - removed()     the badge was removed (the switch + "Yes, remove it" in the chat, or the switch alone for a paid shop while no CSE is online; the demo bar's Badge group)
+   - removed()     the badge was removed (the switch: at once for a shop that has paid, through the chat for Trial and Free; the demo bar's Badge group)
    - onStorefront() the badge shows under the storefront's search suggestions: card shown AND not removed
-   - isPaid()      a paid plan ("Subscription")
-   - cseOnline()   a CSE is online in the chat (demo bar: CSE). Only a paid shop is affected: offline = its removal needs no chat confirmation
+   - hasPaid()     the shop has paid now or before (Subscription, Paid before, Service): its removal needs no chat. Trial and Free never paid: they go through the chat
    In the real app the config comes from the server and "removed" is a shop setting that Master Admin and the chat both write. */
 (() => {
   'use strict';
@@ -33,8 +32,7 @@
     config: () => ({ enabled: config.enabled, types: config.types.slice() }),
     saveConfig: c => { config = clean(c); try { localStorage.setItem(KEY, JSON.stringify(config)); } catch (e) { /* storage blocked: applies for this visit only */ } changed(); },
     cardShown: () => config.enabled && config.types.includes(shopType()),
-    isPaid: () => shopType() === 'Subscription',
-    cseOnline: () => D.DEMO.cse !== 'offline',
+    hasPaid: () => ['Subscription', 'Paid before', 'Service'].includes(shopType()),
     removed: () => D.DEMO.wm === 'removed',
     setRemoved: on => D.set('wm', on ? 'removed' : 'shown'),
     onStorefront: () => api.cardShown() && !api.removed(),

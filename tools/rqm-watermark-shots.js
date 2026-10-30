@@ -61,21 +61,23 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   await p.hover('.wm-label .mf-tip'); await p.waitForTimeout(150);
   await capture('Tooltip cua card (hover)', [['.wm-label .mf-tip__bubble', 1]], band);
   await p.mouse.move(5, 5);
-  await p.click(sw); await p.waitForSelector('.chat-choice', { timeout: 4000 });
-  await capture('Trial: bat cong tac -> chat mo, tin nhan cua merchant + 2 nut No / Yes, remove it', [[sw, 1], ['.chat-choices', 2]]);
-  await p.click('.chat-choice:has-text("No")'); await p.waitForTimeout(300);
-  await capture('Bam No: chat khong them tin nhan, cong tac tu tat', [[sw, 1]]);
-  await p.click(sw); await p.waitForSelector('.chat-choice', { timeout: 4000 });
-  await p.click('.chat-choice:has-text("Yes, remove it")'); await p.waitForTimeout(1400);
-  await capture('Bam Yes, remove it: tin tra loi tu dong, cong tac doi thanh badge Removed', [['.wm-badge', 1], ['.chat-panel__body', 2]]);
+  await p.click(sw); await p.waitForTimeout(350);
+  await capture('Trial: bat cong tac -> chat mo va tu gui tin nhan cua merchant, chua co cau hoi hay nut nao', [[sw, 1], ['.chat-panel__body', 2]]);
+  await p.waitForTimeout(1400);
+  await capture('Sau khoang 1 giay: tin tu dong "I have already removed..." hoi them ho tro / feedback, cong tac doi thanh badge Removed', [['.wm-badge', 1], ['.chat-panel__body', 2]]);
 
-  // ---- paid store
-  await open('search.html', { plan: 'Starter', cse: 'online' });
-  await p.click(sw); await p.waitForSelector('.chat-choice', { timeout: 4000 });
-  await capture('Plan tra phi + CSE online: giong Trial, can bam Yes, remove it trong chat', [[sw, 1], ['.chat-choices', 2]]);
-  await open('search.html', { plan: 'Starter', cse: 'offline' });
+  // ---- paid store: same card, removed at once, no chat
+  await open('search.html', { plan: 'Starter' });
+  await capture('Plan tra phi (Subscription): card truoc khi bam, cong tac tat', [[card, 1], [sw, 2]], band);
   await p.click(sw); await p.waitForTimeout(500);
-  await capture('Plan tra phi + CSE offline: cong tac doi thanh Removed ngay, khong mo chat', [['.wm-badge', 1]], band);
+  await capture('Plan tra phi sau khi bam: cong tac doi thanh Removed ngay, chat khong mo', [['.wm-badge', 1]], band);
+
+  // ---- demo bar
+  await p.setViewportSize({ width: 1920, height: 400 });
+  await open('search.html', { plan: 'Trial' });
+  await capture('Demo data bar: Store, Badge (Shown/Removed), Reset', [['.demo-select[data-key=plan]', 1], ['.demo-group[aria-label=Badge]', 2], ['.demo-reset', 3]], ['.sh-top']);
+  await p.setViewportSize({ width: 1440, height: 1000 });
+
   await open('search.html', { plan: 'Development' });
   await capture('Development store: khong co card (chi con banner va Search field)', [], ['.Polaris-Banner', '.Polaris-Layout > .Polaris-Layout__Section:last-child']);
 
@@ -99,11 +101,6 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   await p.click('#sf-open-search'); await p.fill('#sf-q', 'cosm'); await p.waitForTimeout(250);
   await p.evaluate(() => document.querySelector('#sf-powered').scrollIntoView({ block: 'end' })); await p.waitForTimeout(200);
   await capture('Mobile (390px): storefront, badge duoi khung goi y', [['#sf-powered', 1]]);
-
-  // ---- demo bar
-  await p.setViewportSize({ width: 1920, height: 400 });
-  await open('search.html', { plan: 'Trial' });
-  await capture('Demo data bar: Store, Badge (Shown/Removed), CSE (Online/Offline), Reset', [['.demo-select[data-key=plan]', 1], ['.demo-group[aria-label=Badge]', 2], ['.demo-group[aria-label=CSE]', 3], ['.demo-reset', 4]], ['.sh-top']);
 
   fs.writeFileSync(path.join(OUT, 'list.txt'), list.join('\n') + '\n');
   console.log(errs.length ? 'page errors: ' + errs.join(' | ') : 'page errors: none'); await b.close();
