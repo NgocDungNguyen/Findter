@@ -29,6 +29,43 @@
   };
   const icon = (n, cls = '') => `<span class="Polaris-Icon ex-ic ${cls}">${ICON[n]}</span>`;
 
+  /* ---------- Filter set options (shared by the filter set page and its Translate page) ---------- */
+  const FO_KEY = 'findter.filterSetOptions.v1';
+  const FO_GUIDE = 'https://flintverse.gitbook.io/docs/findter-custom-filter-search/user-guide/create-and-set-up-filters/add-filter-options';
+  const FO_DISPLAY = { checklist: 'Checklist', box: 'Box', slider: 'Slider', swatch: 'Swatch' };
+  const FO_LOGIC = { single: 'Single', multiple: 'Multiple' };
+  const FO_TYPE = { standard: 'Standard', variant: 'Product variant', metafield: 'Product metafield' };
+  const FO_SWATCH = { Dawn: '#f4c7a1', Electric: '#2f6bff', Ice: '#cfe8f7', Powder: '#e9d9f4', Sunset: '#f08a5d' };
+  // The sources the real app offers (DataProvider.getOptionSources). `fixed` values are owned by the app; `sample` values come from the store's products.
+  // "Discount %" is the proposed source: slider only, computed from each variant's Compare-at price and Price.
+  const FO_SOURCES = [
+    { source: 'availability', name: 'Availability', type: 'standard', display: ['checklist', 'box'], fixed: ['In Stock', 'Out of Stock'] },
+    { source: 'collection', name: 'Collection', type: 'standard', display: ['checklist', 'box'], sample: ['Hydrogen', 'Snowboards', 'Accessories'] },
+    { source: 'product_category', name: 'Product category', type: 'standard', display: ['checklist', 'box'], sample: ['Sporting Goods', 'Apparel & Accessories', 'Gift Cards'] },
+    { source: 'priceRange', name: 'Price', type: 'standard', display: ['slider', 'checklist'], fixed: ['0-10', 'Above 10'], range: { min: 30, max: 225, unit: '' }, help: 'Automatically display the lowest and highest prices on storefront.' },
+    { source: 'tags', name: 'Tag', type: 'standard', display: ['checklist', 'box'], sample: ['New', 'Winter', 'Premium'] },
+    { source: 'vendor', name: 'Vendor', type: 'standard', display: ['checklist', 'box'], sample: ['Hydrogen Vendor', 'Snowboard Vendor', 'Partners'] },
+    { source: 'productType', name: 'Product type', type: 'standard', display: ['checklist', 'box'], sample: ['Snowboard', 'Accessory', 'Gift card'] },
+    { source: 'onSale', name: 'Sale', type: 'standard', display: ['checklist', 'box'], fixed: ['On sale', 'Not on sale'] },
+    { source: 'discount_percent', name: 'Discount %', type: 'standard', display: ['slider'], range: { min: 5, max: 60, unit: '%' }, help: 'Automatically display the lowest and highest discounts on storefront.', note: 'Uses each variant’s Compare-at price and Price. A product matches when any available variant is in the range.' },
+    { source: 'option_label_Color', name: 'Color', type: 'variant', display: ['checklist', 'box', 'swatch'], sample: ['Dawn', 'Electric', 'Ice', 'Powder', 'Sunset', 'Special Selling Plans Ski Wax Special Selling Plans Ski Wax'] },
+    { source: 'option_label_Size', name: 'Size', type: 'variant', display: ['checklist', 'box'], sample: ['154cm', '158cm', '160cm'] },
+  ];
+  // the Default filter set of the demo store (filterSetOptionDefault in the real app)
+  const FO_DEFAULT = [
+    { id: 'o1', source: 'availability', label: 'Availability', display: 'checklist', logic: 'single', match: 'any', auto: false, cd: false, cm: false, picked: ['In Stock', 'Out of Stock'] },
+    { id: 'o2', source: 'priceRange', label: 'Price', display: 'slider', logic: 'single', match: 'any', auto: false, cd: false, cm: false, picked: ['0-10', 'Above 10'] },
+    { id: 'o3', source: 'option_label_Color', label: 'Color', display: 'box', logic: 'single', match: 'any', auto: true, cd: false, cm: false, picked: [] },
+    { id: 'o4', source: 'option_label_Size', label: 'Size', display: 'box', logic: 'single', match: 'any', auto: true, cd: false, cm: false, picked: [] },
+  ];
+  const filterOptionsLoad = () => { const v = load(FO_KEY, FO_DEFAULT); return Array.isArray(v) ? v : clone(FO_DEFAULT); };
+  // the values a Translate page lists for one option (a slider with no fixed values, like Discount %, has none)
+  function filterOptionValues(o) {
+    const s = FO_SOURCES.find(x => x.source === o.source) || {}, all = s.fixed || s.sample || [];
+    if (o.display === 'slider') return s.fixed || [];
+    return o.auto ? all.filter(v => !(o.picked || []).includes(v)) : all.filter(v => (o.picked || []).includes(v));
+  }
+
   /* ---------- modal (the demo's .mf-modal) ---------- */
   function openModal({ title, content, ok, okClass, cancel, onOk, onOpen }) {
     const opener = document.activeElement;
@@ -181,12 +218,7 @@
     const KEY = 'findter.filterTranslations.v1';
     const LANGS = [['fr', 'French'], ['de', 'German']];
     // the Default filter set of the demo store; French and German come from the shop's native Shopify translations (only Color has them), so the other boxes show the original text
-    const OPTIONS = [
-      { id: 'o1', label: 'Availability', groups: [], values: ['In Stock', 'Out of Stock'] },
-      { id: 'o2', label: 'Price', groups: [], values: ['0-10', 'Above 10'] },
-      { id: 'o3', label: 'Color', groups: [], values: ['Dawn', 'Electric', 'Ice', 'Powder', 'Sunset', 'Special Selling Plans Ski Wax Special Selling Plans Ski Wax'] },
-      { id: 'o4', label: 'Size', groups: [], values: ['154cm', '158cm', '160cm'] },
-    ];
+    const OPTIONS = filterOptionsLoad().map(o => ({ id: o.id, label: o.label, groups: [], values: filterOptionValues(o) }));
     const SUGGEST = {
       fr: { Color: 'Couleur', Dawn: 'Aube', Electric: 'Électrique', Ice: 'Glace', Powder: 'Poudre', Sunset: 'Coucher de soleil', 'Special Selling Plans Ski Wax Special Selling Plans Ski Wax': 'Plans de vente spéciaux fart de ski Plans de vente spéciaux fart de ski' },
       de: { Color: 'Farbe', Dawn: 'Morgendämmerung', Electric: 'Elektrisch', Ice: 'Eis', Powder: 'Pulver', Sunset: 'Sonnenuntergang' },
@@ -230,22 +262,203 @@
     render();
   }
 
-  /* ===================== Filter set (the set's own page, read-only for the Default filter set): Translations button -> filter-translate.html ===================== */
+  /* ===================== Filter set (the set's own page): add, edit, delete and reorder filter options =====================
+     Port of components/ManageFilter/FilterSet/AddFilterOption.jsx + FilterOptionTable.jsx (same fields, texts and rules). The source list also has
+     "Discount %" (proposed): a slider on each variant's discount from Compare-at price and Price. The Translations button -> filter-translate.html. */
   function filterSetPage() {
-    const OPTS = [['Availability', 'Availability', 'Checklist'], ['Price', 'Price', 'Slider'], ['Color', 'Color', 'Box'], ['Size', 'Size', 'Box']];
     const NAME = 'Default filter set', TAGS = ['All Collections', 'All Collections in Search Result Page'];
     const grip = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.5" cy="3.5" r="1.25"/><circle cx="10.5" cy="3.5" r="1.25"/><circle cx="5.5" cy="8" r="1.25"/><circle cx="10.5" cy="8" r="1.25"/><circle cx="5.5" cy="12.5" r="1.25"/><circle cx="10.5" cy="12.5" r="1.25"/></svg>';
-    body.innerHTML = `<section class="ex-card"><div class="ex-col">
+    let opts = filterOptionsLoad(), saved = clone(opts);
+    const dirty = () => JSON.stringify(opts) !== JSON.stringify(saved);
+    const syncBar = () => { bar.hidden = !dirty(); };
+    const srcName = o => (FO_SOURCES.find(s => s.source === o.source) || {}).name || o.source;
+
+    function render(focusId) {
+      body.innerHTML = `<section class="ex-card"><div class="ex-col">
         <h2 class="ex-h">Filter set information</h2>
         <div class="ex-field"><span class="ex-label">Name</span><div class="ex-ro" aria-disabled="true"><span>${esc(NAME)}</span><span class="ex-ro__n">${NAME.length}/40</span></div></div>
         <div class="ex-field"><span class="ex-label">Collection</span><div class="ex-ro ex-ro--tags" aria-disabled="true">${TAGS.map(t => `<span class="ex-tag ex-tag--static">${esc(t)}<span class="ex-ic">${ICON.close}</span></span>`).join('')}<span class="ex-ro__ph">Search for collections</span></div><p class="ex-sub">Select the collections where this filter set will display</p></div>
       </div></section>
       <section class="ex-card"><div class="ex-row-between"><h2 class="ex-h">Filter options</h2><button type="button" class="ex-btn ex-btn--primary" data-act="add">Add filter option</button></div>
-        <div class="ex-tablewrap ex-fo"><table class="ex-table ex-fo-t"><thead><tr><th><span class="Polaris-Text--visuallyHidden">Reorder</span></th><th>Label</th><th>Source</th><th>Display type</th><th>Actions</th></tr></thead><tbody>
-          ${OPTS.map(([label, source, type]) => `<tr><td><span class="ex-fo-drag" aria-hidden="true">${grip}</span></td><td>${esc(label)}</td><td>${esc(source)}</td><td>${esc(type)}</td><td><div class="ex-actions-cell"><button type="button" class="ex-iconbtn ex-iconbtn--box" data-act="edit" aria-label="Edit ${esc(label)}">${icon('edit')}</button><button type="button" class="ex-iconbtn ex-iconbtn--box" data-act="delete" aria-label="Delete ${esc(label)}">${icon('del')}</button></div></td></tr>`).join('')}
-        </tbody></table></div></section>
-      <div class="ex-actions"><button type="button" class="ex-btn ex-btn--primary" disabled>Save</button></div>`;
-    body.addEventListener('click', e => { if (e.target.closest('[data-act]')) showToast('Editing filter options is not part of this copy'); });
+        ${opts.length === 0 ? `<div class="ex-empty"><h2>No filter option has been found</h2><p>You don’t have any filter options yet. Start by creating a new one.</p><button type="button" class="ex-btn ex-btn--primary" data-act="add">Add filter option</button></div>` : `<div class="ex-tablewrap ex-fo"><table class="ex-table ex-fo-t"><thead><tr><th><span class="Polaris-Text--visuallyHidden">Reorder</span></th><th>Label</th><th>Source</th><th>Display type</th><th>Actions</th></tr></thead><tbody>
+          ${opts.map(o => `<tr data-id="${o.id}"><td><button type="button" class="ex-fo-drag" draggable="true" data-grip="${o.id}" aria-label="Reorder ${esc(o.label)}. Use the up and down arrow keys to move it.">${grip}</button></td><td>${esc(o.label)}</td><td>${esc(srcName(o))}</td><td>${esc(FO_DISPLAY[o.display] || o.display)}</td><td><div class="ex-actions-cell"><button type="button" class="ex-iconbtn ex-iconbtn--box" data-act="edit" aria-label="Edit ${esc(o.label)}">${icon('edit')}</button><button type="button" class="ex-iconbtn ex-iconbtn--box" data-act="delete" aria-label="Delete ${esc(o.label)}">${icon('del')}</button></div></td></tr>`).join('')}
+        </tbody></table></div>`}</section>`;
+      syncBar();
+      if (focusId) { const g = $(`[data-grip="${focusId}"]`); if (g) g.focus({ preventScroll: true }); }
+    }
+
+    function move(id, to) {
+      const from = opts.findIndex(o => o.id === id);
+      if (from < 0 || to < 0 || to >= opts.length || to === from) return;
+      opts.splice(to, 0, opts.splice(from, 1)[0]);
+      render(id);
+    }
+    function openDelete(o) {
+      openModal({ title: 'Delete confirmation', content: '<p class="mf-modal__text">This filter option will be permanently deleted. Are you sure you want to proceed?</p>', ok: 'Delete', okClass: 'mf-btn--critical', cancel: 'Cancel',
+        onOk: () => { opts = opts.filter(x => x.id !== o.id); render(); showToast('Filter option deleted'); } });
+    }
+
+    /* ---------- Add / edit filter option modal ---------- */
+    function openOptionModal(editing) {
+      const used = opts.filter(o => !editing || o.id !== editing.id).map(o => o.source);
+      const avail = FO_SOURCES.filter(s => !used.includes(s.source));
+      const others = opts.filter(o => !editing || o.id !== editing.id).map(o => o.label);
+      let m = editing ? clone(editing) : { source: '', label: '', display: '', logic: 'single', match: 'any', auto: false, cd: false, cm: false, picked: [] };
+      if (!m.match) m.match = 'any';
+      const initial = JSON.stringify(m), opener = document.activeElement;
+      let srcOpen = false, srcText = null, touched = false, showPrev = true;
+      const S = () => FO_SOURCES.find(s => s.source === m.source);
+      const items = s => (s && (s.fixed || s.sample)) || [];
+      const uniqueLabel = base => { let n = 0, l = base; while (others.includes(l)) { n++; const suf = ' ' + n; l = base.slice(0, 40 - suf.length) + suf; } return l; };
+      const labelErr = () => { if (!touched) return ''; const l = m.label.trim(); return !l ? 'This field is required' : others.includes(m.label) ? 'Label already used' : ''; };
+      const isDirty = () => JSON.stringify(m) !== initial;
+      const canSave = () => !!m.source && !!m.label.trim() && !others.includes(m.label) && isDirty();
+      const resetPicked = () => { const s = S(); m.picked = m.auto ? [] : [...items(s)]; };
+      const shown = () => { const s = S(), all = items(s); return m.display === 'slider' ? (s.fixed || []) : m.auto ? all.filter(v => !m.picked.includes(v)) : all.filter(v => m.picked.includes(v)); };
+      const tip = txt => `<span class="ex-info" tabindex="0" role="note" aria-label="${esc(txt)}">${icon('info')}<span class="ex-tip" role="tooltip"><p>${esc(txt)}</p></span></span>`;
+      const select = (id, label, opt, val, hide) => `<div class="mf-field"><label class="ex-label${hide ? ' Polaris-Text--visuallyHidden' : ''}" for="${id}">${esc(label)}</label><div class="Polaris-Select"><select id="${id}" class="Polaris-Select__Input">${opt.map(([v, n]) => `<option value="${esc(v)}"${v === val ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select><div class="Polaris-Select__Content" aria-hidden="true"><span class="Polaris-Select__SelectedOption">${esc((opt.find(x => x[0] === val) || ['', ''])[1])}</span><span class="Polaris-Select__Icon"><span class="Polaris-Icon">${ICON.down}</span></span></div><div class="Polaris-Select__Backdrop"></div></div></div>`;
+      const check = (act, txt, on, title) => `<label class="ex-switchrow"${title ? ` title="${esc(title)}"` : ''}><input type="checkbox" class="pg-check" data-f="${act}"${on ? ' checked' : ''}>${esc(txt)}</label>`;
+
+      function preview() {
+        const s = S();
+        if (!s) return '<div class="fo-prev__empty">Add your settings to see a live preview.</div>';
+        const label = m.label.trim() || 'Option Label', vals = shown(), counts = [12, 3, 8, 5, 9, 2, 7, 4];
+        let inner = '';
+        if (m.display === 'slider') {
+          const u = s.range.unit ? ` (${s.range.unit})` : '';
+          inner = `<div class="fdt-filter-preview__range"><div class="fdt-filter-preview__range-slider" aria-hidden="true"><div class="fdt-filter-preview__range-track"><div class="fdt-filter-preview__range-selected"></div></div></div><div class="fdt-filter-preview__range-values"><label class="fdt-filter-preview__range-field"><span class="fdt-filter-preview__range-field-label">From${u}</span><input type="text" class="fdt-filter-preview__box-input" readonly value="${s.range.min}" tabindex="-1"></label><label class="fdt-filter-preview__range-field"><span class="fdt-filter-preview__range-field-label">To${u}</span><input type="text" class="fdt-filter-preview__box-input" readonly value="${s.range.max}" tabindex="-1"></label></div></div>`;
+        } else if (m.display === 'box') {
+          inner = `<div class="fdt-filter-preview__box-grid">${vals.map((v, i) => `<div class="fdt-filter-preview__box-item"><span class="fdt-filter-preview__box-input fdt-filter-preview__box-label">${esc(v)}<span class="fdt-filter-preview__count">${counts[i % 8]}</span></span></div>`).join('')}</div>`;
+        } else if (m.display === 'swatch') {
+          inner = `<div class="fo-swatches">${vals.map(v => `<span class="fo-swatch" title="${esc(v)}" style="background:${FO_SWATCH[v] || '#c9c9c9'}"></span>`).join('')}</div>`;
+        } else {
+          inner = `<ul class="fdt-filter-preview__list">${vals.map((v, i) => `<li class="fdt-filter-preview__checklist-item"><span class="fdt-filter-preview__checkbox"></span><span class="fdt-filter-preview__item-label">${esc(v)}</span><span class="fdt-filter-preview__count">${counts[i % 8]}</span></li>`).join('')}</ul>`;
+        }
+        return `<div class="fo-prev__box"><p class="fo-prev__label">${esc(label)}</p><div class="fdt-filter-preview__wrapper">${inner}</div></div>
+          <p class="fo-prev__note">Note: The preview is for display purposes only. ${tip('1. Not all of filter option values will display here if there are too many of them. 2. The number of filter option values and their product counts shown above are not exact and only serves the display purposes.')}</p>`;
+      }
+
+      function formHtml() {
+        const s = S(), err = labelErr();
+        const list = avail.filter(a => !(srcText || '').trim() || !srcOpen || a.name.toLowerCase().includes(srcText.trim().toLowerCase()));
+        const text = srcText !== null ? srcText : (s ? s.name : '');
+        let h = `<p class="fo-guide"><a href="${FO_GUIDE}" target="_blank" rel="noopener noreferrer">Add filter option guidelines here</a></p>
+        <section class="fo-card"><div class="fo-sec"><div class="ex-row-between"><h3 class="ex-h">Filter option</h3>${showPrev ? '' : '<button type="button" class="fo-link" data-act="showprev">Preview</button>'}</div>
+        <div class="ex-col">
+          <div class="ex-field ex-combo"><label for="fo-src" class="ex-label">Source</label>
+            <input id="fo-src" class="mf-input" type="text" autocomplete="off" role="combobox" aria-expanded="${srcOpen}" aria-controls="fo-src-pop" placeholder="Select source" value="${esc(text)}">
+            <div class="mf-pop" id="fo-src-pop" role="listbox"${srcOpen ? '' : ' hidden'}>${list.length ? list.map(a => `<div class="mf-opt" role="option" data-src="${a.source}" aria-selected="${a.source === m.source}"><span class="mf-opt__name">${esc(a.name)}</span><span class="mf-opt__type">${FO_TYPE[a.type]}</span></div>`).join('') : '<div class="mf-opt mf-opt--empty">No sources found</div>'}</div>
+            <p class="mf-help">Want to <strong>filter by metafields</strong>? Choose your metafields <a href="metafield.html" data-act="metafield">here</a>, then return to continue filter setup.</p></div>
+          <div class="ex-field"><label for="fo-label" class="ex-label">Label</label><input id="fo-label" class="mf-input${err ? ' mf-input--error' : ''}" type="text" maxlength="40" autocomplete="off" value="${esc(m.label)}"${err ? ' aria-invalid="true" aria-describedby="fo-label-err"' : ''}>
+            <div class="fo-helprow"><p class="mf-help mf-help--error" id="fo-label-err">${esc(err)}</p><span class="fo-count">${m.label.length}/40</span></div></div>`;
+        if (s) {
+          h += `<div class="ex-field"><div class="fo-lbl"><span class="ex-label">Display type</span>${tip('Display type of the filter option')}</div>
+            ${select('fo-display', 'Display type', s.display.map(d => [d, FO_DISPLAY[d]]), m.display, true)}
+            ${m.display === 'slider' && s.help ? `<p class="mf-help">${esc(s.help)}</p>` : ''}${m.display === 'slider' && s.note ? `<p class="mf-help">${esc(s.note)}</p>` : ''}</div>
+            <div class="fo-two">${check('cd', 'Collapse on desktop', m.cd, 'When this option is enabled, the content of the filter option will be hidden by default on Desktop')}${check('cm', 'Collapse on mobile', m.cm, 'When this option is enabled, the content of the filter option will be hidden by default on Mobile')}</div>`;
+        }
+        h += '</div></div>';
+        if (s && m.display !== 'slider') {
+          const all = items(s), heading = m.auto ? 'Excluded filter values' : 'Manual filter values';
+          h += `<div class="fo-sec fo-sec--top"><h3 class="ex-h">Filter values</h3><div class="ex-col">
+            ${s.sample ? `<div>${select('fo-auto', 'Select filter value', [['auto', 'All filter values'], ['manual', 'Manually']], m.auto ? 'auto' : 'manual')}<p class="mf-help">${m.auto ? 'Automatically show all filter values related to each collection and search result page. Excluded filter values will be hidden on store.' : 'Filter values without products will be hidden on the storefront.'}</p></div>` : ''}
+            <div><div class="fo-lbl"><span class="ex-label">Option select</span>${tip('SINGLE - Allow user to select only one value. MULTIPLE - Allow user to select multiple values.')}</div>${select('fo-logic', 'Option select', Object.entries(FO_LOGIC), m.logic, true)}</div>
+            ${m.logic === 'multiple' && s.source !== 'priceRange' ? `<div class="fo-match"><span class="ex-label">Result must match:</span><label class="ex-radio"><input type="radio" name="fo-match" data-f="match" value="all"${m.match === 'all' ? ' checked' : ''}>All values</label><label class="ex-radio"><input type="radio" name="fo-match" data-f="match" value="any"${m.match === 'any' ? ' checked' : ''}>Any value</label></div>` : ''}
+            <div><span class="ex-label">${heading}</span><div class="fo-values">${all.map((v, i) => `<label class="ex-switchrow"><input type="checkbox" class="pg-check" data-pick="${i}"${m.picked.includes(v) ? ' checked' : ''}><span class="fo-values__t">${esc(v)}</span></label>`).join('')}</div></div>
+          </div></div>`;
+        }
+        return h + '</section>';
+      }
+
+      const scrim = document.createElement('div'); scrim.className = 'mf-scrim fo-scrim'; scrim.setAttribute('data-mfp', '');
+      scrim.innerHTML = `<div class="mf-modal fo-modal" role="dialog" aria-modal="true" aria-labelledby="fo-title" tabindex="-1"><div class="mf-modal__head"><h2 class="mf-modal__title" id="fo-title">${esc(editing ? editing.label : 'Add new filter option')}</h2><button type="button" class="mf-modal__x" aria-label="Close">${ICON.close}</button></div><div class="mf-modal__body"><div class="fo-grid"><div class="fo-main"></div><aside class="fo-prev" aria-label="Preview"></aside></div></div><div class="mf-modal__foot"><button type="button" class="mf-btn" data-m="cancel">Cancel</button><button type="button" class="mf-btn mf-btn--primary" data-m="save">Save</button></div></div>`;
+      document.body.appendChild(scrim);
+      const dlg = $('.fo-modal', scrim), main = $('.fo-main', scrim), prev = $('.fo-prev', scrim), saveBtn = $('[data-m=save]', scrim);
+
+      function draw() {
+        const a = document.activeElement, keep = a && scrim.contains(a) && a.id ? { id: a.id, s: a.selectionStart, e: a.selectionEnd } : null, top = $('.mf-modal__body', scrim).scrollTop;
+        main.innerHTML = formHtml();
+        prev.innerHTML = showPrev ? `<div class="fo-prev__head"><h3 class="ex-h">Preview</h3><button type="button" class="fo-link" data-act="hideprev">Hide</button></div><div class="fo-prev__body">${preview()}</div>` : '';
+        prev.hidden = !showPrev; $('.fo-grid', scrim).classList.toggle('fo-grid--one', !showPrev);
+        saveBtn.disabled = !canSave();
+        $('.mf-modal__body', scrim).scrollTop = top;
+        if (keep) { const el = document.getElementById(keep.id); if (el) { el.focus({ preventScroll: true }); if (keep.s != null && el.setSelectionRange) try { el.setSelectionRange(keep.s, keep.e); } catch (x) { /* not a text input */ } } }
+      }
+      function close() { document.removeEventListener('keydown', onKey, true); scrim.remove(); if (opener && document.contains(opener)) opener.focus({ preventScroll: true }); }
+      // the X, Esc and the backdrop never drop unsaved edits (Cancel is the explicit discard)
+      function requestClose() { if (isDirty()) { showToast('Save or discard your changes before closing'); return; } close(); }
+      function onKey(e) { if (e.key !== 'Escape' || $('.mf-scrim:not(.fo-scrim)')) return; e.stopPropagation(); if (srcOpen) { closeSrc(); return; } requestClose(); }
+      document.addEventListener('keydown', onKey, true);
+      function pickSource(key) {
+        const s = FO_SOURCES.find(x => x.source === key); if (!s) return;
+        m.source = s.source; m.label = uniqueLabel(s.name); m.display = s.display[0]; m.logic = 'single'; m.match = 'any'; m.auto = !!s.sample; m.cd = false; m.cm = false;
+        resetPicked(); srcOpen = false; srcText = null; touched = false;
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // so draw() does not hand focus back to the source field and reopen its list
+        draw(); const i = $('#fo-label', scrim); if (i) i.focus({ preventScroll: true });
+      }
+      // closing the list or showing a label error only touches the DOM it needs: a full draw() here would replace the very button the merchant is clicking
+      function closeSrc() { srcOpen = false; srcText = null; const i = $('#fo-src', scrim), pop = $('#fo-src-pop', scrim); if (pop) pop.hidden = true; if (i) { i.setAttribute('aria-expanded', 'false'); i.value = S() ? S().name : ''; } }
+      function paintLabelErr() { const err = labelErr(), i = $('#fo-label', scrim), t = $('#fo-label-err', scrim); if (t) t.textContent = err; if (i) { i.classList.toggle('mf-input--error', !!err); if (err) i.setAttribute('aria-invalid', 'true'); else i.removeAttribute('aria-invalid'); } saveBtn.disabled = !canSave(); }
+
+      scrim.addEventListener('mousedown', e => {
+        if (e.target === scrim) { requestClose(); return; }
+        const o = e.target.closest('[data-src]'); if (o) { e.preventDefault(); pickSource(o.dataset.src); return; }
+        if (srcOpen && !e.target.closest('.ex-combo')) closeSrc();
+      });
+      $('.mf-modal__x', scrim).addEventListener('click', requestClose);
+      $('[data-m=cancel]', scrim).addEventListener('click', close);
+      saveBtn.addEventListener('click', () => {
+        if (!canSave()) return;
+        const next = { id: editing ? editing.id : 'o' + Date.now(), source: m.source, label: m.label.trim(), display: m.display, logic: m.logic, match: m.match, auto: m.auto, cd: m.cd, cm: m.cm, picked: [...m.picked] };
+        opts = editing ? opts.map(o => o.id === editing.id ? next : o) : [...opts, next];
+        close(); render();
+      });
+      scrim.addEventListener('focusin', e => { if (e.target.id === 'fo-src' && !srcOpen) { srcOpen = true; srcText = ''; draw(); } });
+      scrim.addEventListener('input', e => {
+        if (e.target.id === 'fo-src') { srcText = e.target.value; srcOpen = true; draw(); }
+        else if (e.target.id === 'fo-label') { m.label = e.target.value; touched = true; draw(); }
+      });
+      scrim.addEventListener('focusout', e => { if (e.target.id === 'fo-label' && !touched) { touched = true; paintLabelErr(); } });
+      scrim.addEventListener('change', e => {
+        const t = e.target, f = t.dataset && t.dataset.f;
+        if (t.id === 'fo-display') { m.display = t.value; if (m.display !== 'slider' && !m.auto && !m.picked.length) resetPicked(); }
+        else if (t.id === 'fo-auto') { m.auto = t.value === 'auto'; resetPicked(); }
+        else if (t.id === 'fo-logic') m.logic = t.value;
+        else if (f === 'cd' || f === 'cm') m[f] = t.checked;
+        else if (f === 'match') m.match = t.value;
+        else if (t.dataset && t.dataset.pick != null) { const v = items(S())[+t.dataset.pick]; m.picked = t.checked ? [...m.picked, v] : m.picked.filter(x => x !== v); }
+        else return;
+        draw();
+      });
+      scrim.addEventListener('click', e => {
+        const a = e.target.closest('[data-act]'); if (!a) return;
+        if (a.dataset.act === 'hideprev') { showPrev = false; draw(); }
+        else if (a.dataset.act === 'showprev') { showPrev = true; draw(); }
+        else if (a.dataset.act === 'metafield' && isDirty()) { e.preventDefault(); showToast('Save or discard your changes before leaving'); }
+      });
+      draw(); dlg.focus({ preventScroll: true });
+    }
+
+    body.addEventListener('click', e => {
+      const b = e.target.closest('[data-act]'); if (!b) return;
+      const tr = b.closest('tr'), o = tr && opts.find(x => x.id === tr.dataset.id);
+      if (b.dataset.act === 'add') openOptionModal(null);
+      else if (b.dataset.act === 'edit' && o) openOptionModal(o);
+      else if (b.dataset.act === 'delete' && o) openDelete(o);
+    });
+    // reorder: drag the grip, or focus it and press the up / down arrow keys
+    let dragId = null;
+    body.addEventListener('dragstart', e => { const g = e.target.closest('[data-grip]'); if (!g) return; dragId = g.dataset.grip; e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch (x) { /* ignore */ } });
+    body.addEventListener('dragover', e => { if (dragId && e.target.closest('tbody tr')) e.preventDefault(); });
+    body.addEventListener('drop', e => { const tr = e.target.closest('tbody tr'); if (!dragId || !tr) return; e.preventDefault(); const id = dragId; dragId = null; move(id, opts.findIndex(o => o.id === tr.dataset.id)); });
+    body.addEventListener('dragend', () => { dragId = null; });
+    body.addEventListener('keydown', e => {
+      const g = e.target.closest('[data-grip]'); if (!g || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+      e.preventDefault(); const i = opts.findIndex(o => o.id === g.dataset.grip); move(g.dataset.grip, i + (e.key === 'ArrowUp' ? -1 : 1));
+    });
+    $('[data-b=save]', bar).addEventListener('click', () => { store.set(FO_KEY, JSON.stringify(opts)); saved = clone(opts); syncBar(); showToast('Save successfully'); });
+    $('[data-b=discard]', bar).addEventListener('click', () => { opts = clone(saved); render(); });
+    render();
   }
 
   ({ 'filter-set': filterSetPage, translations: translationsPage, synonyms: synonymsPage, 'filter-translate': filterTranslatePage }[page] || (() => {}))();

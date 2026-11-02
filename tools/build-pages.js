@@ -104,7 +104,7 @@ function pricingContent() {
 }
 // Sort: header + the container sort.js fills (the page is drawn by script, like the app's SortBody)
 function sortContent() {
-  return '<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack so-page"><div class="fdt-header"><h1 class="fdt-header__title">Custom sort options</h1><p class="fdt-header__description">Manage available sort options and customize their display order <a class="fdt-header__link" href="' + GUIDE + 'advanced-features/custom-sort-options" target="_blank" rel="noopener noreferrer">Custom sort options guidelines here</a></p></div><div id="so-body"></div></div></div></main></div></div>';
+  return '<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack so-page"><div class="fdt-header"><h1 class="fdt-header__title">Custom sort options</h1><p class="fdt-header__description">Manage available sort options and customize their display order. <a class="fdt-header__link" href="' + GUIDE + 'advanced-features/custom-sort-options" target="_blank" rel="noopener noreferrer">Custom sort options guidelines here</a></p></div><div id="so-body"></div></div></div></main></div></div>';
 }
 /* Search tabs: the capture only has "Search settings" and "Search booster"; the real app also shows Translations and Synonyms Search (pages/search/locales.jsx, synonym.jsx).
    active = the id of the tab to mark as current (new pages); omitted on the captured pages, which keep their own. */

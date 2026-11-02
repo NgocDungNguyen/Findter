@@ -2550,6 +2550,44 @@ a.ex-btn{text-decoration:none}
 .ex-indent{padding-left:16px}
 @media (max-width:640px){.ex-trow{flex-direction:column;align-items:stretch;gap:4px}.ex-tlabel{max-width:none}}
 
+/* filter set: reorder handle + add / edit filter option modal (AddFilterOption.jsx) */
+button.ex-fo-drag{padding:4px;border:0;border-radius:6px;background:transparent}
+button.ex-fo-drag:hover{background:#f1f1f1}
+button.ex-fo-drag:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
+.fo-modal{max-width:1040px}
+.fo-modal:focus{outline:0}
+.fo-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start}
+.fo-grid--one{grid-template-columns:minmax(0,1fr)}
+.fo-guide{margin:0 0 8px;font-size:12px;line-height:16px}
+.fo-guide a,.fo-link{color:#005bd3}
+.fo-link{padding:0;border:0;background:transparent;font:inherit;font-size:13px;line-height:20px;cursor:pointer;text-decoration:underline}
+.fo-card{border:1px solid #e3e3e3;border-radius:12px;background:#fff}
+.fo-sec{padding:16px;display:flex;flex-direction:column;gap:16px}
+.fo-sec--top{border-top:1px solid #e3e3e3}
+.fo-lbl{display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.fo-helprow{display:flex;justify-content:space-between;gap:8px}
+.fo-helprow .mf-help{flex:1}
+.fo-count{flex:none;font-size:12px;line-height:16px;color:#616161}
+.fo-two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fo-match{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.fo-values{display:flex;flex-direction:column;gap:8px;margin-top:8px;max-height:200px;overflow:auto}
+.fo-values__t{min-width:0;overflow-wrap:anywhere}
+.fo-modal .mf-field{display:flex;flex-direction:column;gap:4px}
+.fo-modal .ex-combo{position:relative}
+.fo-modal .mf-help a{color:#005bd3}
+.fo-prev{border:1px solid #e3e3e3;border-radius:12px;background:#fff;overflow:hidden;position:sticky;top:0}
+.fo-prev[hidden]{display:none}
+.fo-prev__head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e3e3e3}
+.fo-prev__body{padding:16px}
+.fo-prev__empty{padding:12px;text-align:center;font-size:12px;line-height:16px;color:#616161}
+.fo-prev__box{border:1px solid #e3e3e3;padding:12px}
+.fo-prev__label{margin:0 0 8px;font-size:12px;line-height:16px;font-weight:650;text-transform:uppercase;color:#303030}
+.fo-prev__note{display:flex;align-items:center;gap:4px;margin:12px 0 0;font-size:12px;line-height:16px;color:#616161}
+.fo-swatches{display:flex;flex-wrap:wrap;gap:8px}
+.fo-swatch{width:24px;height:24px;border-radius:50%;border:1px solid #c9c9c9}
+.fo-prev .ex-tip{left:auto;right:0;transform:none;width:240px}
+@media (max-width:767px){.fo-grid{grid-template-columns:minmax(0,1fr)}.fo-prev{position:static}.fo-two{grid-template-columns:1fr}}
+
 /* four Search tabs do not fit a phone: the row scrolls sideways (the real app's Tabs collapse into a "More" menu) */
 @media (max-width:767px){
   .fdt-menu-tabs .Polaris-Tabs__Wrapper,.fdt-menu-tabs .Polaris-Tabs__ButtonWrapper{overflow-x:auto;scrollbar-width:none}
