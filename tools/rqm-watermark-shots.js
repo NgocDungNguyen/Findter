@@ -9,9 +9,10 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
 // red rounded box + numbered badge drawn in the page, so the screenshot carries it
 const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = document.querySelector(el); if (!el) return false;
   const r = el.getBoundingClientRect(); if (!r.width || !r.height) return false; const p = 4, d = document.createElement('div'); d.className = 'rqm-mark';
-  d.style.cssText = 'position:absolute;z-index:99998;pointer-events:none;border:3px solid #e51c00;border-radius:10px;left:' + (r.left + scrollX - p) + 'px;top:' + (r.top + scrollY - p) + 'px;width:' + (r.width + p * 2) + 'px;height:' + (r.height + p * 2) + 'px';
+  const h = Math.min(r.height + p * 2, r.bottom <= innerHeight ? innerHeight - (r.top - p) - 3 : 1e9);   // an element that ends at the window bottom (pinned badge): keep its frame inside the shot
+  d.style.cssText = 'position:absolute;z-index:2147483000;pointer-events:none;border:3px solid #e51c00;border-radius:10px;left:' + (r.left + scrollX - p) + 'px;top:' + (r.top + scrollY - p) + 'px;width:' + (r.width + p * 2) + 'px;height:' + h + 'px';
   document.body.appendChild(d);
-  if (n) { const b = document.createElement('div'); b.className = 'rqm-mark'; b.textContent = n; b.style.cssText = 'position:absolute;z-index:99999;pointer-events:none;width:22px;height:22px;border-radius:50%;background:#e51c00;color:#fff;font:700 13px/22px Inter,Arial,sans-serif;text-align:center;left:' + (r.left + scrollX - p - 11) + 'px;top:' + (r.top + scrollY - p - 11) + 'px'; document.body.appendChild(b); }
+  if (n) { const b = document.createElement('div'); b.className = 'rqm-mark'; b.textContent = n; b.style.cssText = 'position:absolute;z-index:2147483001;pointer-events:none;width:22px;height:22px;border-radius:50%;background:#e51c00;color:#fff;font:700 13px/22px Inter,Arial,sans-serif;text-align:center;left:' + (r.left + scrollX - p - 11) + 'px;top:' + (r.top + scrollY - p - 11) + 'px'; document.body.appendChild(b); }
   return true; };`;
 
 (async () => {
@@ -97,10 +98,14 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   await open('search.html', { plan: 'Trial' });
   await p.evaluate(() => document.querySelector('[data-wm-card]').scrollIntoView({ block: 'center' })); await p.waitForTimeout(200);
   await capture('Mobile (390px): Search settings, card khong tran ngang', [[card, 1]]);
+  await p.setViewportSize({ width: 390, height: 844 });
   await store({ plan: 'Free' });
   await p.click('#sf-open-search'); await p.fill('#sf-q', 'cosm'); await p.waitForTimeout(250);
-  await p.evaluate(() => document.querySelector('#sf-powered').scrollIntoView({ block: 'end' })); await p.waitForTimeout(200);
-  await capture('Mobile (390px): storefront, badge duoi khung goi y', [['#sf-powered', 1]]);
+  await capture('Mobile (390px): storefront, man hinh tim kiem day du nhu app that, badge ghim o day man hinh (dau danh sach)', [['#sf-powered', 1], ['.sf-search__wrap', 2]]);
+  const scrolled = await p.evaluate(() => { const bx = document.querySelector('.sf-suggest__box'); bx.scrollTop = bx.scrollHeight; return bx.scrollTop; }); await p.waitForTimeout(200);
+  ok(scrolled > 0, '   list scrolls (scrollTop ' + scrolled + ')');
+  ok(await p.evaluate(() => Math.round(document.querySelector('#sf-powered').getBoundingClientRect().bottom) === innerHeight), '   badge bottom = window bottom at the end of the list');
+  await capture('Mobile (390px): cuoi danh sach, san pham cuoi nam ngay tren badge, badge van o day man hinh', [['#sf-powered', 1]]);
 
   fs.writeFileSync(path.join(OUT, 'list.txt'), list.join('\n') + '\n');
   console.log(errs.length ? 'page errors: ' + errs.join(' | ') : 'page errors: none'); await b.close();

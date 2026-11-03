@@ -24,9 +24,10 @@
   </div>
   <div class="sf-search" id="sf-search" role="search" hidden>
     <div class="sf-search__wrap">
+      <button type="button" class="sf-iconbtn sf-search__close" id="sf-close-search" aria-label="Close"><svg class="sf-ic-x" viewBox="0 0 20 20" aria-hidden="true"><path d="m4.5 4.5 11 11m0-11-11 11"/></svg><svg class="sf-ic-back" viewBox="0 0 33 25" aria-hidden="true"><path d="M27 12.5H6m8-8-8 8 8 8"/></svg></button>
       <div class="sf-search__field">
         <label class="sf-search__label" for="sf-q">Search</label>
-        <input class="sf-search__input" id="sf-q" type="text" autocomplete="off" aria-expanded="false" aria-controls="sf-suggest">
+        <input class="sf-search__input" id="sf-q" type="text" placeholder="Search" autocomplete="off" aria-expanded="false" aria-controls="sf-suggest">
         <button type="button" class="sf-search__clear" id="sf-clear" aria-label="Clear" hidden><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="m7.5 7.5 5 5m0-5-5 5"/></svg></button>
         <button type="button" class="sf-search__go" aria-label="Search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.75"/><path d="m13 13 4.5 4.5"/></svg></button>
         <div class="sf-suggest" id="sf-suggest" hidden>
@@ -37,7 +38,6 @@
           <div class="sf-powered" id="sf-powered" hidden><img class="sf-powered__logo" src="assets/img/findter-logo.svg" alt="" width="24" height="24"><span>Powered by <strong>Findter</strong></span></div>
         </div>
       </div>
-      <button type="button" class="sf-iconbtn sf-search__close" id="sf-close-search" aria-label="Close"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4.5 4.5 11 11m0-11-11 11"/></svg></button>
     </div>
   </div>
 </header>

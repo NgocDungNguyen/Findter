@@ -23,6 +23,7 @@
 
   /* ---------- header search ---------- */
   const header = $('#sf-header'), panel = $('#sf-search'), scrim = $('#sf-scrim'), q = $('#sf-q'), openBtn = $('#sf-open-search');
+  const phone = matchMedia('(max-width:767px)');
   const suggest = $('#sf-suggest'), list = $('#sf-suggest-list'), all = $('#sf-suggest-all'), clear = $('#sf-clear'), powered = $('#sf-powered');
   const setOpen = open => {
     panel.hidden = !open; scrim.hidden = !open; header.classList.toggle('is-searching', open); openBtn.setAttribute('aria-expanded', String(open));
@@ -32,10 +33,10 @@
     const term = q.value.trim(), t = term.toLowerCase();
     q.closest('.sf-search__field').classList.toggle('has-value', !!term); clear.hidden = !term;
     if (!term) { suggest.hidden = true; q.setAttribute('aria-expanded', 'false'); showBadge(); return; }
-    const hits = PRODUCTS.filter(p => (p.title + ' ' + p.type + ' ' + p.vendor).toLowerCase().split(/\s+/).some(w => w.startsWith(t)) || p.title.toLowerCase().includes(t)).slice(0, 5);
+    const hits = PRODUCTS.filter(p => (p.title + ' ' + p.type + ' ' + p.vendor).toLowerCase().split(/\s+/).some(w => w.startsWith(t)) || p.title.toLowerCase().includes(t)).slice(0, phone.matches ? 15 : 5);
     list.innerHTML = hits.length
       ? '<p class="sf-suggest__head">Products</p>' + hits.map(p => '<a class="sf-suggest__item" href="#"><span class="sf-suggest__img"></span><span><span class="sf-suggest__title">' + esc(p.title) + '</span><span class="sf-suggest__price">' + money(p.price) + '</span></span></a>').join('')
-      : '<p class="sf-suggest__none">No results for “' + esc(term) + '”</p>';
+      : '<p class="sf-suggest__none">No results for “' + esc(term) + '”</p><div class="sf-suggest__noresult"><a href="#">Search for <strong>“' + esc(term) + '”</strong></a></div>';
     all.innerHTML = 'Search for “' + esc(term) + '” <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg>';
     suggest.hidden = false; q.setAttribute('aria-expanded', 'true'); showBadge();
   }
@@ -47,6 +48,7 @@
   q.addEventListener('input', update);
   clear.addEventListener('click', () => { q.value = ''; update(); q.focus(); });
   suggest.addEventListener('click', e => { if (e.target.closest('a')) e.preventDefault(); });
+  phone.addEventListener('change', update);
   WM.onChange(showBadge);                                                                      // Master, the store type or the badge changed in the admin tab
   update();
 })();
