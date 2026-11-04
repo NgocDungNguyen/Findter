@@ -60,7 +60,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(await p.locator('.chat-choice').count() === 0, 'Free: no Yes / No question in the chat');
   ok(!(await p.evaluate(() => FindterWatermark.removed())) && await p.locator('.wm-badge').count() === 0, 'Free: nothing is removed in the first moment (loading)');
   await p.waitForTimeout(1400);
-  m = await msgs(); ok(m.length === before + 2 && /I have already removed the “Powered by Findter” badge/.test(m[m.length - 1]) && /feedback/.test(m[m.length - 1]), 'Free: then the auto reply "I have already removed…" with a question about help or feedback');
+  m = await msgs(); ok(m.length === before + 2 && /The “Powered by Findter” badge is now removed/.test(m[m.length - 1]) && /Just reply here/.test(m[m.length - 1]), 'Free: then the auto reply "The badge is now removed…" inviting a reply');
   ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-btn]').count() === 0, 'Free: badge removed, the button becomes the green "Removed" badge (no way back)');
   ok(await p.locator('.demo-btn[data-key=wm][data-val=removed]').getAttribute('aria-pressed') === 'true', 'the demo bar Badge group follows (Removed)');
   await p.click('.demo-btn[data-key=wm][data-val=shown]'); await p.waitForTimeout(100);
@@ -101,11 +101,11 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   /* ---- a shop that spams the button: one request, one message, one reply ---- */
   const hi = () => p.getByText(/Hi, I would like to remove/).count();
   await p.click('.demo-reset'); await p.waitForTimeout(150); await store('Free');
-  const h0 = await hi(), r0 = await p.getByText(/I have already removed/).count();   // the chat keeps what earlier checks put in it
+  const h0 = await hi(), r0 = await p.getByText(/is now removed from your storefront/).count();   // the chat keeps what earlier checks put in it
   for (let i = 0; i < 4; i++) { await p.click('[data-wm-btn]', { force: true }); await p.waitForTimeout(40); }
   ok(await busy(), 'clicking the button again while the request runs changes nothing');
   await p.waitForTimeout(1600);
-  ok(await hi() === h0 + 1 && await p.getByText(/I have already removed/).count() === r0 + 1 && await p.locator('.wm-badge').isVisible(), 'clicking many times: one message from the shop, one auto reply, one "Removed"');
+  ok(await hi() === h0 + 1 && await p.getByText(/is now removed from your storefront/).count() === r0 + 1 && await p.locator('.wm-badge').isVisible(), 'clicking many times: one message from the shop, one auto reply, one "Removed"');
   await p.click('.demo-reset'); await p.waitForTimeout(150); await store('Free');
 
   /* ---- Master -> Features on a phone: the chat launcher does not cover the Save button of the last container ---- */

@@ -65,7 +65,7 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   await p.click(sw); await p.waitForTimeout(350);
   await capture('Trial: bam nut Remove -> chat mo va tu gui tin nhan cua merchant, chua co cau hoi hay nut nao', [[sw, 1], ['.chat-panel__body', 2]]);
   await p.waitForTimeout(1400);
-  await capture('Sau khoang 1 giay: tin tu dong "I have already removed..." hoi them ho tro / feedback, nut doi thanh badge Removed', [['.wm-badge', 1], ['.chat-panel__body', 2]]);
+  await capture('Sau khoang 1 giay: tin tu dong "The badge is now removed... Just reply here.", nut doi thanh badge Removed', [['.wm-badge', 1], ['.chat-panel__body', 2]]);
 
   // ---- paid store: same card, removed at once, no chat
   await open('search.html', { plan: 'Starter' });
