@@ -137,10 +137,19 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.bringToFront(); await p.click('[data-wm-btn]'); await p.waitForTimeout(1600);
   await sf.waitForTimeout(300); ok(!(await powered()), 'storefront (open tab) follows: badge gone after the removal');
   await p.click('.demo-btn[data-key=wm][data-val=shown]'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: Badge = Shown brings it back');
-  await store('Development'); await sf.waitForTimeout(300); ok(!(await powered()), 'storefront: Development store never shows the badge (not ticked in Master)');
+  await store('Development'); await sf.waitForTimeout(300); ok(!(await powered()) && await sf.locator('.sf-ticker').isHidden() && await sf.locator('.sf-powered--filter').isHidden(), 'storefront: Development store never shows the badge, the filter-bar mark or the running line (not ticked in Master)');
   await store('Starter'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: paid store shows it until the button is used');
   // the same badge at the end of the filter bar (collection) and, on the search results page, also at the end of the results
   ok(await sf.locator('.sf-powered--filter').isVisible() && await sf.evaluate(() => { const b = document.querySelector('.sf-powered--filter').getBoundingClientRect(), last = [...document.querySelectorAll('.sf-group')].pop().getBoundingClientRect(); return b.top >= last.bottom && b.width > 200; }), 'storefront: the badge also shows under the last filter group');
+  // the running line is on the collection page too, same behaviour: full width, stuck to the bottom of the screen, rests above the store footer at the very end
+  const ct = () => sf.evaluate(() => { const t = document.querySelector('.sf-ticker').getBoundingClientRect(); return { bottom: Math.round(t.bottom), w: Math.round(t.width), left: Math.round(t.left), ih: innerHeight, cw: document.documentElement.clientWidth }; });
+  const c0 = await ct(); ok(await sf.locator('.sf-ticker').isVisible() && c0.w === c0.cw && c0.left === 0 && Math.abs(c0.bottom - c0.ih) <= 1, 'storefront: the running line also shows on the collection page, full width, stuck to the bottom of the screen');
+  let cn = 0, cstuck = true; for (let i = 0; i < 40; i++) { await sf.evaluate(() => scrollBy(0, innerHeight * 0.8)); await sf.waitForTimeout(80); const t = await ct(); cn = await sf.locator('.sf-card').count(); if (cn < 72 && Math.abs(t.bottom - t.ih) > 1) cstuck = false; if (cn >= 72 && await sf.evaluate(() => scrollY + innerHeight >= document.documentElement.scrollHeight - 2)) break; }
+  ok(cn === 72 && cstuck, 'storefront: scrolling the collection loads all 72 products and the line stays stuck to the bottom meanwhile (' + cn + ')');
+  await sf.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await sf.waitForTimeout(150);
+  ok(await sf.evaluate(() => { const t = document.querySelector('.sf-ticker').getBoundingClientRect(), f = document.querySelector('.sf-store-footer').getBoundingClientRect(); return Math.abs(t.bottom - f.top) <= 1 && t.bottom < innerHeight - 20; }), 'storefront: at the very bottom of the collection the line stops sticking and rests above the store footer');
+  await sf.evaluate(() => scrollBy(0, -500)); await sf.waitForTimeout(150); const cu = await ct(); ok(Math.abs(cu.bottom - cu.ih) <= 1, 'storefront: scrolling back up, the line sticks to the bottom again');
+  await sf.evaluate(() => scrollTo(0, 0));
   const sr = await ctx.newPage(); sr.on('pageerror', e => errs.push('search page: ' + e.message));
   await sr.goto(url('storefront-search.html') + '?q=cosm'); await sr.waitForTimeout(300);
   ok(await sr.locator('.sf-card').count() >= 12 && /72 products/.test(await sr.locator('#sf-count').textContent()) && await sr.locator('#sf-sr-q').inputValue() === 'cosm', 'search results page: "cosm" finds 72 products, the first 12 shown, the term in the search field');
