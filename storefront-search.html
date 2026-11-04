@@ -35,7 +35,7 @@
             <div class="sf-suggest__list" id="sf-suggest-list"></div>
             <a class="sf-suggest__all" href="#" id="sf-suggest-all"></a>
           </div>
-          <div class="sf-powered" id="sf-powered" hidden><img class="sf-powered__logo" src="assets/img/findter-logo.webp" alt="" width="24" height="24"><span>Powered by <strong>Findter</strong></span></div>
+          <a class="sf-powered" id="sf-powered" href="https://apps.shopify.com/findter-custom-filter-search?utm_source=trademark&utm_medium=referral" target="_blank" rel="noopener" hidden><img class="sf-powered__logo" src="assets/img/findter-logo-white.webp" alt="" width="24" height="24"><span>Powered by <strong>Findter</strong></span></a>
         </div>
       </div>
     </div>
@@ -67,20 +67,87 @@
     <details class="sf-group" open><summary>Size</summary>
       <div class="sf-boxes"><span>10</span><span>11</span><span>12</span></div>
     </details>
-    <div class="sf-powered sf-powered--filter" data-wm-place hidden><img class="sf-powered__logo" src="assets/img/findter-logo.webp" alt="" width="22" height="22"><span>Powered by <strong>Findter</strong></span></div>
+    <details class="sf-group"><summary>Vendor</summary>
+      <label class="sf-check"><input type="checkbox"><span>Demo Cosmetics</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Glow Labs</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Pure Botanics</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Studio Nine</span></label>
+    </details>
+    <details class="sf-group"><summary>Product type</summary>
+      <label class="sf-check"><input type="checkbox"><span>Skin care</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Makeup</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Hair</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Body</span></label>
+    </details>
+    <details class="sf-group"><summary>Discount percentage</summary>
+      <label class="sf-check"><input type="checkbox"><span>10% or more</span></label>
+      <label class="sf-check"><input type="checkbox"><span>20% or more</span></label>
+      <label class="sf-check"><input type="checkbox"><span>30% or more</span></label>
+      <label class="sf-check"><input type="checkbox"><span>50% or more</span></label>
+    </details>
+    <details class="sf-group"><summary>% Discount</summary>
+      <div class="sf-boxes"><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span></div>
+    </details>
+    <details class="sf-group"><summary>Product category</summary>
+      <label class="sf-check"><input type="checkbox"><span>Cleansers</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Moisturizers</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Serums</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Sunscreen</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Masks</span></label>
+    </details>
+    <details class="sf-group"><summary>Tag</summary>
+      <div class="sf-boxes"><span>New</span><span>Bestseller</span><span>Vegan</span><span>Organic</span><span>Travel size</span></div>
+    </details>
+    <details class="sf-group"><summary>Skin type</summary>
+      <label class="sf-check"><input type="checkbox"><span>Dry</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Oily</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Combination</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Sensitive</span></label>
+    </details>
+    <details class="sf-group"><summary>Title</summary>
+      <label class="sf-check"><input type="checkbox"><span>A to M</span></label>
+      <label class="sf-check"><input type="checkbox"><span>N to Z</span></label>
+    </details>
+    <details class="sf-group"><summary>Multi line text</summary>
+      <label class="sf-check"><input type="checkbox"><span>With notes</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Without notes</span></label>
+    </details>
+    <details class="sf-group"><summary>Color 1</summary>
+      <div class="sf-boxes"><span>Beige</span><span>Black</span><span>White</span><span>Blue</span></div>
+    </details>
+    <details class="sf-group"><summary>Sale</summary>
+      <label class="sf-check"><input type="checkbox"><span>On sale</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Not on sale</span></label>
+    </details>
+    <details class="sf-group"><summary>Product category 1</summary>
+      <label class="sf-check"><input type="checkbox"><span>Face</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Eyes</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Lips</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Hands</span></label>
+    </details>
+    <details class="sf-group"><summary>Discount percentage 1</summary>
+      <label class="sf-check"><input type="checkbox"><span>Up to 10%</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Up to 30%</span></label>
+      <label class="sf-check"><input type="checkbox"><span>Up to 50%</span></label>
+    </details>
+    <details class="sf-group"><summary>Rating</summary>
+      <label class="sf-check"><input type="checkbox"><span>4 stars & up</span></label>
+      <label class="sf-check"><input type="checkbox"><span>3 stars & up</span></label>
+    </details>
+    <a class="sf-powered sf-powered--filter" data-wm-place href="https://apps.shopify.com/findter-custom-filter-search?utm_source=trademark&utm_medium=referral" target="_blank" rel="noopener" hidden><img class="sf-powered__logo" src="assets/img/findter-logo-black.webp" alt="" width="22" height="22"><span>Powered by <strong>Findter</strong></span></a>
   </aside>
   <section class="sf-results" aria-label="Products">
+    <div class="sf-head"><div class="sf-head__left" id="sf-head-left"></div>
     <div class="sf-toolbar">
       <label for="sf-sort">Sort by</label>
       <select id="sf-sort"><option>Relevance</option><option>Price, low to high</option><option>Price, high to low</option></select>
       <span class="sf-count" id="sf-count"></span>
-    </div>
+    </div></div>
     <ul class="sf-grid" id="sf-grid"></ul>
     <div id="sf-more" aria-hidden="true"></div>
     <p class="sf-empty" id="sf-empty" hidden></p>
   </section>
 </main>
-<div class="sf-ticker" data-wm-place data-wm-ticker role="note" aria-label="Powered by Findter" hidden></div>
 <footer class="sf-store-footer">
   <div class="sf-store-footer__inner">
     <div><p class="sf-store-footer__brand">Sample store</p><p class="sf-store-footer__about">Cosmetics and body care for every day.</p></div>

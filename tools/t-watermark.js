@@ -31,10 +31,11 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(/at least one/.test(await p.textContent('[data-wm-err]')) && await p.locator('[data-wm-act=save]').isDisabled(), 'feature on with no shop type: error, Save disabled');
   await p.reload(); await p.waitForTimeout(400);
 
-  /* ---- Search settings card, per store type ---- */
-  await p.goto(url('search.html')); await p.waitForTimeout(400);
-  const order = await p.evaluate(() => [...document.querySelector('.Polaris-Layout').children].map(s => s.hasAttribute('data-wm-card') ? 'card' : /custom search solution/.test(s.textContent) ? 'banner' : /Search field/.test(s.textContent) ? 'fields' : 'other'));
-  ok(order.join() === 'other,banner,card,fields', 'card sits between the info banner and "Search field" (' + order.join(' > ') + ')');
+  /* ---- the badge card (on Filter design, not on Search settings), per store type ---- */
+  await p.goto(url('design.html')); await p.waitForTimeout(400);
+  ok(await p.evaluate(() => !!document.querySelector('[data-wm-card]')), 'the card is on Filter design');
+  await p.goto(url('search.html')); await p.waitForTimeout(300); ok(await p.evaluate(() => !document.querySelector('[data-wm-card]')) && !(await p.getByText('Remove “Powered by Findter” badge').count()), 'Search settings no longer has the card');
+  await p.goto(url('design.html')); await p.waitForTimeout(400);
   const shape = async v => { await store(v); return p.evaluate(() => { const c = document.querySelector('[data-wm-card]'); const bt = c.querySelector('[data-wm-btn]'); return c.hidden ? 'hidden' : bt ? (bt.getAttribute('aria-disabled') === 'true' ? 'button-busy' : 'button') : c.querySelector('.wm-badge') ? 'removed' : '?'; }); };
   const want = { Trial: 'button', Free: 'button', 'Paid before': 'button', Service: 'button', Starter: 'button', Enterprise: 'button', Development: 'hidden' };
   for (const [plan, w] of Object.entries(want)) { const got = await shape(plan); ok(got === w, `${plan}: ${w} (${got})`); }
@@ -120,7 +121,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.goto(url('design.html')); await p.waitForTimeout(500);
   ok(await p.evaluate(() => { const c = document.querySelector('[data-wm-card]'), b = document.querySelector('.Polaris-Banner').closest('.Polaris-Layout__Section'); return !!c && !c.hidden && c.previousElementSibling === b && /Remove “Powered by Findter” badge/.test(c.textContent); }), 'Filter design: the badge card sits right under the info banner');
   ok(await p.evaluate(() => { const c = document.querySelector('[data-wm-card]').getBoundingClientRect(), t = [...document.querySelectorAll('*')].find(e => e.children.length === 0 && e.textContent.trim() === 'Filter layout'); return !!t && c.bottom <= t.getBoundingClientRect().top; }), 'Filter design: the card is above the Filter layout and Live preview columns');
-  await p.goto(url('search.html')); await p.waitForTimeout(300);
+  await p.goto(url('design.html')); await p.waitForTimeout(300);
 
   /* ---- sample storefront ---- */
   const sf = await ctx.newPage(); sf.on('pageerror', e => errs.push('storefront: ' + e.message));
@@ -137,53 +138,64 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.bringToFront(); await p.click('[data-wm-btn]'); await p.waitForTimeout(1600);
   await sf.waitForTimeout(300); ok(!(await powered()), 'storefront (open tab) follows: badge gone after the removal');
   await p.click('.demo-btn[data-key=wm][data-val=shown]'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: Badge = Shown brings it back');
-  await store('Development'); await sf.waitForTimeout(300); ok(!(await powered()) && await sf.locator('.sf-ticker').isHidden() && await sf.locator('.sf-powered--filter').isHidden(), 'storefront: Development store never shows the badge, the filter-bar mark or the running line (not ticked in Master)');
+  await store('Development'); await sf.waitForTimeout(300); ok(!(await powered()) && await sf.locator('.sf-powered--filter').isHidden(), 'storefront: Development store never shows the badge or the filter-bar mark (not ticked in Master)');
   await store('Starter'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: paid store shows it until the button is used');
   // the same badge at the end of the filter bar (collection) and, on the search results page, also at the end of the results
   ok(await sf.locator('.sf-powered--filter').isVisible() && await sf.evaluate(() => { const b = document.querySelector('.sf-powered--filter').getBoundingClientRect(), last = [...document.querySelectorAll('.sf-group')].pop().getBoundingClientRect(); return b.top >= last.bottom && b.width > 200; }), 'storefront: the badge also shows under the last filter group');
-  // the running line is on the collection page too, same behaviour: full width, stuck to the bottom of the screen, rests above the store footer at the very end
-  const ct = () => sf.evaluate(() => { const t = document.querySelector('.sf-ticker').getBoundingClientRect(); return { bottom: Math.round(t.bottom), w: Math.round(t.width), left: Math.round(t.left), ih: innerHeight, cw: document.documentElement.clientWidth }; });
-  const c0 = await ct(); ok(await sf.locator('.sf-ticker').isVisible() && c0.w === c0.cw && c0.left === 0 && Math.abs(c0.bottom - c0.ih) <= 1, 'storefront: the running line also shows on the collection page, full width, stuck to the bottom of the screen');
-  let cn = 0, cstuck = true; for (let i = 0; i < 40; i++) { await sf.evaluate(() => scrollBy(0, innerHeight * 0.8)); await sf.waitForTimeout(80); const t = await ct(); cn = await sf.locator('.sf-card').count(); if (cn < 72 && Math.abs(t.bottom - t.ih) > 1) cstuck = false; if (cn >= 72 && await sf.evaluate(() => scrollY + innerHeight >= document.documentElement.scrollHeight - 2)) break; }
-  ok(cn === 72 && cstuck, 'storefront: scrolling the collection loads all 72 products and the line stays stuck to the bottom meanwhile (' + cn + ')');
-  await sf.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await sf.waitForTimeout(150);
-  ok(await sf.evaluate(() => { const t = document.querySelector('.sf-ticker').getBoundingClientRect(), f = document.querySelector('.sf-store-footer').getBoundingClientRect(); return Math.abs(t.bottom - f.top) <= 1 && t.bottom < innerHeight - 20; }), 'storefront: at the very bottom of the collection the line stops sticking and rests above the store footer');
-  await sf.evaluate(() => scrollBy(0, -500)); await sf.waitForTimeout(150); const cu = await ct(); ok(Math.abs(cu.bottom - cu.ih) <= 1, 'storefront: scrolling back up, the line sticks to the bottom again');
+  let cn = 0; for (let i = 0; i < 40 && cn < 72; i++) { await sf.evaluate(() => scrollBy(0, innerHeight * 0.8)); await sf.waitForTimeout(80); cn = await sf.locator('.sf-card').count(); }
+  ok(cn === 72, 'storefront: scrolling the collection keeps loading products until all 72 are shown (' + cn + ')');
   await sf.evaluate(() => scrollTo(0, 0));
   const sr = await ctx.newPage(); sr.on('pageerror', e => errs.push('search page: ' + e.message));
   await sr.goto(url('storefront-search.html') + '?q=cosm'); await sr.waitForTimeout(300);
   ok(await sr.locator('.sf-card').count() >= 12 && /72 products/.test(await sr.locator('#sf-count').textContent()) && await sr.locator('#sf-sr-q').inputValue() === 'cosm', 'search results page: "cosm" finds 72 products, the first 12 shown, the term in the search field');
-  ok(await sr.locator('.sf-powered--filter').isVisible() && await sr.locator('.sf-ticker').isVisible(), 'search results page: the badge shows at the end of the filter bar and as the running line under the results');
-    const tk = () => sr.evaluate(() => { const t = document.querySelector('.sf-ticker').getBoundingClientRect(); return { bottom: Math.round(t.bottom), top: Math.round(t.top), w: Math.round(t.width), left: Math.round(t.left), ih: innerHeight, cw: document.documentElement.clientWidth }; });
-  let t0 = await tk(); ok(t0.w === t0.cw && t0.left === 0, 'search results page: the running line spans the full width');
-  ok(Math.abs(t0.bottom - t0.ih) <= 1, 'search results page: at the top the running line is stuck to the bottom of the screen');
-  // scroll down: more products keep loading until all 72 are shown, the line stays on the bottom of the screen the whole way
-  let stuck = true, n = 0;
-  for (let i = 0; i < 40; i++) { await sr.evaluate(() => scrollBy(0, innerHeight * 0.8)); await sr.waitForTimeout(80); const t = await tk(); const cards = await sr.locator('.sf-card').count(); if (cards < 72 && Math.abs(t.bottom - t.ih) > 1) stuck = false; n = cards; if (cards >= 72 && await sr.evaluate(() => scrollY + innerHeight >= document.documentElement.scrollHeight - 2)) break; }
+  ok(await sr.locator('.sf-powered--filter').isVisible(), 'search results page: the badge shows at the end of the filter bar');
+  let n = 0; for (let i = 0; i < 40 && n < 72; i++) { await sr.evaluate(() => scrollBy(0, innerHeight * 0.8)); await sr.waitForTimeout(80); n = await sr.locator('.sf-card').count(); }
   ok(n === 72, 'search results page: scrolling down keeps loading products until all 72 are shown (' + n + ')');
-  ok(stuck, 'search results page: the running line stays stuck to the bottom of the screen while there is more to scroll');
-  await sr.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await sr.waitForTimeout(150);
-  const te = await sr.evaluate(() => { const t = document.querySelector('.sf-ticker').getBoundingClientRect(), f = document.querySelector('.sf-store-footer').getBoundingClientRect(), c = [...document.querySelectorAll('.sf-card')].pop().getBoundingClientRect(); return { tb: Math.round(t.bottom), ft: Math.round(f.top), ih: innerHeight, cardAbove: c.bottom <= t.top + 1 }; });
-  ok(Math.abs(te.tb - te.ft) <= 1 && te.tb < te.ih - 20 && te.cardAbove, 'search results page: at the very bottom the line stops sticking and rests between the last product and the store footer');
-  await sr.evaluate(() => scrollBy(0, -500)); await sr.waitForTimeout(150); const tu = await tk();
-  ok(Math.abs(tu.bottom - tu.ih) <= 1, 'search results page: scrolling back up, the line sticks to the bottom of the screen again');
-  await sr.evaluate(() => scrollTo(0, 0));
-  ok(await sr.evaluate(() => { const tr = document.querySelector('.sf-ticker__track'); const a = getComputedStyle(tr); return a.animationName === 'sf-ticker' && tr.querySelectorAll('.sf-ticker__item').length >= 10; }), 'search results page: the running line animates with the mark repeated');
-  const tx0 = await sr.evaluate(() => new DOMMatrix(getComputedStyle(document.querySelector('.sf-ticker__track')).transform).m41); await sr.waitForTimeout(500);
-  ok(await sr.evaluate(() => new DOMMatrix(getComputedStyle(document.querySelector('.sf-ticker__track')).transform).m41) > tx0, 'search results page: the line moves to the right');
   await sr.click('#sf-open-search'); await sr.fill('#sf-q', 'rose'); await sr.keyboard.press('Enter'); await sr.waitForURL(/q=rose/);
   ok(await sr.locator('.sf-card').count() === 1, 'search results page: Enter in the header search opens the results for the new term');
   await store('Development'); await sr.reload(); await sr.waitForTimeout(300);
-  ok(await sr.locator('.sf-powered--filter').isHidden() && await sr.locator('.sf-ticker').isHidden(), 'search results page: a Development store shows no badge anywhere');
+  ok(await sr.locator('.sf-powered--filter').isHidden(), 'search results page: a Development store shows no badge anywhere');
   await sr.setViewportSize({ width: 390, height: 800 }); await store('Starter'); await sr.reload(); await sr.waitForTimeout(300);
   ok(await sr.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'search results page at 390px: no horizontal scroll');
   await sr.close();
+  ok(await sf.evaluate(u => [...document.querySelectorAll('.sf-powered')].length >= 2 && [...document.querySelectorAll('.sf-powered')].every(a => a.tagName === 'A' && a.getAttribute('href') === u && a.target === '_blank' && /noopener/.test(a.rel)), 'https://apps.shopify.com/findter-custom-filter-search?utm_source=trademark&utm_medium=referral'), 'storefront: every badge is a link to the app listing (new tab)');
+  await sf.evaluate(() => document.querySelector('.sf-powered--filter').scrollIntoView({ block: 'center' })); await sf.waitForTimeout(150);
+  ok(await sf.evaluate(() => { const sc = document.querySelector('#sf-scrim'), was = sc.hidden; sc.hidden = true; const vis = [...document.querySelectorAll('.sf-powered')].filter(e => { const q = e.getBoundingClientRect(); return q.width > 0 && q.top >= 0 && q.bottom <= innerHeight; }); const res = vis.length >= 1 && vis.every(e => { const q = e.getBoundingClientRect(); return [[q.left + 2, q.top + q.height / 2], [q.right - 2, q.top + q.height / 2], [q.left + q.width / 2, q.top + 3], [q.left + q.width / 2, q.bottom - 3], [q.left + q.width / 2, q.top + q.height / 2]].every(([x, y]) => { const t = document.elementFromPoint(x, y); return !!t && t.closest('a.sf-powered') === e; }); }); sc.hidden = was; return res; }), 'storefront: a click anywhere on a badge (edges, padding, logo or text) opens the link');
   // Master turns the feature off
   await p.goto(url('index.html') + '#/master/features'); await p.waitForTimeout(400); await p.uncheck('[data-wm=enabled]'); await p.click('[data-wm-act=save]'); await sf.waitForTimeout(300);
   ok(!(await powered()), 'storefront: Master → Features off (saved) removes the badge for everyone');
-  await p.goto(url('search.html')); await p.waitForTimeout(300); ok(await p.locator('[data-wm-card]').isHidden(), 'search settings: the card is gone while the feature is off');
+  await p.goto(url('design.html')); await p.waitForTimeout(300); ok(await p.locator('[data-wm-card]').isHidden(), 'Filter design: the card is gone while the feature is off');
   await p.goto(url('index.html') + '#/master/features'); await p.waitForTimeout(300); await p.check('[data-wm=enabled]'); await p.click('[data-wm-act=save]');
   await sf.fill('#sf-q', ''); await sf.keyboard.press('Escape'); ok(await sf.locator('#sf-search').isHidden(), 'storefront: Esc closes the search');
+
+  /* ---- filter layouts: Filter design chooses, the storefront follows (Vertical / Horizontal / Off-canvas; phones are always Off-canvas) ---- */
+  await p.goto(url('design.html')); await p.waitForTimeout(400);
+  const pick = n => p.locator('label.Polaris-Choice', { hasText: new RegExp('^' + n + '$') }).first().click();
+  const stored = () => p.evaluate(() => localStorage.getItem('findter.filterLayout'));
+  const checks = () => p.evaluate(() => ['Vertical', 'Horizontal', 'Off-canvas'].map(n => [...document.querySelectorAll('label')].find(l => l.textContent.trim() === n).querySelector('input').checked));
+  ok((await checks()).join() === 'true,false,false', 'Filter design: Vertical is the layout chosen by default');
+  await pick('Horizontal'); ok(await stored() === 'horizontal' && (await checks()).join() === 'false,true,false', 'Filter design: choosing Horizontal saves it and unticks the others');
+  await sf.bringToFront(); await sf.waitForTimeout(300);
+  ok(await sf.evaluate(() => document.body.dataset.filterLayout === 'horizontal' && getComputedStyle(document.querySelector('.sf-filters')).display === 'none') && await sf.locator('.sf-hbar').isVisible(), 'storefront (open tab) follows: the horizontal bar replaces the sidebar');
+  ok(await sf.evaluate(() => { const last = [...document.querySelectorAll('.sf-hbtn')].pop().getBoundingClientRect(), b = document.querySelector('.sf-powered--hbar').getBoundingClientRect(); const sameRow = Math.abs((b.top + b.height / 2) - (last.top + last.height / 2)) < 6; return b.width > 0 && (sameRow ? b.left >= last.right : b.top >= last.bottom - 1); }), 'horizontal layout: the badge comes right after the last dropdown (same row, or the next row when the row is full)');
+  await sf.click('.sf-hbtn'); ok(await sf.locator('.sf-hpanel:not([hidden])').count() === 1, 'horizontal layout: a dropdown opens');
+  await p.bringToFront(); await pick('Off-canvas'); ok(await stored() === 'offcanvas', 'Filter design: choosing Off-canvas saves it');
+  await sf.bringToFront(); await sf.waitForTimeout(300);
+  ok(await sf.locator('#sf-open-drawer').isVisible() && await sf.evaluate(() => getComputedStyle(document.querySelector('.sf-filters')).display === 'none'), 'off-canvas layout: a Filter button replaces the sidebar');
+  await sf.click('#sf-open-drawer'); await sf.waitForTimeout(150); await sf.evaluate(() => { document.querySelector('.sf-drawer__body').scrollTop = 1e5; }); await sf.waitForTimeout(100);
+  const dr = await sf.evaluate(() => { const g = [...document.querySelectorAll('.sf-drawer__body .sf-group')].pop().getBoundingClientRect(), b = document.querySelector('.sf-drawer .sf-powered--filter').getBoundingClientRect(), fo = document.querySelector('.sf-drawer__foot').getBoundingClientRect(); return { vis: b.width > 0, below: b.top >= g.bottom - 1, aboveFoot: b.bottom <= fo.top + 1 }; });
+  ok(dr.vis && dr.below && dr.aboveFoot, 'off-canvas layout: the drawer shows the badge after the last filter, above the "View items" button');
+  await sf.click('.sf-drawer__close'); ok(await sf.locator('#sf-drawer').isHidden(), 'off-canvas layout: the X closes the drawer');
+  await p.bringToFront(); await pick('Vertical'); ok(await stored() === 'vertical', 'Filter design: choosing Vertical again');
+  // phones: always Off-canvas, whatever the shop chose
+  const ph3 = await ctx.newPage(); ph3.on('pageerror', e => errs.push('phone layouts: ' + e.message)); await ph3.setViewportSize({ width: 390, height: 800 });
+  await ph3.goto(url('storefront.html')); await ph3.waitForTimeout(400);
+  ok(await ph3.evaluate(() => document.body.dataset.filterLayout === 'offcanvas' && getComputedStyle(document.querySelector('.sf-filters')).display === 'none') && /Filter and sort/.test(await ph3.locator('#sf-open-drawer').innerText()), 'phone: the storefront uses Off-canvas even when the shop chose Vertical ("Filter and sort")');
+  await ph3.click('#sf-open-drawer'); await ph3.waitForTimeout(150); await ph3.evaluate(() => { document.querySelector('.sf-drawer__body').scrollTop = 1e5; }); await ph3.waitForTimeout(100);
+  ok(await ph3.locator('.sf-drawer__sort').isVisible() && await ph3.locator('.sf-drawer .sf-powered--filter').isVisible(), 'phone: the drawer has the sort options and the badge after the last filter');
+  ok(await ph3.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'phone: off-canvas storefront has no horizontal scroll');
+  await ph3.close();
+
 
   /* ---- sidebar + phone ---- */
   await p.goto(url('search.html')); await p.waitForTimeout(300);

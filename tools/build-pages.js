@@ -7,13 +7,13 @@ const rd = p => fs.readFileSync(path.join(__dirname, p), 'utf8');
 // flat: false = plain Polaris capture (wrapped by the pg-* classes); flat: true = Shopify web components flattened from the live app (cap/pages/<key>.flat.html)
 const PAGES = [
   { key: 'filter', file: 'filter.html', active: 'Filter' },
-  { key: 'search', file: 'search.html', active: 'Search', script: 'assets/watermark-card.js' },
+  { key: 'search', file: 'search.html', active: 'Search' },
   { key: 'metafield', file: 'metafield.html', active: 'Metafield' },
   { key: 'filter-booster', file: 'filter-boost.html', active: 'Filter', flat: true },
   { key: 'search-booster', file: 'search-boost.html', active: 'Search', flat: true },
   { key: 'ymm', file: 'ymm.html', active: 'Year Make Model', flat: true },
   { key: 'features', file: 'features.html', active: 'Advanced features', flat: true },
-  { key: 'design', file: 'design.html', active: 'Filter and grid design', flat: true, script: 'assets/watermark-card.js' },
+  { key: 'design', file: 'design.html', active: 'Filter and grid design', flat: true, script: ['assets/watermark-card.js', 'assets/design-layout.js'] },
   { key: 'pricing', file: 'pricing.html', active: 'Pricing', srcdoc: true },
   { key: 'sort', file: 'sort.html', active: 'Custom sort', custom: true, script: 'assets/sort.js' },       // written by hand (no capture): ported from the app's Settings/SortBody.jsx
   { key: 'search-translation', file: 'search-translation.html', active: 'Search', custom: 'extra', script: 'assets/extra.js' },    // written by hand: ported from the app's pages/search/locales.jsx
@@ -46,6 +46,7 @@ fs.writeFileSync(path.join(root, 'assets', 'code-notice.js'), rd('build/code-not
 fs.writeFileSync(path.join(root, 'assets', 'demo.js'), rd('build/demo.js'));
 fs.writeFileSync(path.join(root, 'assets', 'watermark.js'), rd('build/watermark.js'));
 fs.writeFileSync(path.join(root, 'assets', 'watermark-card.js'), rd('build/watermark-card.js'));
+fs.writeFileSync(path.join(root, 'assets', 'design-layout.js'), rd('build/design-layout.js'));
 
 /* ---------- shell pieces copied from index.html so every page stays in sync with it ---------- */
 const pick = sel => [...home.querySelectorAll(sel)].map(e => e.outerHTML).join('\n');
@@ -197,9 +198,7 @@ function chatWiring(p, doc, root) {
   switch (p.key) {
     case 'filter': case 'filter-booster': contactBanner(doc, root, 'filter'); break;
     case 'search-booster': contactBanner(doc, root, 'search'); break;
-    case 'search': { mark(inBanner('Contact us'), 'search');
-      const slot = doc.createElement('div'); slot.className = 'Polaris-Layout__Section'; slot.hidden = true; slot.setAttribute('data-wm-card', '');   // the "Remove “Powered by Findter” badge" card (watermark-card.js) goes between the info banner and "Search field"
-      inBanner('Contact us').closest('.Polaris-Layout__Section').after(slot); break; }
+    case 'search': mark(inBanner('Contact us'), 'search'); break;                                   // Search settings no longer carries the badge card (it lives on Filter design)
     case 'metafield': mark(root.querySelector('a.fdt-header__link:not([href])'), 'metafield'); break;            // "For additional metafields, please contact us"
     case 'features': mark(root.querySelector('.fdt-contact-us-link').closest('a'), 'feature'); break;            // "Contact us now" in the bottom banner
     case 'design': watermarkSlot(doc, contactBanner(doc, root, 'design')); break;       // Filter design: the badge card sits under the banner, above the Filter layout and Live preview columns
@@ -245,8 +244,8 @@ ${parts.toast}
 <script src="assets/watermark.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/pages.js"></script>
-${p.script ? `<script src="${p.script}"></script>
-` : ''}
+${[].concat(p.script || []).map(s => `<script src="${s}"></script>
+`).join('')}
 </body>
 </html>
 `;
@@ -264,6 +263,6 @@ fs.writeFileSync(path.join(root, 'storefront.html'), rd('build/storefront.html')
 }
 fs.writeFileSync(path.join(root, 'assets', 'storefront.css'), rd('build/storefront.css'));
 fs.writeFileSync(path.join(root, 'assets', 'storefront.js'), rd('build/storefront.js'));
-fs.writeFileSync(path.join(root, 'assets', 'img', 'findter-logo.webp'), fs.readFileSync(path.join(__dirname, 'build', 'findter-logo.webp')));      // the app's own 1 KB logo, shown left of the badge text
+for (const n of ['black', 'white']) fs.writeFileSync(path.join(root, 'assets', 'img', 'findter-logo-' + n + '.webp'), fs.readFileSync(path.join(__dirname, 'build', 'findter-logo-' + n + '.webp')));      // the app's logo as a plain glyph: white on the dark search-widget badge, black on the filter badges
 console.log('wrote storefront.html + assets/storefront.css, storefront.js');
 console.log('wrote assets/common.css', (css.length / 1024).toFixed(0) + ' KB, assets/shell.js, assets/pages.js');
