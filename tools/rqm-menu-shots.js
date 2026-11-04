@@ -24,14 +24,14 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
   const p = await ctx.newPage(); p.on('pageerror', e => errs.push(e.message));
   let shot = 0; const list = [];
-  const OLD_SUB = { 'sort.html': 'Manage available sort options and customize their display order', 'search-synonym.html': 'Help customers find products even if they type typos, abbreviations, or similar words.', 'filter-translate.html': "Add translated labels for this filter set's options, values, and groups." };
+  const OLD_SUB = { 'sort.html': 'Manage available sort options and customize their display order', 'search-synonym.html': 'Help customers find products even if they type typos, abbreviations, or similar words.', 'filter-translate.html': "Add translated labels for this filter set's options, values, and groups.", 'search-translation.html': '' };
   const open = async (file, { width = 1440, height = 900, before } = {}) => {
     await p.setViewportSize({ width, height });
     await p.goto(U(file)); await p.waitForTimeout(700);
     await p.addStyleTag({ content: '#toast{display:none!important}.m-fab,.sk,.chat-bubble{display:none!important}*{transition:none!important;animation:none!important}' });
     await p.evaluate(MARK);
     if (before === 'nav' || before === 'both') await p.evaluate(() => window.__oldNav());
-    if (before === 'link' || before === 'both') await p.evaluate(t => { const d = document.querySelector('.fdt-header__description'); if (d) d.textContent = t; }, OLD_SUB[file]);   // the sub text the real app shows today (the demo now has only the link)
+    if (before === 'link' || before === 'both') await p.evaluate(t => { const d = document.querySelector('.fdt-header__description'); if (d) { if (t) d.textContent = t; else d.remove(); } }, OLD_SUB[file]);   // the sub text the real app shows today (the demo now has only the link); '' = the real app has nothing there
   };
   // clip: 'header' = page header + the first block under it, none = the whole window
   const capture = async (name, title, marks, clip) => {
@@ -101,6 +101,12 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
     await open(file, { width: 390, height: 640 });
     await capture(name, title, sels);
   }
+
+  // ---- 13-14 Search > Translations tab: the real app has no link there, the new version adds one
+  await open('search-translation.html', { before: 'link' });
+  await capture('translations-before', 'Search > Translations hien tai (real-app): heading "Search", chua co link guideline', [['.fdt-header__title', 1]], 'header');
+  await open('search-translation.html');
+  await capture('translations-after', 'Search > Translations moi: them link "Multi-language search guidelines here" duoi heading', [['.fdt-header__title', 1], ['a.fdt-header__link', 2]], 'header');
   await b.close();
   ok(errs.length === 0, 'no page errors ' + errs.join(' | '));
   console.log('\n' + list.join('\n') + '\n' + (fails ? fails + ' FAILED' : 'all marks placed'));
