@@ -23,7 +23,7 @@ const PAGES = [
   { key: 'design-tab2', file: 'design-product-grid.html', active: 'Filter and grid design', flat: true },
 ];
 // tabs that are separate pages
-const TAB_PAGES = { 'Manage filter set': 'filter.html', 'Collection booster': 'filter-boost.html', 'Search settings': 'search.html', 'Search booster': 'search-boost.html', 'Translations': 'search-translation.html', 'Synonyms Search': 'search-synonym.html', 'Filter design': 'design.html', 'Product grid design': 'design-product-grid.html' };
+const TAB_PAGES = { 'Manage filter set': 'filter.html', 'Collection booster': 'filter-boost.html', 'Search settings': 'search.html', 'Search booster': 'search-boost.html', 'Translations': 'search-translation.html', 'Synonyms search': 'search-synonym.html', 'Filter design': 'design.html', 'Product grid design': 'design-product-grid.html' };
 const APP_ASSETS = 'https://findter-production.flintverse.com/assets/';
 const CHEVRON = '<span type="chevron-right" class="pg-chevron" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5.72 12.53a.75.75 0 0 1 0-1.06l3.47-3.47-3.47-3.47a.749.749 0 1 1 1.06-1.06l4 4a.75.75 0 0 1 0 1.06l-4 4a.75.75 0 0 1-1.06 0"></path></svg></span>';
 
@@ -104,7 +104,7 @@ function pricingContent() {
 }
 // Sort: header + the container sort.js fills (the page is drawn by script, like the app's SortBody)
 function sortContent() {
-  return '<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack so-page"><div class="fdt-header"><h1 class="fdt-header__title">Custom sort options</h1><p class="fdt-header__description">Manage available sort options and customize their display order. <a class="fdt-header__link" href="' + GUIDE + 'advanced-features/custom-sort-options" target="_blank" rel="noopener noreferrer">Custom sort options guidelines here</a></p></div><div id="so-body"></div></div></div></main></div></div>';
+  return '<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack so-page"><div class="fdt-header"><h1 class="fdt-header__title">Custom sort options</h1><p class="fdt-header__description"><a class="fdt-header__link" href="' + GUIDE + 'advanced-features/custom-sort-options" target="_blank" rel="noopener noreferrer">Sort guidelines here</a></p></div><div id="so-body"></div></div></div></main></div></div>';
 }
 /* Search tabs: the capture only has "Search settings" and "Search booster"; the real app also shows Translations and Synonyms Search (pages/search/locales.jsx, synonym.jsx).
    active = the id of the tab to mark as current (new pages); omitted on the captured pages, which keep their own. */
@@ -113,7 +113,7 @@ function addSearchTabs(root, active) {
   const ul = root.querySelector('ul.Polaris-Tabs'); if (!ul) throw new Error('search tabs: tab list not found');
   root.querySelectorAll('.Polaris-Tabs__TabsMeasurer, .Polaris-Tabs__DisclosureTab').forEach(e => e.remove());
   const tpl = [...ul.querySelectorAll('.Polaris-Tabs__Tab')].pop().closest('li');
-  for (const [id, label] of [['locales', 'Translations'], ['synonym-search', 'Synonyms Search']]) {
+  for (const [id, label] of [['locales', 'Translations'], ['synonym-search', 'Synonyms search']]) {
     const li = tpl.cloneNode(true), b = li.querySelector('.Polaris-Tabs__Tab');
     b.id = id; b.setAttribute('aria-label', label); b.querySelector('.Polaris-Text--root').textContent = label; ul.appendChild(li);
   }
@@ -127,7 +127,7 @@ function extraContent(p) {
   let head = '', tabs = '', kind = '';
   if (p.key === 'filter-translate') {
     kind = 'filter-translate';
-    head = `<div class="fdt-header"><div class="ex-titlebar ex-titlebar--split"><div class="ex-titlebar__l"><a class="ex-back" href="filter-set.html" aria-label="Back"><span class="Polaris-Icon">${BACK_ICON}</span></a><div class="ex-titlebar__text"><h1 class="fdt-header__title">Translate Default filter set</h1><p class="fdt-header__description">Add translated labels for this filter set's options, values, and groups. <a class="fdt-header__link" href="${GUIDE}advanced-features/auto-translate" target="_blank" rel="noopener noreferrer">Multi-language filter value guidelines here</a></p></div></div></div></div>`;
+    head = `<div class="fdt-header"><div class="ex-titlebar ex-titlebar--split"><div class="ex-titlebar__l"><a class="ex-back" href="filter-set.html" aria-label="Back"><span class="Polaris-Icon">${BACK_ICON}</span></a><div class="ex-titlebar__text"><h1 class="fdt-header__title">Translate Default filter set</h1><p class="fdt-header__description"><a class="fdt-header__link" href="${GUIDE}advanced-features/auto-translate" target="_blank" rel="noopener noreferrer">Multi-language filter guidelines here</a></p></div></div></div></div>`;
   } else if (p.key === 'filter-set') {
     kind = 'filter-set';
     head = `<div class="fdt-header"><div class="ex-titlebar ex-titlebar--split"><div class="ex-titlebar__l"><a class="ex-back" href="filter.html" aria-label="Back"><span class="Polaris-Icon">${BACK_ICON}</span></a><div><h1 class="fdt-header__title">Default filter set</h1>${guideLink(GUIDE + 'create-and-set-up-filters/filter-overview-and-access', 'Filter set guidelines here')}</div></div><a class="ex-btn" href="filter-translate.html">Translations</a></div></div>`;
@@ -141,7 +141,7 @@ function extraContent(p) {
     tabs = `<div class="Polaris-Layout">${tabSection.outerHTML}</div>`;
     head = translation
       ? `<div class="fdt-header"><h1 class="fdt-header__title">Search</h1>${guideLink(GUIDE + 'advanced-features/auto-translate', 'Multi-language search guidelines here')}</div>`
-      : `<div class="fdt-header"><h1 class="fdt-header__title">Search</h1><p class="fdt-header__description">Help customers find products even if they type typos, abbreviations, or similar words. <a class="fdt-header__link" href="${GUIDE}advanced-features/synonym-search" target="_blank" rel="noopener noreferrer">Synonyms search guidelines here</a></p></div>`;
+      : `<div class="fdt-header"><h1 class="fdt-header__title">Search</h1><p class="fdt-header__description"><a class="fdt-header__link" href="${GUIDE}advanced-features/synonym-search" target="_blank" rel="noopener noreferrer">Synonyms search guidelines here</a></p></div>`;
   }
   return `<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack ex-page">${head}${tabs}<div id="ex-body" data-page="${kind}"></div></div></div></main></div></div>`;
 }
@@ -197,8 +197,7 @@ function chatWiring(p, doc, root) {
     case 'search': { mark(inBanner('Contact us'), 'search');
       const slot = doc.createElement('div'); slot.className = 'Polaris-Layout__Section'; slot.hidden = true; slot.setAttribute('data-wm-card', '');   // the "Remove “Powered by Findter” badge" card (watermark-card.js) goes between the info banner and "Search field"
       inBanner('Contact us').closest('.Polaris-Layout__Section').after(slot); break; }
-    case 'metafield': mark(root.querySelector('a.fdt-header__link:not([href])'), 'metafield');
-      root.querySelector('.fdt-header__description').insertAdjacentHTML('afterend', `<p class="fdt-header__description" data-mf-search-guide hidden><a class="fdt-header__link" href="${GUIDE}set-up-search-function/search-by-product-metafields" target="_blank" rel="noopener noreferrer">Search by metafield guidelines here</a></p>`); break;     // shown only while Search by metafield is on (pages.js)            // "For additional metafields, please contact us"
+    case 'metafield': mark(root.querySelector('a.fdt-header__link:not([href])'), 'metafield'); break;            // "For additional metafields, please contact us"
     case 'features': mark(root.querySelector('.fdt-contact-us-link').closest('a'), 'feature'); break;            // "Contact us now" in the bottom banner
     case 'design': case 'design-tab2': contactBanner(doc, root, 'design'); break;                                 // both design tabs: under the tabs (replaces the bottom "Got feedback..." banner)
   }

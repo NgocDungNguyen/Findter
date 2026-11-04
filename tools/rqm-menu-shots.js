@@ -1,4 +1,4 @@
-// Pictures for the RQM "Findter_Update subtext + menu inapp": the left menu and the guideline links on Custom sort, Synonyms Search, Metafield and Translate filter set.
+// Pictures for the RQM "Findter_Update subtext + menu inapp": the left menu and the guideline links on Custom sort, Synonyms search and Translate filter set (Metafield is not changed). Files are numbered 01-12 without gaps.
 // "before" pictures are the demo with the old texts put back in the page (what the real app shows today); "after" pictures are the demo as built.
 // Writes "RQM Images - Menu/NN-name.png" (repo root, not committed); the list is printed at the end. Run: node tools/rqm-menu-shots.js
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs'); const { pathToFileURL } = require('url');
@@ -15,7 +15,7 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   return true; };
   window.__navItem = label => [...document.querySelectorAll('.sh-item--sub')].find(a => a.textContent.trim() === label);
   window.__oldNav = () => { const set = (from, to) => { const a = window.__navItem(from); if (a) a.querySelector('.sh-item__label').textContent = to; }; set('Custom sort', 'Sort'); set('Filter and grid design', 'Filter & product grid design'); };
-  window.__noLink = () => { document.querySelectorAll('.fdt-header a.fdt-header__link[target]').forEach(a => { const p = a.parentElement; if (p.children.length === 1 && p.textContent.trim() === a.textContent.trim()) p.remove(); else { if (a.previousSibling && a.previousSibling.nodeType === 3) a.previousSibling.textContent = a.previousSibling.textContent.trimEnd(); a.remove(); } }); };`;
+  window.__noLink = () => { document.querySelectorAll('.fdt-header a.fdt-header__link[target]').forEach(a => { const p = a.parentElement; if (p.children.length === 1 && p.textContent.trim() === a.textContent.trim()) p.remove(); else { if (a.nextSibling && a.nextSibling.nodeType === 3 && a.nextSibling.textContent.trim() === '.') a.nextSibling.remove(); if (a.previousSibling && a.previousSibling.nodeType === 3) a.previousSibling.textContent = a.previousSibling.textContent.trimEnd(); a.remove(); } }); };`;
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
@@ -24,13 +24,14 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
   const p = await ctx.newPage(); p.on('pageerror', e => errs.push(e.message));
   let shot = 0; const list = [];
+  const OLD_SUB = { 'sort.html': 'Manage available sort options and customize their display order', 'search-synonym.html': 'Help customers find products even if they type typos, abbreviations, or similar words.', 'filter-translate.html': "Add translated labels for this filter set's options, values, and groups." };
   const open = async (file, { width = 1440, height = 900, before } = {}) => {
     await p.setViewportSize({ width, height });
     await p.goto(U(file)); await p.waitForTimeout(700);
     await p.addStyleTag({ content: '#toast{display:none!important}.m-fab,.sk,.chat-bubble{display:none!important}*{transition:none!important;animation:none!important}' });
     await p.evaluate(MARK);
     if (before === 'nav' || before === 'both') await p.evaluate(() => window.__oldNav());
-    if (before === 'link' || before === 'both') await p.evaluate(() => window.__noLink());
+    if (before === 'link' || before === 'both') await p.evaluate(t => { const d = document.querySelector('.fdt-header__description'); if (d) d.textContent = t; }, OLD_SUB[file]);   // the sub text the real app shows today (the demo now has only the link)
   };
   // clip: 'header' = page header + the first block under it, none = the whole window
   const capture = async (name, title, marks, clip) => {
@@ -67,34 +68,23 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
 
   // ---- 3-4 Custom sort page
   await open('sort.html', { before: 'both' });
-  await p.evaluate(() => { document.querySelector('.fdt-header__title').textContent = 'Sort'; });   // the heading the real app shows today
+  await p.evaluate(() => { document.querySelector('.fdt-header__title').textContent = 'Sort'; const d = document.querySelector('.fdt-header__description'); d.textContent = d.textContent.trim().replace(/\.$/, ''); });   // the heading and sub text (no full stop) the real app shows today
   await capture('custom-sort-before', 'Trang Custom sort hien tai (real-app): heading "Sort", chi co subtext', [['.fdt-header__title', 1], ['.fdt-header__description', 2]], 'header');
   await open('sort.html');
-  await capture('custom-sort-after', 'Trang Custom sort moi: heading "Custom sort options" + link guideline cung dong sau subtext', [['.fdt-header__title', 1], ['a.fdt-header__link', 2]], 'header');
+  await capture('custom-sort-after', 'Trang Custom sort moi: heading "Custom sort options" + link "Read more about custom sort options" cung dong sau subtext', [['.fdt-header__title', 1], ['a.fdt-header__link', 2]], 'header');
 
-  // ---- 5-6 Synonyms Search
+  // ---- 5-6 Synonyms search (tab label + heading + link)
   await open('search-synonym.html', { before: 'link' });
-  await p.evaluate(() => { document.querySelector('.fdt-header__title').textContent = 'Synonyms Search'; });   // the heading the real app shows today
-  await capture('synonyms-before', 'Synonyms Search hien tai (real-app): heading "Synonyms Search", chi co subtext, chua co link guideline', [['.fdt-header__title', 1], ['.fdt-header__description', 2]], 'header');
+  await p.evaluate(() => { document.querySelector('.fdt-header__title').textContent = 'Synonyms Search'; document.querySelector('#synonym-search .Polaris-Text--root').textContent = 'Synonyms Search'; const card = document.querySelector('.ex-h'); if (card) card.textContent = 'Synonyms Search'; });   // the heading, tab label and card title the real app shows today (all one key, synonym_search_page.title)
+  await capture('synonyms-before', 'Synonyms Search hien tai (real-app): heading "Synonyms Search", tab "Synonyms Search", chi co subtext, chua co link guideline', [['.fdt-header__title', 1], ['.fdt-header__description', 2], ['#synonym-search', 3]], 'header');
   await open('search-synonym.html');
-  await capture('synonyms-after', 'Synonyms Search moi: heading doi thanh "Search" (giong 3 tab con lai) + link "Synonyms search guidelines here" cung dong sau subtext', [['.fdt-header__title', 1], ['a.fdt-header__link', 2]], 'header');
+  await capture('synonyms-after', 'Synonyms search moi: heading "Search" (giong 3 tab con lai), link "Read more about synonyms" cung dong sau subtext, tab doi thanh "Synonyms search"', [['.fdt-header__title', 1], ['a.fdt-header__link', 2], ['#synonym-search', 3]], 'header');
 
-  // ---- 7-9 Metafield
-  await open('metafield.html', { before: 'link' });
-  await p.evaluate(() => { const g = document.querySelector('[data-mf-search-guide]'); if (g) g.hidden = true; });
-  await capture('metafield-before', 'Metafield hien tai (real-app): chi co subtext "Metafield guidelines here! ..." (du da bat Search)', [['.fdt-header__description', 1]], 'header');
-  await open('metafield.html');
-  await capture('metafield-after-on', 'Metafield moi, DA bat Search by metafield (co metafield text tick Search): them dong "Search by metafield guidelines here" duoi subtext', [['[data-mf-search-guide]', 1]], 'header');
-  await p.evaluate(() => localStorage.setItem('findter.metafields.v1', JSON.stringify([{ id: 'multi', applies: ['filter'] }, { id: 'height', applies: ['filter'] }])));
-  await p.reload(); await p.waitForTimeout(500); await p.addStyleTag({ content: '#toast{display:none!important}.m-fab,.sk,.chat-bubble{display:none!important}' }); await p.evaluate(MARK);
-  await capture('metafield-after-off', 'Metafield moi, CHUA bat Search (chi co Filter): khong co dong guideline, khong co khoang trong thua', [['.fdt-header__description', 1]], 'header');
-  await p.evaluate(() => localStorage.removeItem('findter.metafields.v1'));
-
-  // ---- 10-11 Translate filter set
+  // ---- 7-8 Translate filter set (Metafield is not changed, so it has no pictures; files are numbered 01-12 without gaps)
   await open('filter-translate.html', { before: 'link' });
   await capture('translate-before', 'Translate filter set hien tai (real-app): chi co subtext', [['.fdt-header__description', 1]], 'header');
   await open('filter-translate.html');
-  await capture('translate-after', 'Translate filter set moi: link "Multi-language filter value guidelines here" cung dong sau subtext', [['a.fdt-header__link', 1]], 'header');
+  await capture('translate-after', 'Translate filter set moi: link "Read more about translating filter sets" cung dong sau subtext', [['a.fdt-header__link', 1]], 'header');
 
   // ---- 12 Filter and grid design page: menu changed, page heading kept
   await open('design.html');
@@ -102,12 +92,12 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   { const file = path.join(OUT, String(++shot).padStart(2, '0') + '-design-menu-after.png'); await p.screenshot({ path: file }); list.push(path.basename(file) + '  Trang Filter and grid design: menu doi ten, heading trang van la "Filter & product grid design"'); console.log('   shot ' + path.basename(file)); }
 
   // ---- 13-16 phone width
-  for (const [file, name, title, sels] of [
+  for (const entry of [
     ['sort.html', 'mobile-custom-sort', 'Dien thoai (390px): Custom sort, link xuong dong gon', [['.fdt-header__title', 1], ['a.fdt-header__link', 2]]],
-    ['search-synonym.html', 'mobile-synonyms', 'Dien thoai (390px): Synonyms Search, heading "Search"', [['.fdt-header__title', 1], ['a.fdt-header__link', 2]]],
-    ['metafield.html', 'mobile-metafield', 'Dien thoai (390px): Metafield, dong "Search by metafield guidelines here"', [['[data-mf-search-guide]', 1]]],
+    ['search-synonym.html', 'mobile-synonyms', 'Dien thoai (390px): Synonyms search, heading "Search"', [['.fdt-header__title', 1], ['a.fdt-header__link', 2]]],
     ['filter-translate.html', 'mobile-translate', 'Dien thoai (390px): Translate filter set', [['a.fdt-header__link', 1]]],
   ]) {
+    const [file, name, title, sels] = entry;
     await open(file, { width: 390, height: 640 });
     await capture(name, title, sels);
   }

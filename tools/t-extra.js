@@ -1,4 +1,4 @@
-// Walks through Search > Translations, Search > Synonyms Search and Filter set > Translate and prints what it finds. Run: node t-extra.js [shotDir]
+// Walks through Search > Translations, Search > Synonyms search and Filter set > Translate and prints what it finds. Run: node t-extra.js [shotDir]
 const { chromium } = require('playwright'); const path = require('path'); const { pathToFileURL } = require('url');
 const root = path.resolve(__dirname, '..'); const U = f => pathToFileURL(path.join(root, f)).href;
 const shots = process.argv[2];
@@ -17,7 +17,7 @@ let fails = 0; const ok = (name, cond, extra) => { if (!cond) fails++; console.l
   // tabs on the two captured Search pages
   for (const f of ['search.html', 'search-boost.html']) {
     const p = await open(f);
-    ok(f + ' has 4 tabs', (await p.locator('.Polaris-Tabs__Tab').allInnerTexts()).join('|') === 'Search settings|Search booster|Translations|Synonyms Search', (await p.locator('.Polaris-Tabs__Tab').allInnerTexts()).join('|'));
+    ok(f + ' has 4 tabs', (await p.locator('.Polaris-Tabs__Tab').allInnerTexts()).join('|') === 'Search settings|Search booster|Translations|Synonyms search', (await p.locator('.Polaris-Tabs__Tab').allInnerTexts()).join('|'));
     ok(f + ' keeps its active tab', await p.locator('.Polaris-Tabs__Tab--active').count() === 1);
     if (f === 'search.html') { await p.locator('#locales').click(); await p.waitForURL(/search-translation/); ok('tab click opens Translations', true); }
   }
@@ -38,7 +38,7 @@ let fails = 0; const ok = (name, cond, extra) => { if (!cond) fails++; console.l
 
   // Synonyms
   p = await open('search-synonym.html');
-  ok('Synonyms: title, sub text, guide link', await p.locator('h1').innerText() === 'Search' && (await p.locator('.fdt-header__description').count()) === 1 && (await p.locator('.fdt-header__description').innerText()).endsWith('similar words. Synonyms search guidelines here') && await guide(p, 'Synonyms search guidelines here', G + 'synonym-search'));
+  ok('Synonyms: title, only the guide link', await p.locator('h1').innerText() === 'Search' && (await p.locator('.fdt-header__description').count()) === 1 && (await p.locator('.fdt-header__description').innerText()).trim() === 'Synonyms search guidelines here' && await guide(p, 'Synonyms search guidelines here', G + 'synonym-search'));
   ok('Synonyms: 3 rows', await p.locator('.ex-table tbody tr').count() === 3);
   await p.locator('.ex-info').hover(); await shot(p, 'synonym');
   await p.locator('tr[data-id="3"] [data-act=toggle]').click(); ok('Synonyms: toggle toast', (await p.locator('#toast').innerText()).includes('Change status success'));
@@ -50,9 +50,9 @@ let fails = 0; const ok = (name, cond, extra) => { if (!cond) fails++; console.l
 
   // Filter set translate
   p = await open('filter-translate.html');
-  ok('Translate: title + 2 sub lines', await p.locator('h1').innerText() === 'Translate Default filter set');
+  ok('Translate: title', await p.locator('h1').innerText() === 'Translate Default filter set');
   const lines = await p.locator('.fdt-header__description').allInnerTexts();
-  ok('Translate: sub text with the guide link on the same line', lines.length === 1 && lines[0] === "Add translated labels for this filter set's options, values, and groups. Multi-language filter value guidelines here" && await guide(p, 'Multi-language filter value guidelines here', G + 'auto-translate'), lines.join(' / '));
+  ok('Translate: only the guide link', lines.length === 1 && lines[0] === "Multi-language filter guidelines here" && await guide(p, 'Multi-language filter guidelines here', G + 'auto-translate'), lines.join(' / '));
   await shot(p, 'filter-translate');
   await p.locator('input[data-k="o1:v:In Stock"]').fill('En stock'); ok('Translate: save bar shows', await p.locator('.so-savebar').evaluate(e => !e.hidden));
   await p.selectOption('#ex-lang', 'de'); ok('Translate: discard modal on language switch', await p.locator('.mf-modal').count() === 1);
