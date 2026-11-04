@@ -6,7 +6,7 @@
 <title>Catalog – Sample store</title>
 <link rel="stylesheet" href="assets/storefront.css">
 </head>
-<body>
+<body data-page="collection">
 <div class="sf-announce">Welcome to our store</div>
 <header class="sf-header" id="sf-header">
   <div class="sf-header__bar">
@@ -35,7 +35,7 @@
             <div class="sf-suggest__list" id="sf-suggest-list"></div>
             <a class="sf-suggest__all" href="#" id="sf-suggest-all"></a>
           </div>
-          <div class="sf-powered" id="sf-powered" hidden><img class="sf-powered__logo" src="assets/img/findter-logo.svg" alt="" width="24" height="24"><span>Powered by <strong>Findter</strong></span></div>
+          <div class="sf-powered" id="sf-powered" hidden><img class="sf-powered__logo" src="assets/img/findter-logo.webp" alt="" width="24" height="24"><span>Powered by <strong>Findter</strong></span></div>
         </div>
       </div>
     </div>
@@ -60,6 +60,7 @@
     <details class="sf-group" open><summary>Size</summary>
       <div class="sf-boxes"><span>10</span><span>11</span><span>12</span></div>
     </details>
+    <div class="sf-powered sf-powered--filter" data-wm-place hidden><img class="sf-powered__logo" src="assets/img/findter-logo.webp" alt="" width="22" height="22"><span>Powered by <strong>Findter</strong></span></div>
   </aside>
   <section class="sf-results" aria-label="Products">
     <div class="sf-toolbar">
@@ -68,9 +69,17 @@
       <span class="sf-count" id="sf-count"></span>
     </div>
     <ul class="sf-grid" id="sf-grid"></ul>
+    <div id="sf-more" aria-hidden="true"></div>
   </section>
 </main>
-<footer class="sf-footer">Sample storefront for testing the Findter widgets. The “Powered by Findter” badge under the search suggestions follows the app: Master → Features, the store type, and Remove request.</footer>
+<footer class="sf-store-footer">
+  <div class="sf-store-footer__inner">
+    <div><p class="sf-store-footer__brand">Sample store</p><p class="sf-store-footer__about">Cosmetics and body care for every day.</p></div>
+    <nav aria-label="Shop"><p class="sf-store-footer__head">Shop</p><a href="#">Skin care</a><a href="#">Makeup</a><a href="#">Hair</a><a href="#">Body</a></nav>
+    <nav aria-label="Help"><p class="sf-store-footer__head">Help</p><a href="#">Search</a><a href="#">Shipping</a><a href="#">Returns</a><a href="#">Contact</a></nav>
+  </div>
+  <p class="sf-store-footer__legal">© 2026, Sample store</p>
+</footer>
 <script src="assets/demo.js"></script>
 <script src="assets/watermark.js"></script>
 <script src="assets/storefront.js"></script>

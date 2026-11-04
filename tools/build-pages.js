@@ -13,7 +13,7 @@ const PAGES = [
   { key: 'search-booster', file: 'search-boost.html', active: 'Search', flat: true },
   { key: 'ymm', file: 'ymm.html', active: 'Year Make Model', flat: true },
   { key: 'features', file: 'features.html', active: 'Advanced features', flat: true },
-  { key: 'design', file: 'design.html', active: 'Filter and grid design', flat: true },
+  { key: 'design', file: 'design.html', active: 'Filter and grid design', flat: true, script: 'assets/watermark-card.js' },
   { key: 'pricing', file: 'pricing.html', active: 'Pricing', srcdoc: true },
   { key: 'sort', file: 'sort.html', active: 'Custom sort', custom: true, script: 'assets/sort.js' },       // written by hand (no capture): ported from the app's Settings/SortBody.jsx
   { key: 'search-translation', file: 'search-translation.html', active: 'Search', custom: 'extra', script: 'assets/extra.js' },    // written by hand: ported from the app's pages/search/locales.jsx
@@ -187,7 +187,10 @@ function contactBanner(doc, root, kind) {
   if (kind === 'design' && old.length !== 1) throw new Error('design: expected 1 old banner, found ' + old.length);
   if (kind !== 'search') old.forEach(o => o.remove());
   root.querySelector('.fdt-menu-tabs').closest('.Polaris-Layout__Section').after(banner);                                  // right under the tabs
+  return banner;
 }
+// the "Remove “Powered by Findter” badge" card (watermark-card.js); the same card as on Search settings, placed right under the info banner
+function watermarkSlot(doc, banner) { const slot = doc.createElement('div'); slot.className = 'Polaris-Layout__Section'; slot.hidden = true; slot.setAttribute('data-wm-card', ''); banner.after(slot); }
 function chatWiring(p, doc, root) {
   const mark = (el, kind) => { if (!el) throw new Error(p.key + ': chat link not found for ' + kind); el.setAttribute('data-chat', kind); };
   const inBanner = label => [...root.querySelectorAll('.Polaris-Banner button, .Polaris-Banner a')].find(b => b.textContent.trim() === label);
@@ -199,7 +202,8 @@ function chatWiring(p, doc, root) {
       inBanner('Contact us').closest('.Polaris-Layout__Section').after(slot); break; }
     case 'metafield': mark(root.querySelector('a.fdt-header__link:not([href])'), 'metafield'); break;            // "For additional metafields, please contact us"
     case 'features': mark(root.querySelector('.fdt-contact-us-link').closest('a'), 'feature'); break;            // "Contact us now" in the bottom banner
-    case 'design': case 'design-tab2': contactBanner(doc, root, 'design'); break;                                 // both design tabs: under the tabs (replaces the bottom "Got feedback..." banner)
+    case 'design': watermarkSlot(doc, contactBanner(doc, root, 'design')); break;       // Filter design: the badge card sits under the banner, above the Filter layout and Live preview columns
+    case 'design-tab2': contactBanner(doc, root, 'design'); break;                                 // both design tabs: under the tabs (replaces the bottom "Got feedback..." banner)
   }
   root.querySelectorAll('a[href*=calendly]').forEach(l => l.setAttribute('href', CALENDLY));
 }
@@ -251,8 +255,15 @@ ${p.script ? `<script src="${p.script}"></script>
 }
 // Sample storefront: a stand-alone collection page with the header search (hand-written, not a capture) to test where the "Powered by Findter" badge goes
 fs.writeFileSync(path.join(root, 'storefront.html'), rd('build/storefront.html'));
+// ... and the search results page: the same header and filter bar, the search template's own heading and results (build/storefront-search.html)
+{
+  const page = rd('build/storefront.html'), aside = page.match(/<aside class="sf-filters"[\s\S]*?<\/aside>/)[0];
+  const main = rd('build/storefront-search.html').replace('<!--filters-->', () => aside);
+  fs.writeFileSync(path.join(root, 'storefront-search.html'), page.replace(/<main class="sf-main">[\s\S]*?<\/main>/, () => main)
+    .replace('<title>Catalog – Sample store</title>', '<title>Search – Sample store</title>').replace(' aria-current="page"', '').replace('data-page="collection"', 'data-page="search"'));
+}
 fs.writeFileSync(path.join(root, 'assets', 'storefront.css'), rd('build/storefront.css'));
 fs.writeFileSync(path.join(root, 'assets', 'storefront.js'), rd('build/storefront.js'));
-fs.writeFileSync(path.join(root, 'assets', 'img', 'findter-logo.svg'), rd('build/findter-logo.svg'));      // the app's own 1 KB logo, shown left of the badge text
+fs.writeFileSync(path.join(root, 'assets', 'img', 'findter-logo.webp'), fs.readFileSync(path.join(__dirname, 'build', 'findter-logo.webp')));      // the app's own 1 KB logo, shown left of the badge text
 console.log('wrote storefront.html + assets/storefront.css, storefront.js');
 console.log('wrote assets/common.css', (css.length / 1024).toFixed(0) + ' KB, assets/shell.js, assets/pages.js');

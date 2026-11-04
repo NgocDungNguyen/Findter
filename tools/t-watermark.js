@@ -116,6 +116,12 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(hit === false, 'phone: the chat launcher does not sit on the badge container Save button (' + hit + ')');
   await ph.close();
 
+  /* ---- Filter design page: the same card, right under the info banner and above the Filter layout / Live preview columns ---- */
+  await p.goto(url('design.html')); await p.waitForTimeout(500);
+  ok(await p.evaluate(() => { const c = document.querySelector('[data-wm-card]'), b = document.querySelector('.Polaris-Banner').closest('.Polaris-Layout__Section'); return !!c && !c.hidden && c.previousElementSibling === b && /Remove “Powered by Findter” badge/.test(c.textContent); }), 'Filter design: the badge card sits right under the info banner');
+  ok(await p.evaluate(() => { const c = document.querySelector('[data-wm-card]').getBoundingClientRect(), t = [...document.querySelectorAll('*')].find(e => e.children.length === 0 && e.textContent.trim() === 'Filter layout'); return !!t && c.bottom <= t.getBoundingClientRect().top; }), 'Filter design: the card is above the Filter layout and Live preview columns');
+  await p.goto(url('search.html')); await p.waitForTimeout(300);
+
   /* ---- sample storefront ---- */
   const sf = await ctx.newPage(); sf.on('pageerror', e => errs.push('storefront: ' + e.message));
   await sf.goto(url('storefront.html')); await sf.waitForTimeout(300);
@@ -133,6 +139,36 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.click('.demo-btn[data-key=wm][data-val=shown]'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: Badge = Shown brings it back');
   await store('Development'); await sf.waitForTimeout(300); ok(!(await powered()), 'storefront: Development store never shows the badge (not ticked in Master)');
   await store('Starter'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: paid store shows it until the button is used');
+  // the same badge at the end of the filter bar (collection) and, on the search results page, also at the end of the results
+  ok(await sf.locator('.sf-powered--filter').isVisible() && await sf.evaluate(() => { const b = document.querySelector('.sf-powered--filter').getBoundingClientRect(), last = [...document.querySelectorAll('.sf-group')].pop().getBoundingClientRect(); return b.top >= last.bottom && b.width > 200; }), 'storefront: the badge also shows under the last filter group');
+  const sr = await ctx.newPage(); sr.on('pageerror', e => errs.push('search page: ' + e.message));
+  await sr.goto(url('storefront-search.html') + '?q=cosm'); await sr.waitForTimeout(300);
+  ok(await sr.locator('.sf-card').count() >= 12 && /72 products/.test(await sr.locator('#sf-count').textContent()) && await sr.locator('#sf-sr-q').inputValue() === 'cosm', 'search results page: "cosm" finds 72 products, the first 12 shown, the term in the search field');
+  ok(await sr.locator('.sf-powered--filter').isVisible() && await sr.locator('.sf-ticker').isVisible(), 'search results page: the badge shows at the end of the filter bar and as the running line under the results');
+    const tk = () => sr.evaluate(() => { const t = document.querySelector('.sf-ticker').getBoundingClientRect(); return { bottom: Math.round(t.bottom), top: Math.round(t.top), w: Math.round(t.width), left: Math.round(t.left), ih: innerHeight, cw: document.documentElement.clientWidth }; });
+  let t0 = await tk(); ok(t0.w === t0.cw && t0.left === 0, 'search results page: the running line spans the full width');
+  ok(Math.abs(t0.bottom - t0.ih) <= 1, 'search results page: at the top the running line is stuck to the bottom of the screen');
+  // scroll down: more products keep loading until all 72 are shown, the line stays on the bottom of the screen the whole way
+  let stuck = true, n = 0;
+  for (let i = 0; i < 40; i++) { await sr.evaluate(() => scrollBy(0, innerHeight * 0.8)); await sr.waitForTimeout(80); const t = await tk(); const cards = await sr.locator('.sf-card').count(); if (cards < 72 && Math.abs(t.bottom - t.ih) > 1) stuck = false; n = cards; if (cards >= 72 && await sr.evaluate(() => scrollY + innerHeight >= document.documentElement.scrollHeight - 2)) break; }
+  ok(n === 72, 'search results page: scrolling down keeps loading products until all 72 are shown (' + n + ')');
+  ok(stuck, 'search results page: the running line stays stuck to the bottom of the screen while there is more to scroll');
+  await sr.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await sr.waitForTimeout(150);
+  const te = await sr.evaluate(() => { const t = document.querySelector('.sf-ticker').getBoundingClientRect(), f = document.querySelector('.sf-store-footer').getBoundingClientRect(), c = [...document.querySelectorAll('.sf-card')].pop().getBoundingClientRect(); return { tb: Math.round(t.bottom), ft: Math.round(f.top), ih: innerHeight, cardAbove: c.bottom <= t.top + 1 }; });
+  ok(Math.abs(te.tb - te.ft) <= 1 && te.tb < te.ih - 20 && te.cardAbove, 'search results page: at the very bottom the line stops sticking and rests between the last product and the store footer');
+  await sr.evaluate(() => scrollBy(0, -500)); await sr.waitForTimeout(150); const tu = await tk();
+  ok(Math.abs(tu.bottom - tu.ih) <= 1, 'search results page: scrolling back up, the line sticks to the bottom of the screen again');
+  await sr.evaluate(() => scrollTo(0, 0));
+  ok(await sr.evaluate(() => { const tr = document.querySelector('.sf-ticker__track'); const a = getComputedStyle(tr); return a.animationName === 'sf-ticker' && tr.querySelectorAll('.sf-ticker__item').length >= 10; }), 'search results page: the running line animates with the mark repeated');
+  const tx0 = await sr.evaluate(() => new DOMMatrix(getComputedStyle(document.querySelector('.sf-ticker__track')).transform).m41); await sr.waitForTimeout(500);
+  ok(await sr.evaluate(() => new DOMMatrix(getComputedStyle(document.querySelector('.sf-ticker__track')).transform).m41) > tx0, 'search results page: the line moves to the right');
+  await sr.click('#sf-open-search'); await sr.fill('#sf-q', 'rose'); await sr.keyboard.press('Enter'); await sr.waitForURL(/q=rose/);
+  ok(await sr.locator('.sf-card').count() === 1, 'search results page: Enter in the header search opens the results for the new term');
+  await store('Development'); await sr.reload(); await sr.waitForTimeout(300);
+  ok(await sr.locator('.sf-powered--filter').isHidden() && await sr.locator('.sf-ticker').isHidden(), 'search results page: a Development store shows no badge anywhere');
+  await sr.setViewportSize({ width: 390, height: 800 }); await store('Starter'); await sr.reload(); await sr.waitForTimeout(300);
+  ok(await sr.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'search results page at 390px: no horizontal scroll');
+  await sr.close();
   // Master turns the feature off
   await p.goto(url('index.html') + '#/master/features'); await p.waitForTimeout(400); await p.uncheck('[data-wm=enabled]'); await p.click('[data-wm-act=save]'); await sf.waitForTimeout(300);
   ok(!(await powered()), 'storefront: Master → Features off (saved) removes the badge for everyone');

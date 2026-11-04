@@ -1,0 +1,21 @@
+<div class="sf-sr-head">
+  <h1 class="sf-sr-title">Your search result for</h1>
+  <form class="sf-sr-form" id="sf-sr-form" role="search" action="storefront-search.html" method="get">
+    <input id="sf-sr-q" name="q" type="search" placeholder="Search" aria-label="Search" autocomplete="off">
+    <button type="submit" class="sf-sr-go" aria-label="Search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.75"/><path d="m13 13 4.5 4.5"/></svg></button>
+  </form>
+</div>
+<main class="sf-main sf-main--search">
+  <!--filters-->
+  <section class="sf-results" aria-label="Products">
+    <div class="sf-toolbar">
+      <label for="sf-sort">Sort by</label>
+      <select id="sf-sort"><option>Relevance</option><option>Price, low to high</option><option>Price, high to low</option></select>
+      <span class="sf-count" id="sf-count"></span>
+    </div>
+    <ul class="sf-grid" id="sf-grid"></ul>
+    <div id="sf-more" aria-hidden="true"></div>
+    <p class="sf-empty" id="sf-empty" hidden></p>
+  </section>
+</main>
+<div class="sf-ticker" data-wm-place data-wm-ticker role="note" aria-label="Powered by Findter" hidden></div>
