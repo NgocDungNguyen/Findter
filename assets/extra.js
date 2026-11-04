@@ -223,11 +223,11 @@
       fr: { Color: 'Couleur', Dawn: 'Aube', Electric: 'Électrique', Ice: 'Glace', Powder: 'Poudre', Sunset: 'Coucher de soleil', 'Special Selling Plans Ski Wax Special Selling Plans Ski Wax': 'Plans de vente spéciaux fart de ski Plans de vente spéciaux fart de ski' },
       de: { Color: 'Farbe', Dawn: 'Morgendämmerung', Electric: 'Elektrisch', Ice: 'Eis', Powder: 'Pulver', Sunset: 'Sonnenuntergang' },
     };
-    let locale = LANGS[0][0], all = load(KEY, {}), fields = clone(all[locale] || {}), initial = clone(fields), expanded = new Set(OPTIONS.map(o => o.id)), resyncing = false;
+    let locale = LANGS[0][0], all = load(KEY, {}), fields = clone(all[locale] || {}), initial = clone(fields), expanded = new Set(OPTIONS.map(o => o.id)), resyncing = false, loading = true;
     const edited = () => JSON.stringify(fields) !== JSON.stringify(initial);
     const field = (key, label, ph) => `<input class="mf-input" autocomplete="off" aria-label="${esc(label)}" data-k="${esc(key)}" placeholder="${esc((SUGGEST[locale] || {})[ph] || ph)}" value="${esc(fields[key] || '')}">`;
     const valueRow = (oid, v) => `<div class="ex-trow"><span class="ex-tlabel">${esc(v)}</span>${field(oid + ':v:' + v, 'Value label translation', v)}</div>`;
-    function render() {
+    function render() { if (loading) { body.innerHTML = '<section class="ex-card" aria-busy="true" aria-label="Loading translations"><div class="ex-col"><div class="ft-sort-skeleton-bar" style="width:22%;height:18px"></div><div class="ft-sort-skeleton-bar" style="height:36px"></div></div></section><section class="ex-card" aria-busy="true"><div class="ex-col"><div class="ft-sort-skeleton-bar" style="width:30%;height:18px"></div><div class="ft-sort-skeleton-bar" style="height:36px"></div><div class="ft-sort-skeleton-bar" style="height:36px"></div></div></section>'; return; }
       body.innerHTML = `<section class="ex-card"><div class="ex-resync"><div class="mf-field ex-lang"><label class="ex-label" for="ex-lang">Language</label><div class="Polaris-Select"><select id="ex-lang" class="Polaris-Select__Input">${LANGS.map(([c, n]) => `<option value="${c}"${c === locale ? ' selected' : ''}>${n}</option>`).join('')}</select><div class="Polaris-Select__Content" aria-hidden="true"><span class="Polaris-Select__SelectedOption">${esc(LANGS.find(l => l[0] === locale)[1])}</span><span class="Polaris-Select__Icon"><span class="Polaris-Icon">${ICON.down}</span></span></div><div class="Polaris-Select__Backdrop"></div></div></div>
         <button type="button" class="ex-btn${resyncing ? ' is-loading' : ''}" data-act="resync"${resyncing ? ' disabled' : ''}>${icon('reset', 'ex-btn__ic')}Resync native translations</button></div></section>
         ${OPTIONS.map(o => { const open = expanded.has(o.id); return `<section class="ex-card"><div class="ex-col ex-col--tight">
@@ -259,7 +259,7 @@
           onOk: () => { locale = next; fields = clone(all[locale] || {}); initial = clone(fields); render(); syncBar(); } });
       } else { locale = next; fields = clone(all[locale] || {}); initial = clone(fields); render(); }
     });
-    render();
+    render(); setTimeout(() => { loading = false; render(); syncBar(); }, 650);
   }
 
   /* ===================== Filter set (the set's own page): add, edit, delete and reorder filter options =====================

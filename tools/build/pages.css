@@ -726,3 +726,6 @@
 .display-features-grid{gap:16px}
 .Polaris-Layout__Section>.Polaris-BlockStack:has(>[data-mfp]:not(.pr-banner)){gap:16px}
 .Polaris-Layout__Section>.Polaris-BlockStack:has(>[data-mfp]:not(.pr-banner))>.Polaris-Box:last-child{padding-top:0!important}   /* Metafield: the Save row keeps the stack's 16px, not 16px + the captured 20px padding */
+
+/* rds_shopify-900: keyboard focus ring for the guideline link in page headers (same 2px ring as the promo links); shared by every page that uses this link */
+.fdt-header__link:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; border-radius: 2px; }
