@@ -3,6 +3,7 @@
        - Features and Recommended Apps are static copies of what the real tab shows (nothing in them works here)
        - the badge container: title, "Enable the badge" tickbox, "Apply to" shop types (each with its note, like Promotion), and its own Save button at the bottom of the container
        - a draft until Save; the tab gets the orange dot while there is something unsaved
+     Under the shop types: "Remove or restore for one store" - a CSE types a store's domain and removes the badge for it (the store could not find the Remove row) or restores it (testing). It acts at once, no chat, no Save.
      The saved config is read by the Search settings card ("Remove “Powered by Findter” badge") and by the sample storefront (build/watermark.js).
      This file is spliced into app.js at build time (tools/build.js), so it shares that file's scope.
      ====================================================================================================== */
@@ -29,8 +30,12 @@
       + `<div data-wm-types><div class="prm-label ft-apply">Apply to</div>`
       + WM.SHOP_TYPES.map(([n, d]) => wmCheck(`data-wm-type="${escHtml(n)}"`, n, d, wmDraft.types.includes(n), !wmDraft.enabled)).join('')
       + `<span class="pm-err prm-err" data-wm-err></span></div>`
-      + `<div class="prm-foot"><button type="button" class="${BTN1} Polaris-Button--disabled" data-wm-act="save" disabled>${btnText('Save')}</button></div></div>`;
-    syncWatermarkMaster();
+      + `<div class="prm-foot"><button type="button" class="${BTN1} Polaris-Button--disabled" data-wm-act="save" disabled>${btnText('Save')}</button></div>`
+      + `<div class="wm-shop" data-wm-shop-box><h3>Remove or restore for one store</h3><p class="prm-hint">Use this when a store cannot find the Remove row. Enter the store's domain.</p>`
+      + `<div class="prm-field" data-wm-domain-field><label class="prm-label" for="wm-domain">Store domain</label><div class="prm-input"><input id="wm-domain" type="text" data-wm-domain placeholder="abc-store.myshopify.com" autocomplete="off" spellcheck="false"></div>`
+      + `<span class="prm-err" data-wm-domain-err>Enter a domain like abc-store.myshopify.com</span><span class="prm-hint" data-wm-domain-status></span></div>`
+      + `<div class="prm-foot wm-shop__acts"><button type="button" class="${BTN2} Polaris-Button--disabled" data-wm-shop="remove" disabled>${btnText('Remove badge')}</button><button type="button" class="${BTN2} Polaris-Button--disabled" data-wm-shop="restore" disabled>${btnText('Restore badge')}</button></div></div></div>`;
+    syncWatermarkMaster(); syncShopBox(false);
   }
   function syncWatermarkMaster() {
     const dirty = wmDirty(), bad = wmDraft.enabled && !wmDraft.types.length;
@@ -39,6 +44,18 @@
     setBtn($('[data-wm-act=save]', panelFeat), !dirty || bad);
     const tab = $('.mt-tab[data-tab=features]'); if (tab) tab.classList.toggle('has-changes', dirty);
   }
+  const wmDomain = () => $('[data-wm-domain]', panelFeat).value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  const wmDomainOk = d => /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(d);
+  function syncShopBox(touched) {                                           // the field + the two buttons follow the domain and that store's current state
+    const inp = $('[data-wm-domain]', panelFeat); if (!inp) return;
+    const d = wmDomain(), ok = wmDomainOk(d), gone = ok && WM.shopRemoved(d);
+    $('[data-wm-domain-field]', panelFeat).classList.toggle('is-error', !!inp.value.trim() && !ok && touched);
+    $('[data-wm-domain-status]', panelFeat).textContent = ok ? 'Badge on the storefront: ' + (gone ? 'Removed' : 'Shown') : '';
+    setBtn($('[data-wm-shop=remove]', panelFeat), !ok || gone); setBtn($('[data-wm-shop=restore]', panelFeat), !ok || !gone);
+  }
+  panelFeat.addEventListener('input', e => { if (e.target.matches('[data-wm-domain]')) syncShopBox(false); });
+  panelFeat.addEventListener('focusout', e => { if (e.target.matches('[data-wm-domain]')) syncShopBox(true); });
+  WM.onChange(() => syncShopBox(false));                                       // the demo bar or the Filter design row changed this store
   panelFeat.addEventListener('change', e => {
     const t = e.target;
     if (t.matches('[data-wm=enabled]')) wmDraft.enabled = t.checked;
@@ -47,6 +64,8 @@
   });
   panelFeat.addEventListener('click', e => {
     if (e.target.closest('[data-ft-static]')) { e.preventDefault(); toast('Only the Powered by Findter badge setting works in this copy'); return; }
+    const sb = e.target.closest('[data-wm-shop]');
+    if (sb) { if (sb.disabled) return; const d = wmDomain(), on = sb.dataset.wmShop === 'remove'; WM.setShopRemoved(d, on); syncShopBox(false); toast('Badge ' + (on ? 'removed' : 'restored') + ' for ' + d); return; }
     const b = e.target.closest('[data-wm-act]'); if (!b || b.disabled) return;
     WM.saveConfig(wmDraft); syncWatermarkMaster(); toast('Saved. The setting and the badge follow this now');
   });

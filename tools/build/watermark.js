@@ -4,7 +4,6 @@
    - cardShown()   the admin's "Remove “Powered by Findter” badge" card is shown: feature on AND the shop's type is ticked
    - removed()     the badge was removed (the Remove button: at once for a shop that has paid, through the chat for Trial and Free; the demo bar's Badge group)
    - onStorefront() the badge shows under the storefront's search suggestions: card shown AND not removed
-   - hasPaid()     the shop has paid now or before (Subscription, Paid before, Service): its removal needs no chat. Trial and Free never paid: they go through the chat
    In the real app the config comes from the server and "removed" is a shop setting that Master Admin and the chat both write. */
 (() => {
   'use strict';
@@ -27,13 +26,20 @@
   const listeners = [];
   const changed = () => listeners.forEach(fn => fn());
   const shopType = () => SHOP_TYPE_OF_PLAN[D.DEMO.plan] || 'Free';
+  /* removal by store domain (Master -> Features): the demo store's own domain drives the demo state; other domains are kept in a small list so the page can show their status */
+  const SHOPS_KEY = 'findter.watermark.shops.v1', DEMO_SHOP = 'brgmnnlukas.myshopify.com';
+  let shops = {};
+  const loadShops = () => { try { shops = JSON.parse(localStorage.getItem(SHOPS_KEY)) || {}; } catch (e) { shops = {}; } };
+  loadShops();
   const api = {
     SHOP_TYPES, SHOP_TYPE_OF_PLAN, DEFAULT, shopType,
     config: () => ({ enabled: config.enabled, types: config.types.slice() }),
     saveConfig: c => { config = clean(c); try { localStorage.setItem(KEY, JSON.stringify(config)); } catch (e) { /* storage blocked: applies for this visit only */ } changed(); },
     cardShown: () => config.enabled && config.types.includes(shopType()),
-    hasPaid: () => ['Subscription', 'Paid before', 'Service'].includes(shopType()),
     removed: () => D.DEMO.wm === 'removed',
+    DEMO_SHOP,
+    shopRemoved: d => d === DEMO_SHOP ? D.DEMO.wm === 'removed' : !!shops[d],
+    setShopRemoved: (d, on) => { if (d === DEMO_SHOP) { D.set('wm', on ? 'removed' : 'shown'); return; } if (on) shops[d] = 1; else delete shops[d]; try { localStorage.setItem(SHOPS_KEY, JSON.stringify(shops)); } catch (e) { /* storage blocked */ } changed(); },
     setRemoved: on => D.set('wm', on ? 'removed' : 'shown'),
     onStorefront: () => api.cardShown() && !api.removed(),
     onChange: fn => { listeners.push(fn); },

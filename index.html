@@ -1556,6 +1556,11 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .prm-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .prm-empty{padding:24px;border-top:1px solid #e3e3e3;text-align:center;color:#616161}
 .prm-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+/* Master -> Features, badge container: "Remove or restore for one store" under the shop types */
+.wm-shop{margin-top:20px;padding-top:16px;border-top:1px solid #e3e3e3}
+.wm-shop h3{margin:0 0 4px;font-size:14px;line-height:20px;font-weight:650;color:#303030}
+.wm-shop .prm-field{max-width:420px}
+.wm-shop__acts{justify-content:flex-start}
 .prm-edit{max-width:760px}
 .prm-titlebar{display:flex;align-items:center;gap:8px;margin:4px 0 14px}
 .prm-titlebar h1{margin:0;font-size:20px;line-height:28px;font-weight:700}
@@ -1944,7 +1949,6 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
    - cardShown()   the admin's "Remove “Powered by Findter” badge" card is shown: feature on AND the shop's type is ticked
    - removed()     the badge was removed (the Remove button: at once for a shop that has paid, through the chat for Trial and Free; the demo bar's Badge group)
    - onStorefront() the badge shows under the storefront's search suggestions: card shown AND not removed
-   - hasPaid()     the shop has paid now or before (Subscription, Paid before, Service): its removal needs no chat. Trial and Free never paid: they go through the chat
    In the real app the config comes from the server and "removed" is a shop setting that Master Admin and the chat both write. */
 (() => {
   'use strict';
@@ -1967,13 +1971,20 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   const listeners = [];
   const changed = () => listeners.forEach(fn => fn());
   const shopType = () => SHOP_TYPE_OF_PLAN[D.DEMO.plan] || 'Free';
+  /* removal by store domain (Master -> Features): the demo store's own domain drives the demo state; other domains are kept in a small list so the page can show their status */
+  const SHOPS_KEY = 'findter.watermark.shops.v1', DEMO_SHOP = 'brgmnnlukas.myshopify.com';
+  let shops = {};
+  const loadShops = () => { try { shops = JSON.parse(localStorage.getItem(SHOPS_KEY)) || {}; } catch (e) { shops = {}; } };
+  loadShops();
   const api = {
     SHOP_TYPES, SHOP_TYPE_OF_PLAN, DEFAULT, shopType,
     config: () => ({ enabled: config.enabled, types: config.types.slice() }),
     saveConfig: c => { config = clean(c); try { localStorage.setItem(KEY, JSON.stringify(config)); } catch (e) { /* storage blocked: applies for this visit only */ } changed(); },
     cardShown: () => config.enabled && config.types.includes(shopType()),
-    hasPaid: () => ['Subscription', 'Paid before', 'Service'].includes(shopType()),
     removed: () => D.DEMO.wm === 'removed',
+    DEMO_SHOP,
+    shopRemoved: d => d === DEMO_SHOP ? D.DEMO.wm === 'removed' : !!shops[d],
+    setShopRemoved: (d, on) => { if (d === DEMO_SHOP) { D.set('wm', on ? 'removed' : 'shown'); return; } if (on) shops[d] = 1; else delete shops[d]; try { localStorage.setItem(SHOPS_KEY, JSON.stringify(shops)); } catch (e) { /* storage blocked */ } changed(); },
     setRemoved: on => D.set('wm', on ? 'removed' : 'shown'),
     onStorefront: () => api.cardShown() && !api.removed(),
     onChange: fn => { listeners.push(fn); },
@@ -2886,6 +2897,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
        - Features and Recommended Apps are static copies of what the real tab shows (nothing in them works here)
        - the badge container: title, "Enable the badge" tickbox, "Apply to" shop types (each with its note, like Promotion), and its own Save button at the bottom of the container
        - a draft until Save; the tab gets the orange dot while there is something unsaved
+     Under the shop types: "Remove or restore for one store" - a CSE types a store's domain and removes the badge for it (the store could not find the Remove row) or restores it (testing). It acts at once, no chat, no Save.
      The saved config is read by the Search settings card ("Remove “Powered by Findter” badge") and by the sample storefront (build/watermark.js).
      This file is spliced into app.js at build time (tools/build.js), so it shares that file's scope.
      ====================================================================================================== */
@@ -2912,8 +2924,12 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
       + `<div data-wm-types><div class="prm-label ft-apply">Apply to</div>`
       + WM.SHOP_TYPES.map(([n, d]) => wmCheck(`data-wm-type="${escHtml(n)}"`, n, d, wmDraft.types.includes(n), !wmDraft.enabled)).join('')
       + `<span class="pm-err prm-err" data-wm-err></span></div>`
-      + `<div class="prm-foot"><button type="button" class="${BTN1} Polaris-Button--disabled" data-wm-act="save" disabled>${btnText('Save')}</button></div></div>`;
-    syncWatermarkMaster();
+      + `<div class="prm-foot"><button type="button" class="${BTN1} Polaris-Button--disabled" data-wm-act="save" disabled>${btnText('Save')}</button></div>`
+      + `<div class="wm-shop" data-wm-shop-box><h3>Remove or restore for one store</h3><p class="prm-hint">Use this when a store cannot find the Remove row. Enter the store's domain.</p>`
+      + `<div class="prm-field" data-wm-domain-field><label class="prm-label" for="wm-domain">Store domain</label><div class="prm-input"><input id="wm-domain" type="text" data-wm-domain placeholder="abc-store.myshopify.com" autocomplete="off" spellcheck="false"></div>`
+      + `<span class="prm-err" data-wm-domain-err>Enter a domain like abc-store.myshopify.com</span><span class="prm-hint" data-wm-domain-status></span></div>`
+      + `<div class="prm-foot wm-shop__acts"><button type="button" class="${BTN2} Polaris-Button--disabled" data-wm-shop="remove" disabled>${btnText('Remove badge')}</button><button type="button" class="${BTN2} Polaris-Button--disabled" data-wm-shop="restore" disabled>${btnText('Restore badge')}</button></div></div></div>`;
+    syncWatermarkMaster(); syncShopBox(false);
   }
   function syncWatermarkMaster() {
     const dirty = wmDirty(), bad = wmDraft.enabled && !wmDraft.types.length;
@@ -2922,6 +2938,18 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     setBtn($('[data-wm-act=save]', panelFeat), !dirty || bad);
     const tab = $('.mt-tab[data-tab=features]'); if (tab) tab.classList.toggle('has-changes', dirty);
   }
+  const wmDomain = () => $('[data-wm-domain]', panelFeat).value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  const wmDomainOk = d => /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(d);
+  function syncShopBox(touched) {                                           // the field + the two buttons follow the domain and that store's current state
+    const inp = $('[data-wm-domain]', panelFeat); if (!inp) return;
+    const d = wmDomain(), ok = wmDomainOk(d), gone = ok && WM.shopRemoved(d);
+    $('[data-wm-domain-field]', panelFeat).classList.toggle('is-error', !!inp.value.trim() && !ok && touched);
+    $('[data-wm-domain-status]', panelFeat).textContent = ok ? 'Badge on the storefront: ' + (gone ? 'Removed' : 'Shown') : '';
+    setBtn($('[data-wm-shop=remove]', panelFeat), !ok || gone); setBtn($('[data-wm-shop=restore]', panelFeat), !ok || !gone);
+  }
+  panelFeat.addEventListener('input', e => { if (e.target.matches('[data-wm-domain]')) syncShopBox(false); });
+  panelFeat.addEventListener('focusout', e => { if (e.target.matches('[data-wm-domain]')) syncShopBox(true); });
+  WM.onChange(() => syncShopBox(false));                                       // the demo bar or the Filter design row changed this store
   panelFeat.addEventListener('change', e => {
     const t = e.target;
     if (t.matches('[data-wm=enabled]')) wmDraft.enabled = t.checked;
@@ -2930,6 +2958,8 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   });
   panelFeat.addEventListener('click', e => {
     if (e.target.closest('[data-ft-static]')) { e.preventDefault(); toast('Only the Powered by Findter badge setting works in this copy'); return; }
+    const sb = e.target.closest('[data-wm-shop]');
+    if (sb) { if (sb.disabled) return; const d = wmDomain(), on = sb.dataset.wmShop === 'remove'; WM.setShopRemoved(d, on); syncShopBox(false); toast('Badge ' + (on ? 'removed' : 'restored') + ' for ' + d); return; }
     const b = e.target.closest('[data-wm-act]'); if (!b || b.disabled) return;
     WM.saveConfig(wmDraft); syncWatermarkMaster(); toast('Saved. The setting and the badge follow this now');
   });

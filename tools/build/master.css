@@ -210,6 +210,11 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .prm-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .prm-empty{padding:24px;border-top:1px solid #e3e3e3;text-align:center;color:#616161}
 .prm-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+/* Master -> Features, badge container: "Remove or restore for one store" under the shop types */
+.wm-shop{margin-top:20px;padding-top:16px;border-top:1px solid #e3e3e3}
+.wm-shop h3{margin:0 0 4px;font-size:14px;line-height:20px;font-weight:650;color:#303030}
+.wm-shop .prm-field{max-width:420px}
+.wm-shop__acts{justify-content:flex-start}
 .prm-edit{max-width:760px}
 .prm-titlebar{display:flex;align-items:center;gap:8px;margin:4px 0 14px}
 .prm-titlebar h1{margin:0;font-size:20px;line-height:28px;font-weight:700}

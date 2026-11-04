@@ -17,7 +17,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(await p.locator('[data-panel=load]').isHidden(), 'the empty "Load" panel is not shown on Features');
   const heads = await p.$$eval('[data-panel=features] .prm-card > h2, [data-panel=features] .prm-card > .ft-head > h2', h => h.map(x => x.textContent));
   ok(heads.join('|') === 'Features|Recommended Apps|Powered by Findter badge', 'the badge container comes after Features and Recommended Apps (' + heads.join('|') + ')');
-  ok(await p.locator('[data-wm-master] [data-wm-act=save]').count() === 1 && await p.locator('[data-wm-master] .Polaris-Button').count() === 1, 'the badge container has its own Save button, no Discard');
+  ok(await p.locator('[data-wm-master] [data-wm-act=save]').count() === 1 && await p.locator('[data-wm-master] .Polaris-Button--variantPrimary').count() === 1 && await p.locator('[data-wm-master] .Polaris-Button').count() === 3, 'the badge container has its own Save button (no Discard) and the two per-store buttons');
   ok(await p.locator('[data-wm=enabled]').isChecked(), 'feature is on by default');
   const types = await p.$$eval('[data-wm-type]', i => i.map(x => x.dataset.wmType + ':' + x.checked));
   ok(types.join() === 'Subscription:true,Development store:false,Trial:true,Paid before:true,Service:true,Free:true', 'six shop types, Development store unticked by default (' + types.join(' ') + ')');
@@ -28,6 +28,18 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.uncheck('[data-wm=enabled]'); ok(await p.locator('[data-wm-type="Free"]').isDisabled(), 'turning the feature off dims the shop types');
   await p.check('[data-wm=enabled]');
   for (const t of ['Subscription', 'Trial', 'Paid before', 'Service', 'Free']) await p.uncheck(`[data-wm-type="${t}"]`);
+  /* ---- Master -> Features: remove or restore the badge for one store, by domain ---- */
+  const shopBtns = () => p.evaluate(() => ({ remove: document.querySelector('[data-wm-shop=remove]').disabled, restore: document.querySelector('[data-wm-shop=restore]').disabled, status: document.querySelector('[data-wm-domain-status]').textContent, err: document.querySelector('[data-wm-domain-field]').classList.contains('is-error') }));
+  ok(await p.locator('[data-wm-master] [data-wm-domain]').isVisible() && (await shopBtns()).remove && (await shopBtns()).restore, 'Master → Features: the store domain field is under the shop types, both buttons are disabled until a domain is typed');
+  await p.fill('[data-wm-domain]', 'abc'); let sb = await shopBtns(); ok(!sb.err, 'no error while typing');
+  await p.locator('[data-wm-domain]').blur(); sb = await shopBtns(); ok(sb.err && sb.remove && sb.restore, 'a wrong domain shows the error after leaving the field, buttons stay disabled');
+  await p.fill('[data-wm-domain]', 'abc-store.myshopify.com'); sb = await shopBtns(); ok(!sb.err && /Shown/.test(sb.status) && !sb.remove && sb.restore, 'a valid domain: status Shown, only "Remove badge" is enabled');
+  await p.click('[data-wm-shop=remove]'); sb = await shopBtns(); ok(/Removed/.test(sb.status) && sb.remove && !sb.restore && !(await p.evaluate(() => FindterWatermark.removed())), 'Remove badge: that store is Removed, "Restore badge" is enabled, the demo store is not touched');
+  await p.click('[data-wm-shop=restore]'); sb = await shopBtns(); ok(/Shown/.test(sb.status) && !sb.remove && sb.restore, 'Restore badge: that store is Shown again');
+  await p.fill('[data-wm-domain]', 'brgmnnlukas.myshopify.com'); await p.click('[data-wm-shop=remove]');
+  ok(await p.evaluate(() => FindterWatermark.removed()) && /Removed/.test((await shopBtns()).status), 'the demo store\'s own domain removes the badge of the demo store (the Filter design row and the storefront follow)');
+  await p.click('[data-wm-shop=restore]'); ok(!(await p.evaluate(() => FindterWatermark.removed())), 'Restore badge brings the demo store badge back');
+  await p.fill('[data-wm-domain]', '');
   ok(/at least one/.test(await p.textContent('[data-wm-err]')) && await p.locator('[data-wm-act=save]').isDisabled(), 'feature on with no shop type: error, Save disabled');
   await p.reload(); await p.waitForTimeout(400);
 
@@ -40,7 +52,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   const want = { Trial: 'button', Free: 'button', 'Paid before': 'button', Service: 'button', Starter: 'button', Enterprise: 'button', Development: 'hidden' };
   for (const [plan, w] of Object.entries(want)) { const got = await shape(plan); ok(got === w, `${plan}: ${w} (${got})`); }
   await store('Free');
-  ok((await p.locator('[data-wm-card] button').count()) === 1 && (await p.locator('[data-wm-btn]').textContent()).trim() === 'Remove' && (await p.locator('[data-wm-card] input').count()) === 0, 'the card has one text button "Remove" and no switch');
+  ok((await p.locator('[data-wm-card] button').count()) === 1 && (await p.locator('[data-wm-btn]').textContent()).trim() === 'Remove' && (await p.locator('[data-wm-card] input').count()) === 0, 'the row has one text button "Remove" and no switch');
   await store('Free'); await p.hover('.wm-label .mf-tip'); await p.waitForTimeout(100);
   const tip = await p.evaluate(() => { const t = document.querySelector('.wm-label .mf-tip'), bub = t.querySelector('.mf-tip__bubble'), r = bub.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, el = document.elementFromPoint(x, y); const ic = t.querySelector('svg').getBoundingClientRect(), tx = document.querySelector('#wm-label').getBoundingClientRect(); return { shown: getComputedStyle(bub).display !== 'none', onTop: !!el && bub.contains(el), dy: Math.abs((ic.top + ic.height / 2) - (tx.top + tx.height / 2)) }; });
   ok(tip.shown && tip.onTop, 'tooltip: the bubble shows in full on hover, not cut by the card border');
@@ -68,27 +80,19 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(await p.locator('[data-wm-btn]').isVisible() && !(await busy()), 'demo bar Badge = Shown: the Remove button is back');
   ok(await p.locator('.demo-group[aria-label=CSE]').count() === 0, 'the demo bar has no CSE group any more');
 
-  /* ---- Trial and Free (never paid) go through the chat ---- */
-  for (const plan of ['Trial']) {
+  /* ---- every store type goes through the chat: the shop's message, the removal ~1 s later, the support team's reply ---- */
+  for (const plan of ['Trial', 'Free', 'Starter', 'Paid before', 'Service']) {
     await store(plan); const n = (await msgs()).length;
-    await p.click('[data-wm-btn]'); await p.waitForTimeout(1500);
-    ok((await msgs()).length === n + 2 && await p.locator('.wm-badge').isVisible(), plan + ': message, auto reply, "Removed"');
-    await p.click('.demo-btn[data-key=wm][data-val=shown]');
-  }
-
-  /* ---- a shop that has paid (Subscription, Paid before, Service): one click, no chat ---- */
-  for (const plan of ['Starter', 'Paid before', 'Service']) {
-    await store(plan);
-    const b3 = (await msgs()).length;
-    await p.click('[data-wm-btn]'); await p.waitForTimeout(300);
-    ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-btn]').count() === 0, plan + ': the button becomes "Removed" right away');
-    ok((await msgs()).length === b3 && await p.locator('.chat-choice').count() === 0, plan + ': the chat is not touched');
+    await p.click('[data-wm-btn]'); await p.waitForTimeout(200);
+    ok(await busy() && (await msgs()).length === n + 1, plan + ': the chat opens with the shop message and the button reads "Removing…"');
+    await p.waitForTimeout(1500);
+    ok((await msgs()).length === n + 2 && await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-btn]').count() === 0, plan + ': auto reply, then "Removed"');
     await p.click('.demo-btn[data-key=wm][data-val=shown]');
   }
 
   /* ---- demo bar Reset ---- */
-  await store('Starter'); await p.click('[data-wm-btn]'); await p.waitForTimeout(200);
-  ok(await p.locator('.wm-badge').isVisible(), 'before Reset: a paid store with the badge removed shows "Removed"');
+  await store('Starter'); await p.click('[data-wm-btn]'); await p.waitForTimeout(1600);
+  ok(await p.locator('.wm-badge').isVisible(), 'before Reset: a store with the badge removed shows "Removed"');
   await p.click('.demo-reset'); await p.waitForTimeout(150);
   const st = await p.evaluate(() => JSON.stringify(FindterDemo.DEMO));
   ok(st === '{"plan":"Trial","sub":"active","days":14,"over":"normal","lang":"en","wm":"shown"}', 'Reset: every demo value is back to its start value (' + st + ')');
@@ -117,10 +121,9 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(hit === false, 'phone: the chat launcher does not sit on the badge container Save button (' + hit + ')');
   await ph.close();
 
-  /* ---- Filter design page: the same card, right under the info banner and above the Filter layout / Live preview columns ---- */
+  /* ---- Filter design: the row sits at the top of the Filter layout card, under its description, above "Desktop" ---- */
   await p.goto(url('design.html')); await p.waitForTimeout(500);
-  ok(await p.evaluate(() => { const c = document.querySelector('[data-wm-card]'), b = document.querySelector('.Polaris-Banner').closest('.Polaris-Layout__Section'); return !!c && !c.hidden && c.previousElementSibling === b && /Remove “Powered by Findter” badge/.test(c.textContent); }), 'Filter design: the badge card sits right under the info banner');
-  ok(await p.evaluate(() => { const c = document.querySelector('[data-wm-card]').getBoundingClientRect(), t = [...document.querySelectorAll('*')].find(e => e.children.length === 0 && e.textContent.trim() === 'Filter layout'); return !!t && c.bottom <= t.getBoundingClientRect().top; }), 'Filter design: the card is above the Filter layout and Live preview columns');
+  ok(await p.evaluate(() => { const c = document.querySelector('[data-wm-card]'), h = [...document.querySelectorAll('h2')].find(e => e.textContent.trim() === 'Filter layout'), d = [...document.querySelectorAll('h2')].find(e => e.textContent.trim() === 'Desktop'); return !c.hidden && h.closest('.Polaris-Box').nextElementSibling === c && c.getBoundingClientRect().bottom <= d.getBoundingClientRect().top && c.closest('.Polaris-ShadowBevel').contains(d) && /Remove “Powered by Findter” badge/.test(c.textContent) && document.querySelectorAll('[data-wm-card]').length === 1; }), 'Filter design: the row sits at the top of the Filter layout card, under its description, above "Desktop"');
   await p.goto(url('design.html')); await p.waitForTimeout(300);
 
   /* ---- sample storefront ---- */
@@ -171,22 +174,23 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   /* ---- filter layouts: Filter design chooses, the storefront follows (Vertical / Horizontal / Off-canvas; phones are always Off-canvas) ---- */
   await p.goto(url('design.html')); await p.waitForTimeout(400);
   const pick = n => p.locator('label.Polaris-Choice', { hasText: new RegExp('^' + n + '$') }).first().click();
-  const stored = () => p.evaluate(() => localStorage.getItem('findter.filterLayout'));
+  const stored = () => p.evaluate(() => { try { return JSON.parse(localStorage.getItem('findter.design.filter.v1')).layout_type; } catch (e) { return null; } });
+  const save = async () => { await p.locator('button.Polaris-Button--variantPrimary', { hasText: /^Save$/ }).first().click(); await p.waitForTimeout(250); };
   const checks = () => p.evaluate(() => ['Vertical', 'Horizontal', 'Off-canvas'].map(n => [...document.querySelectorAll('label')].find(l => l.textContent.trim() === n).querySelector('input').checked));
   ok((await checks()).join() === 'true,false,false', 'Filter design: Vertical is the layout chosen by default');
-  await pick('Horizontal'); ok(await stored() === 'horizontal' && (await checks()).join() === 'false,true,false', 'Filter design: choosing Horizontal saves it and unticks the others');
+  await pick('Horizontal'); ok((await checks()).join() === 'false,true,false' && await stored() !== 'horizontal', 'Filter design: choosing Horizontal unticks the others and waits for Save'); await save(); ok(await stored() === 'horizontal', 'Filter design: Save keeps Horizontal');
   await sf.bringToFront(); await sf.waitForTimeout(300);
   ok(await sf.evaluate(() => document.body.dataset.filterLayout === 'horizontal' && getComputedStyle(document.querySelector('.sf-filters')).display === 'none') && await sf.locator('.sf-hbar').isVisible(), 'storefront (open tab) follows: the horizontal bar replaces the sidebar');
-  ok(await sf.evaluate(() => { const last = [...document.querySelectorAll('.sf-hbtn')].pop().getBoundingClientRect(), b = document.querySelector('.sf-powered--hbar').getBoundingClientRect(); const sameRow = Math.abs((b.top + b.height / 2) - (last.top + last.height / 2)) < 6; return b.width > 0 && (sameRow ? b.left >= last.right : b.top >= last.bottom - 1); }), 'horizontal layout: the badge comes right after the last dropdown (same row, or the next row when the row is full)');
+  ok(await sf.evaluate(() => { const bs = [...document.querySelectorAll('.sf-hbtn')].map(x => x.getBoundingClientRect()), b = document.querySelector('.sf-powered--hbar').getBoundingClientRect(), first = bs[0]; return b.width > 0 && bs.every(r => b.top >= r.bottom - 1) && Math.abs(b.left - first.left) <= 2; }), 'horizontal layout: the badge sits on its own line under all the filter options, aligned with the first option');
   await sf.click('.sf-hbtn'); ok(await sf.locator('.sf-hpanel:not([hidden])').count() === 1, 'horizontal layout: a dropdown opens');
-  await p.bringToFront(); await pick('Off-canvas'); ok(await stored() === 'offcanvas', 'Filter design: choosing Off-canvas saves it');
+  await p.bringToFront(); await pick('Off-canvas'); await save(); ok(await stored() === 'offcanvas', 'Filter design: Save keeps Off-canvas');
   await sf.bringToFront(); await sf.waitForTimeout(300);
   ok(await sf.locator('#sf-open-drawer').isVisible() && await sf.evaluate(() => getComputedStyle(document.querySelector('.sf-filters')).display === 'none'), 'off-canvas layout: a Filter button replaces the sidebar');
   await sf.click('#sf-open-drawer'); await sf.waitForTimeout(150); await sf.evaluate(() => { document.querySelector('.sf-drawer__body').scrollTop = 1e5; }); await sf.waitForTimeout(100);
   const dr = await sf.evaluate(() => { const g = [...document.querySelectorAll('.sf-drawer__body .sf-group')].pop().getBoundingClientRect(), b = document.querySelector('.sf-drawer .sf-powered--filter').getBoundingClientRect(), fo = document.querySelector('.sf-drawer__foot').getBoundingClientRect(); return { vis: b.width > 0, below: b.top >= g.bottom - 1, aboveFoot: b.bottom <= fo.top + 1 }; });
   ok(dr.vis && dr.below && dr.aboveFoot, 'off-canvas layout: the drawer shows the badge after the last filter, above the "View items" button');
   await sf.click('.sf-drawer__close'); ok(await sf.locator('#sf-drawer').isHidden(), 'off-canvas layout: the X closes the drawer');
-  await p.bringToFront(); await pick('Vertical'); ok(await stored() === 'vertical', 'Filter design: choosing Vertical again');
+  await p.bringToFront(); await pick('Vertical'); await save(); ok(await stored() === 'vertical', 'Filter design: Save keeps Vertical again');
   // phones: always Off-canvas, whatever the shop chose
   const ph3 = await ctx.newPage(); ph3.on('pageerror', e => errs.push('phone layouts: ' + e.message)); await ph3.setViewportSize({ width: 390, height: 800 });
   await ph3.goto(url('storefront.html')); await ph3.waitForTimeout(400);

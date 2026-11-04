@@ -79,10 +79,10 @@
   $('.sf-search__go').addEventListener('click', () => { if (q.value.trim()) location.href = searchUrl(q.value.trim()); });
   phone.addEventListener('change', update);
   /* ---------- filter layouts: Vertical (the sidebar), Horizontal (a bar of dropdowns) and Off-canvas (a Filter button + drawer). The admin picks one in Filter & product grid design > Filter design
-     (saved here as findter.filterLayout); phones (<= 767px) always use Off-canvas. The badge sits at the end of the filter options in each: under the last filter in the sidebar, after the last dropdown
+     (its Save keeps it in findter.design.filter.v1); phones (<= 767px) always use Off-canvas. The badge sits at the end of the filter options in each: under the last filter in the sidebar, after the last dropdown
      of the horizontal bar, after the last filter in the drawer. ---------- */
-  const LAYOUT_KEY = 'findter.filterLayout', LAYOUTS = ['vertical', 'horizontal', 'offcanvas'];
-  const layoutNow = () => { if (phone.matches) return 'offcanvas'; const u = new URLSearchParams(location.search).get('layout'); if (LAYOUTS.includes(u)) return u; try { const v = localStorage.getItem(LAYOUT_KEY); if (LAYOUTS.includes(v)) return v; } catch (e) { /* storage blocked */ } return 'vertical'; };
+  const DESIGN_KEY = 'findter.design.filter.v1', LAYOUTS = ['vertical', 'horizontal', 'offcanvas'];          // the admin's Filter design page saves its config here (Save)
+  const layoutNow = () => { if (phone.matches) return 'offcanvas'; const u = new URLSearchParams(location.search).get('layout'); if (LAYOUTS.includes(u)) return u; try { const c = JSON.parse(localStorage.getItem(DESIGN_KEY)); if (c && LAYOUTS.includes(c.layout_type)) return c.layout_type; } catch (e) { /* storage blocked or no saved design yet */ } return 'vertical'; };
   const groups = [...document.querySelectorAll('.sf-filters .sf-group')], headLeft = $('#sf-head-left');
   const labelOf = g => g.querySelector('summary').textContent.trim();
   const bodyOf = g => { const c = g.cloneNode(true); c.querySelector('summary').remove(); return c.innerHTML; };
@@ -108,7 +108,7 @@
   function applyLayout() {
     const l = layoutNow(); document.body.dataset.filterLayout = l; closeDrawer(); closePanels(); headLeft.innerHTML = '';
     if (l === 'horizontal') {
-      headLeft.innerHTML = '<div class="sf-hbar"><strong class="sf-hbar__label">Filter by:</strong><div class="sf-hbar__list">' + groups.map((g, i) => '<div class="sf-hitem"><button type="button" class="sf-hbtn" aria-expanded="false" aria-controls="sf-hp-' + i + '">' + esc(labelOf(g)) + CHEV + '</button><div class="sf-hpanel" id="sf-hp-' + i + '" hidden>' + bodyOf(g) + '</div></div>').join('') + markHtml('sf-powered--hbar') + '</div></div>';
+      headLeft.innerHTML = '<div class="sf-hbar"><strong class="sf-hbar__label">Filter by:</strong><div class="sf-hbar__list">' + groups.map((g, i) => '<div class="sf-hitem"><button type="button" class="sf-hbtn" aria-expanded="false" aria-controls="sf-hp-' + i + '">' + esc(labelOf(g)) + CHEV + '</button><div class="sf-hpanel" id="sf-hp-' + i + '" hidden>' + bodyOf(g) + '</div></div>').join('') + '</div>' + markHtml('sf-powered--hbar') + '</div>';
     } else if (l === 'offcanvas') {
       buildDrawer();
       headLeft.innerHTML = '<button type="button" class="sf-fbtn" id="sf-open-drawer" aria-haspopup="dialog" aria-expanded="false">' + SLIDERS + '<span class="sf-fbtn__d">Filter by</span><span class="sf-fbtn__m">Filter and sort</span></button>';
@@ -122,7 +122,7 @@
   });
   document.addEventListener('click', e => { if (!e.target.closest('.sf-hitem')) closePanels(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { closePanels(); if (drawer && !drawer.hidden) closeDrawer(); } });
-  window.addEventListener('storage', e => { if (e.key === LAYOUT_KEY) applyLayout(); });                // the admin changed the layout in another tab
+  window.addEventListener('storage', e => { if (e.key === DESIGN_KEY) applyLayout(); });                // the admin changed the layout in another tab
   phone.addEventListener('change', applyLayout);
   applyLayout();
 

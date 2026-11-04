@@ -13,7 +13,7 @@ const PAGES = [
   { key: 'search-booster', file: 'search-boost.html', active: 'Search', flat: true },
   { key: 'ymm', file: 'ymm.html', active: 'Year Make Model', flat: true },
   { key: 'features', file: 'features.html', active: 'Advanced features', flat: true },
-  { key: 'design', file: 'design.html', active: 'Filter and grid design', flat: true, script: ['assets/watermark-card.js', 'assets/design-layout.js'] },
+  { key: 'design', file: 'design.html', active: 'Filter and grid design', flat: true, script: 'assets/watermark-card.js' },
   { key: 'pricing', file: 'pricing.html', active: 'Pricing', srcdoc: true },
   { key: 'sort', file: 'sort.html', active: 'Custom sort', custom: true, script: 'assets/sort.js' },       // written by hand (no capture): ported from the app's Settings/SortBody.jsx
   { key: 'search-translation', file: 'search-translation.html', active: 'Search', custom: 'extra', script: 'assets/extra.js' },    // written by hand: ported from the app's pages/search/locales.jsx
@@ -46,7 +46,6 @@ fs.writeFileSync(path.join(root, 'assets', 'code-notice.js'), rd('build/code-not
 fs.writeFileSync(path.join(root, 'assets', 'demo.js'), rd('build/demo.js'));
 fs.writeFileSync(path.join(root, 'assets', 'watermark.js'), rd('build/watermark.js'));
 fs.writeFileSync(path.join(root, 'assets', 'watermark-card.js'), rd('build/watermark-card.js'));
-fs.writeFileSync(path.join(root, 'assets', 'design-layout.js'), rd('build/design-layout.js'));
 
 /* ---------- shell pieces copied from index.html so every page stays in sync with it ---------- */
 const pick = sel => [...home.querySelectorAll(sel)].map(e => e.outerHTML).join('\n');
@@ -190,8 +189,12 @@ function contactBanner(doc, root, kind) {
   root.querySelector('.fdt-menu-tabs').closest('.Polaris-Layout__Section').after(banner);                                  // right under the tabs
   return banner;
 }
-// the "Remove “Powered by Findter” badge" card (watermark-card.js); the same card as on Search settings, placed right under the info banner
-function watermarkSlot(doc, banner) { const slot = doc.createElement('div'); slot.className = 'Polaris-Layout__Section'; slot.hidden = true; slot.setAttribute('data-wm-card', ''); banner.after(slot); }
+// the "Remove “Powered by Findter” badge" row (watermark-card.js): at the top of the Filter layout card, right under its description
+function watermarkRow(doc, root) {
+  const fl = [...root.querySelectorAll('h2')].find(e => e.textContent.trim() === 'Filter layout'); if (!fl) throw new Error('Filter layout card not found');
+  const h = doc.createElement('div'); h.hidden = true; h.className = 'wm-host'; h.setAttribute('data-wm-card', '');
+  fl.closest('.Polaris-Box').after(h);
+}
 function chatWiring(p, doc, root) {
   const mark = (el, kind) => { if (!el) throw new Error(p.key + ': chat link not found for ' + kind); el.setAttribute('data-chat', kind); };
   const inBanner = label => [...root.querySelectorAll('.Polaris-Banner button, .Polaris-Banner a')].find(b => b.textContent.trim() === label);
@@ -201,7 +204,7 @@ function chatWiring(p, doc, root) {
     case 'search': mark(inBanner('Contact us'), 'search'); break;                                   // Search settings no longer carries the badge card (it lives on Filter design)
     case 'metafield': mark(root.querySelector('a.fdt-header__link:not([href])'), 'metafield'); break;            // "For additional metafields, please contact us"
     case 'features': mark(root.querySelector('.fdt-contact-us-link').closest('a'), 'feature'); break;            // "Contact us now" in the bottom banner
-    case 'design': watermarkSlot(doc, contactBanner(doc, root, 'design')); break;       // Filter design: the badge card sits under the banner, above the Filter layout and Live preview columns
+    case 'design': contactBanner(doc, root, 'design'); watermarkRow(doc, root); break;       // Filter design: the badge card sits under the banner, above the Filter layout and Live preview columns
     case 'design-tab2': contactBanner(doc, root, 'design'); break;                                 // both design tabs: under the tabs (replaces the bottom "Got feedback..." banner)
   }
   root.querySelectorAll('a[href*=calendly]').forEach(l => l.setAttribute('href', CALENDLY));
