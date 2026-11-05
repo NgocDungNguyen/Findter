@@ -10,7 +10,7 @@
   const host = document.querySelector('[data-wm-card]'), WM = window.FindterWatermark, S = window.__shell;
   if (!host || !WM) return;
   const TITLE = 'Remove “Powered by Findter” badge';
-  const TIP = 'Hides the “Powered by Findter” watermark from your storefront.';
+  const TIP = 'Our team will remove the badge for you via live chat.';
   const ICON_INFO = '<svg viewBox="0 0 20 20" class="Polaris-Icon__Svg" focusable="false" aria-hidden="true"><path d="M10 14a.75.75 0 0 1-.75-.75v-3.5a.75.75 0 0 1 1.5 0v3.5a.75.75 0 0 1-.75.75Z"></path><path d="M9 7a1 1 0 1 1 2 0 1 1 0 0 1-2 0Z"></path><path fill-rule="evenodd" d="M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Zm-1.5 0a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z"></path></svg>';
   const label = '<span class="wm-label"><span id="wm-label">' + TITLE + '</span><span class="mf-tip" tabindex="0" role="img" aria-label="About this setting"><span class="Polaris-Icon Polaris-Icon--toneSubdued">' + ICON_INFO + '</span><span class="mf-tip__bubble" role="tooltip">' + TIP + '</span></span></span>';
   const BADGE = '<span class="wm-badge Polaris-Badge Polaris-Badge--toneSuccess"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">Removed</span></span>';
@@ -26,10 +26,10 @@
   function removeViaChat() {                                               // the shop's message, a moment of loading, then the removal and the support team's confirmation
     pending = true; render();
     if (!S) { WM.setRemoved(true); return; }
-    S.toggleChat(true); S.sendChat('Hi, I would like to remove the “Powered by Findter” badge from my storefront.');
+    S.toggleChat(true); S.sendChat('Hi, please remove the “Powered by Findter” badge from my storefront.');
     timer = setTimeout(() => {
       pending = false; WM.setRemoved(true);
-      S.replyChat('The “Powered by Findter” badge is now removed from your storefront. Need help with anything else? Just reply here.');
+      S.replyChat('We’ve removed the badge. Could you refresh your storefront and confirm it’s no longer showing?');
     }, 1200);
   }
   host.addEventListener('click', e => {
