@@ -82,7 +82,9 @@
   const SORT = sortOptions(); let sortRow = null;
 
   /* ---------- the badge in the filter bar ---------- */
-  const showPlaced = () => document.querySelectorAll('[data-wm-place]').forEach(el => { el.hidden = !WM.onStorefront(); });   // looked up each time: the layouts build their own copies
+  /* the Master link field: with a link every badge is a link (new tab); without one it is plain (an <a> with no href is not clickable) */
+  const applyLink = () => document.querySelectorAll('.sf-powered').forEach(a => { const u = WM.link(); if (u) { a.href = u; a.target = '_blank'; a.rel = 'noopener'; } else { a.removeAttribute('href'); a.removeAttribute('target'); a.removeAttribute('rel'); } });
+  const showPlaced = () => { applyLink(); document.querySelectorAll('[data-wm-place]').forEach(el => { el.hidden = !WM.onStorefront(); }); };   // looked up each time: the layouts build their own copies
 
   /* ---------- collection / search results ---------- */
   $('#sf-count').textContent = shown.length + ' products';
@@ -137,7 +139,7 @@
     all.innerHTML = 'Search for “' + esc(term) + '” <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg>';
     suggest.hidden = false; q.setAttribute('aria-expanded', 'true'); showBadge();
   }
-  const showBadge = () => { powered.hidden = suggest.hidden || !WM.onStorefront(); };           // under the suggestions box, outside it
+  const showBadge = () => { applyLink(); powered.hidden = suggest.hidden || !WM.onStorefront(); };           // under the suggestions box, outside it
   openBtn.addEventListener('click', () => setOpen(true));
   $('#sf-close-search').addEventListener('click', () => setOpen(false));
   scrim.addEventListener('click', () => setOpen(false));

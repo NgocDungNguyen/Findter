@@ -8,8 +8,8 @@
      This file is spliced into app.js at build time (tools/build.js), so it shares that file's scope.
      ====================================================================================================== */
   const WM = window.FindterWatermark;
-  let wmDraft = WM.config();
-  const wmSame = (a, b) => a.enabled === b.enabled && a.types.length === b.types.length && a.types.every(t => b.types.includes(t));
+  let wmDraft = WM.config(), wmLinkTouched = false;
+  const wmSame = (a, b) => a.enabled === b.enabled && a.types.length === b.types.length && a.types.every(t => b.types.includes(t)) && a.link === b.link;
   function wmDirty() { return !wmSame(wmDraft, WM.config()); }
   const wmCheck = (attrs, label, hint, on, off) => `<div class="prm-check"><label><input type="checkbox" ${attrs}${on ? ' checked' : ''}${off ? ' disabled' : ''}> <span>${label}</span></label>${hint ? `<span class="prm-hint">${hint}</span>` : ''}</div>`;
   const FT_FEATURES = [['ymm', 'Year Make Model'], ['grouped_filter', 'Merged values group'], ['synonym_search', 'Synonym search'], ['custom_sort', 'Custom sort options'], ['advanced_search', 'Advanced search options'], ['translation', 'Multi-language filter & search'], ['advanced_variant_filter', 'Hide out-of-stock variant products'], ['variant_filter', 'Boost in-stock variant products'], ['sale_filter', 'Sale filter'], ['swatch_image', 'Image swatches filter'], ['market_currency', 'Local currency adaption'], ['multi_source', 'Multi-filters by one source'], ['filter_count_value', 'Filter value count'], ['collection_search', 'Search in collection'], ['search_within_filter', 'Search in filter']];
@@ -24,12 +24,14 @@
     + `<h3 class="ft-sub">Manage Apps</h3><div class="prm-scroll"><div class="ft-table ft-table--apps"><div class="ft-thead" aria-hidden="true"><span></span><span>Thumbnail</span><span>Name</span><span>Badge</span><span>Description</span><span>Action</span></div>`
     + `<div class="ft-row"><span class="prm-handle" aria-hidden="true">${DRAG_ICON}</span><span><span class="ft-thumb"></span></span><span>Sample app</span><span>Sample</span><span>A sample recommended app</span>${ftActs('Sample app')}</div></div></div>${ftSave}</div>`;
   function renderWatermarkMaster() {
-    wmDraft = WM.config();
+    wmDraft = WM.config(); wmLinkTouched = false;
     panelFeat.innerHTML = ftFeaturesCard() + ftAppsCard()
       + `<div class="prm-card" data-wm-master><h2>Powered by Findter badge</h2>${wmCheck('data-wm="enabled"', 'Enable the badge', '', wmDraft.enabled)}`
       + `<div data-wm-types><div class="prm-label ft-apply">Apply to</div>`
       + WM.SHOP_TYPES.map(([n, d]) => wmCheck(`data-wm-type="${escHtml(n)}"`, n, d, wmDraft.types.includes(n), !wmDraft.enabled)).join('')
       + `<span class="pm-err prm-err" data-wm-err></span></div>`
+      + `<div class="prm-field" data-wm-link-field><label class="prm-label" for="wm-link">Badge link</label><div class="prm-input"><input id="wm-link" type="text" data-wm-link value="${escHtml(wmDraft.link)}" placeholder="https://" autocomplete="off" spellcheck="false"${wmDraft.enabled ? '' : ' disabled'}></div>`
+      + `<span class="prm-hint">Optional. With a link, the badge on the storefront opens it in a new tab. Empty: the badge is plain, not clickable.</span><span class="prm-err" data-wm-link-err>Enter a full link that starts with http:// or https://</span></div>`
       + `<div class="prm-foot"><button type="button" class="${BTN1} Polaris-Button--disabled" data-wm-act="save" disabled>${btnText('Save')}</button></div>`
       + `<div class="wm-shop" data-wm-shop-box><h3>Remove or restore for one store</h3><p class="prm-hint">Use this when a store cannot find the Remove row. Enter the store's domain.</p>`
       + `<div class="prm-field" data-wm-domain-field><label class="prm-label" for="wm-domain">Store domain</label><div class="prm-input"><input id="wm-domain" type="text" data-wm-domain placeholder="abc-store.myshopify.com" autocomplete="off" spellcheck="false"></div>`
@@ -38,10 +40,11 @@
     syncWatermarkMaster(); syncShopBox(false);
   }
   function syncWatermarkMaster() {
-    const dirty = wmDirty(), bad = wmDraft.enabled && !wmDraft.types.length;
+    const dirty = wmDirty(), linkBad = !WM.linkOk(wmDraft.link), bad = wmDraft.enabled && !wmDraft.types.length;
+    const lf = $('[data-wm-link-field]', panelFeat); if (lf) { lf.classList.toggle('is-error', linkBad && wmLinkTouched); $('[data-wm-link]', panelFeat).disabled = !wmDraft.enabled; }
     const err = $('[data-wm-err]', panelFeat); err.textContent = bad ? 'Pick at least one shop type' : ''; err.classList.toggle('is-shown', bad);
     $$('[data-wm-type]', panelFeat).forEach(i => { i.disabled = !wmDraft.enabled; });
-    setBtn($('[data-wm-act=save]', panelFeat), !dirty || bad);
+    setBtn($('[data-wm-act=save]', panelFeat), !dirty || bad || linkBad);
     const tab = $('.mt-tab[data-tab=features]'); if (tab) tab.classList.toggle('has-changes', dirty);
   }
   const wmDomain = () => $('[data-wm-domain]', panelFeat).value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
@@ -53,8 +56,8 @@
     $('[data-wm-domain-status]', panelFeat).textContent = ok ? 'Badge on the storefront: ' + (gone ? 'Removed' : 'Shown') : '';
     setBtn($('[data-wm-shop=remove]', panelFeat), !ok || gone); setBtn($('[data-wm-shop=restore]', panelFeat), !ok || !gone);
   }
-  panelFeat.addEventListener('input', e => { if (e.target.matches('[data-wm-domain]')) syncShopBox(false); });
-  panelFeat.addEventListener('focusout', e => { if (e.target.matches('[data-wm-domain]')) syncShopBox(true); });
+  panelFeat.addEventListener('input', e => { if (e.target.matches('[data-wm-domain]')) syncShopBox(false); else if (e.target.matches('[data-wm-link]')) { wmDraft.link = e.target.value.trim(); syncWatermarkMaster(); } });
+  panelFeat.addEventListener('focusout', e => { if (e.target.matches('[data-wm-domain]')) syncShopBox(true); else if (e.target.matches('[data-wm-link]')) { wmLinkTouched = true; syncWatermarkMaster(); } });
   WM.onChange(() => syncShopBox(false));                                       // the demo bar or the Filter design row changed this store
   panelFeat.addEventListener('change', e => {
     const t = e.target;

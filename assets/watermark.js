@@ -18,8 +18,10 @@
     ['Free', 'Never paid anything: trial ended, or an old install that never subscribed'],
   ];
   const SHOP_TYPE_OF_PLAN = { Trial: 'Trial', 'Trial not started': 'Free', Starter: 'Subscription', Enterprise: 'Subscription', Free: 'Free', Development: 'Development store', 'Paid before': 'Paid before', Service: 'Service', Legacy: 'Free', 'Old install': 'Free' };   // what the demo bar's Store means for targeting (a trial that has not started is not "running", so the app targets it as Free)
-  const DEFAULT = { enabled: true, types: ['Subscription', 'Trial', 'Paid before', 'Service', 'Free'] };   // Development stores (Shopify's reviewers) are off by default
-  const clean = c => ({ enabled: !c || c.enabled !== false, types: Array.isArray(c && c.types) ? c.types.filter(t => SHOP_TYPES.some(([n]) => n === t)) : DEFAULT.types.slice() });
+  const LINK_DEFAULT = 'https://apps.shopify.com/findter-custom-filter-search?utm_source=trademark&utm_medium=referral';   // the badge opens this when the Master link field has one; an empty field makes the badge plain (not clickable)
+  const linkOk = v => v === '' || /^https?:\/\/\S+$/i.test(v);
+  const DEFAULT = { enabled: true, types: ['Subscription', 'Trial', 'Paid before', 'Service', 'Free'], link: LINK_DEFAULT };   // Development stores (Shopify's reviewers) are off by default
+  const clean = c => ({ enabled: !c || c.enabled !== false, types: Array.isArray(c && c.types) ? c.types.filter(t => SHOP_TYPES.some(([n]) => n === t)) : DEFAULT.types.slice(), link: c && typeof c.link === 'string' && linkOk(c.link.trim()) ? c.link.trim() : (c && typeof c.link === 'string' ? '' : LINK_DEFAULT) });
   let config = clean(null);
   const load = () => { try { const s = JSON.parse(localStorage.getItem(KEY)); config = s ? clean(s) : clean(null); } catch (e) { config = clean(null); } };
   load();
@@ -32,8 +34,9 @@
   const loadShops = () => { try { shops = JSON.parse(localStorage.getItem(SHOPS_KEY)) || {}; } catch (e) { shops = {}; } };
   loadShops();
   const api = {
-    SHOP_TYPES, SHOP_TYPE_OF_PLAN, DEFAULT, shopType,
-    config: () => ({ enabled: config.enabled, types: config.types.slice() }),
+    SHOP_TYPES, SHOP_TYPE_OF_PLAN, DEFAULT, shopType, linkOk,
+    config: () => ({ enabled: config.enabled, types: config.types.slice(), link: config.link }),
+    link: () => config.link,
     saveConfig: c => { config = clean(c); try { localStorage.setItem(KEY, JSON.stringify(config)); } catch (e) { /* storage blocked: applies for this visit only */ } changed(); },
     cardShown: () => config.enabled && config.types.includes(shopType()),
     removed: () => D.DEMO.wm === 'removed',

@@ -53,10 +53,12 @@ p{margin:0}
 .sf-suggest__none{padding:2.4rem 3rem;font-size:1.4rem}
 .sf-suggest__all{display:flex;align-items:center;gap:.8rem;margin-top:1.6rem;padding:1.6rem 3rem;border-top:1px solid rgba(18,18,18,.12);font-size:1.4rem}
 .sf-suggest__all svg{width:1.6rem;height:1.6rem;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
-.sf-powered{display:flex;align-items:center;justify-content:center;gap:1rem;position:absolute;right:0;top:100%;min-width:22rem;padding:1rem 2rem;border-radius:0 0 1.2rem 1.2rem;background:#141416;box-shadow:0 1rem 2.4rem rgba(18,18,18,.28);color:rgba(255,255,255,.76);font-size:1.4rem;line-height:1.4;letter-spacing:.01rem;white-space:nowrap}
+.sf-powered{display:flex;align-items:center;justify-content:center;gap:1rem;position:absolute;right:0;top:100%;min-width:22rem;padding:.3rem 2rem;border-radius:0 0 1.2rem 1.2rem;background:#141416;box-shadow:0 1rem 2.4rem rgba(18,18,18,.28);color:rgba(255,255,255,.76);font-size:1.4rem;line-height:1.4;letter-spacing:.01rem;white-space:nowrap}
 .sf-powered strong{color:#fff;font-weight:700}
 .sf-powered{cursor:pointer}
 .sf-powered:hover span{text-decoration:underline;text-underline-offset:.3rem}
+.sf-powered:not([href]){cursor:default}
+.sf-powered:not([href]):hover span{text-decoration:none}
 .sf-powered:focus-visible{outline:2px solid #121212;outline-offset:2px}
 #sf-powered:focus-visible{outline-color:#fff;outline-offset:-3px}
 .sf-powered__logo{flex:none;display:block;width:2.4rem;height:2.4rem}
@@ -211,7 +213,7 @@ html.sf-lock{overflow:hidden}
   .sf-suggest__noresult{display:block;padding:0 1rem}
   .sf-suggest__noresult a{display:block;margin:.5rem 0;font-size:1.6rem;line-height:2.4rem;color:#000}
   .sf-suggest__noresult strong{font-weight:700;word-break:break-word}
-  .sf-suggest .sf-powered{position:static;flex:none;width:100%;min-width:0;padding:1rem 2rem calc(1rem + env(safe-area-inset-bottom));border-radius:0;box-shadow:none}
+  .sf-suggest .sf-powered{position:static;flex:none;width:100%;min-width:0;padding:.3rem 2rem calc(.3rem + env(safe-area-inset-bottom));border-radius:0;box-shadow:none}
 }
 @media (prefers-reduced-motion:reduce){.sf-search__label,.sf-group summary::before{transition:none}}
 /* demo aid: the value the chosen sort option looked at, under the price (shown for Rating, Review and metafield sorts) */
