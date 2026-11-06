@@ -181,6 +181,7 @@
     idxBadge.setAttribute('aria-label', n(m.x) + ' of ' + (m.limit === Infinity ? 'unlimited' : n(m.limit)) + ' products');
     toneOf(idxBadge, m.xTone);
     if (onLimitBanner) onLimitBanner(m);
+    renderHx(m);
   }
   renderStatus();
   [['embed', true], ['suggest', true]].forEach(([k, on]) => {                  // App embed / Search suggestion: Active (green) or Inactive (neutral)
@@ -188,7 +189,7 @@
     if (!on) badge.outerHTML = '<span class="st-badge">Inactive</span>';
   });
 
-  FindterDemo.onChange(() => { renderStatus(); renderPromotion(); });          // the header demo bar (demo.js) changed the fake shop
+  FindterDemo.onChange(() => { renderStatus(); renderPromotion(); if (hxReady) applyHome(); });          // the header demo bar (demo.js) changed the fake shop
   // dismiss (X) buttons — they come back on reload
   const dismiss = card => { card.hidden = true; };
   $('button[aria-label="Close"]', guideCard).addEventListener('click', e => { e.stopPropagation(); dismiss(guideCard); });
@@ -396,6 +397,7 @@
 
   const mobileLayout = document.createElement('div'); mobileLayout.className = layout.className + ' mobile-layout'; mobileLayout.hidden = true;
   layout.after(mobileLayout);
+  /*HOME_UI*/
   function placeDesktop() {
     savedLayout.left.forEach(id => {
       const card = cardEls[id], p = card.parentElement;
@@ -407,7 +409,8 @@
     $$(':scope > .Polaris-Layout__Section', leftHost).forEach(s => { if (!s.firstElementChild) s.remove(); });
   }
   function applyOrder() {
-    if (mq.mobile.matches) {
+    if (homeUI()) { placeHx(); placeSyncBanner(); renderPromotion(); updateCarousel(true); return; }   // Home UI option A / B / C: its own frame (home-ui.js)
+    if (useMobile()) {
       mobileLayout.innerHTML = '';
       savedLayout.mobile.forEach(k => { const s = document.createElement('div'); s.className = 'Polaris-Layout__Section'; s.appendChild(cardEls[k]); mobileLayout.appendChild(s); });
       layout.hidden = true; mobileLayout.hidden = false;
@@ -457,7 +460,7 @@
     placeSyncBanner();
   };
   function placeSyncBanner() {
-    const host = mq.mobile.matches ? mobileLayout : leftHost;
+    const host = homeUI() ? hxRoot : useMobile() ? mobileLayout : leftHost;
     if (limHost.firstElementChild) host.prepend(limHost); else limHost.remove();
     if (syncHost.firstElementChild) host.prepend(syncHost); else syncHost.remove();
   }
@@ -645,5 +648,5 @@
   /*PROMOTION_MODULE*/
   /*WATERMARK_MASTER*/
   addEventListener('beforeunload', e => { if (isDirty() || wmDirty()) { e.preventDefault(); e.returnValue = ''; } });
-  applyNav(); applyOrder(); updateCarousel(true); route();
+  applyNav(); applyHome(); updateCarousel(true); route();
 })();

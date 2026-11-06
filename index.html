@@ -1615,6 +1615,70 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .ft-apply{margin-top:12px;font-weight:550}
 @media (max-width:767px){[data-panel=features]{padding-bottom:96px}}   /* the chat launcher is fixed bottom-right (~84px) and would sit on the last container's Save button */
 
+/* ===== Homepage UI options A / B / C (prototype). Chosen in the Demo data bar ("Home UI"); #app gets data-home="a|b|c". "Current UI" = no attribute = nothing below applies. =====
+   A  Linear      one column, a health strip right under the guide
+   B  Split       wide main column + a status rail (independent stacks)
+   C  Dashboard   metric tiles first, then full-width bands, then two stacks
+   All: the Onboarding guide is first and full width; our Promotion sits above Recommended apps; the layout follows the page width (container query),
+   not the window, so the sidebar collapsing re-flows it correctly; phones are one column. Polaris cards, 16px gaps, dark primary button, no animation, no red. */
+
+.hx-extra { display: none; }
+.hx-root { container-type: inline-size; container-name: hx; display: flex; flex-direction: column; gap: 16px; width: 100%; min-width: 0; box-sizing: border-box; }
+.hx-root[hidden], .hx-row[hidden], .hx-col[hidden] { display: none !important; }
+.hx-root > .sy-host { flex: none; margin: 0 !important; padding: 0 !important; max-width: none !important; min-width: 0 !important; }
+.hx-row { display: grid; grid-template-columns: var(--w, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.hx-row[data-n="1"] { grid-template-columns: minmax(0, 1fr); }
+.hx-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.hx-col > [data-card] { min-width: 0; }
+
+/* shared: a smaller welcome so the guide starts higher */
+#app[data-home] .ft-welcome { padding: 4px 5px 0; gap: 4px; }
+#app[data-home] .ft-welcome__title { font-size: 24px; line-height: 32px; }
+#app[data-home] .ft-welcome__subtitle { font-size: 13px; line-height: 20px; }
+#app[data-home] [data-card][hidden] { display: none !important; }
+
+/* ---------- A: health strip (the Findter app status card laid out as tiles) + slim Sync and Help bars ---------- */
+#app[data-home=a] [data-card=status] .f37 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 12px; }
+#app[data-home=a] [data-card=status] [data-st] > .f38 { box-sizing: border-box; height: 100%; padding: 10px 12px; border: 1px solid #e3e3e3; border-radius: 8px; background: #fff; }
+#app[data-home=a] [data-card=status] .f39 { flex-direction: column; align-items: flex-start; gap: 6px; }
+#app[data-home=a] [data-card=status] .f39 > p { font-size: 12px; line-height: 16px; color: #616161; }
+#app[data-home=a] [data-card=sync] > .Polaris-Box,
+#app[data-home=a] [data-card=help] > .Polaris-Box { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; row-gap: 4px; align-items: center; }
+#app[data-home=a] [data-card=sync] > .Polaris-Box > .Polaris-Box .Polaris-BlockStack { flex-direction: row; flex-wrap: wrap; gap: 4px 8px; }
+#app[data-home=a] [data-card=sync] > .Polaris-Box > button { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+#app[data-home=a] [data-card=help] > .Polaris-Box > .Polaris-InlineStack { grid-column: 2; grid-row: 1 / span 2; align-self: center; flex-wrap: nowrap; }
+#app[data-home=a] [data-card=help] > .Polaris-Box > h2 { grid-column: 1; }
+#app[data-home=a] [data-card=help] .f37 { gap: 6px; }
+#app[data-home=a] [data-card=help] ul.f47 { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 6px 0 0; padding: 0; list-style: none; }
+#app[data-home=a] [data-card=help] ul.f47 > li { margin: 0; padding: 2px 10px; border: 1px solid #e3e3e3; border-radius: 999px; background: #f7f7f7; }
+#app[data-home=a] [data-card=help] ul.f47 > li::marker { content: ''; }
+
+/* ---------- C: four metric tiles in Data insight; Sync keeps its button at the bottom of its card ---------- */
+#app[data-home=c] .hx-extra { display: contents; }
+#app[data-home=c] [data-card=data] .Polaris-InlineGrid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; }
+#app[data-home=c] [data-card=data] .Polaris-InlineGrid > .Polaris-ShadowBevel { height: 100%; }
+#app[data-home=c] [data-card=data] .Polaris-InlineGrid > .Polaris-ShadowBevel .Polaris-InlineStack { flex-direction: column !important; align-items: flex-start !important; flex-wrap: nowrap !important; gap: 8px !important; }
+.hx-tile > .Polaris-Box { box-sizing: border-box; height: 100%; }
+.hx-tile__v { margin-top: 12px; font-size: 24px; line-height: 32px; font-weight: 650; color: #303030; }
+.hx-tile__s { margin-top: 2px; font-size: 13px; line-height: 20px; color: #616161; }
+.hx-bar { height: 6px; margin-top: 12px; border-radius: 3px; background: #e3e3e3; overflow: hidden; }
+.hx-bar[hidden] { display: none; }
+.hx-bar span { display: block; height: 100%; background: #29845a; }
+.hx-tile[data-tone=orange] .hx-bar span { background: #b98900; }
+
+/* ---------- narrow page (any reason: small window, sidebar open, rail, phone): one column in reading order ---------- */
+@container hx (max-width: 719px) {
+  .hx-row, .hx-col { display: contents; }
+  .hx-root [data-card] { order: var(--mo, 0); }
+  .hx-root > .sy-host { order: -1; }
+}
+@container hx (max-width: 559px) {
+  #app[data-home=a] [data-card=sync] > .Polaris-Box,
+  #app[data-home=a] [data-card=help] > .Polaris-Box { grid-template-columns: minmax(0, 1fr); }
+  #app[data-home=a] [data-card=sync] > .Polaris-Box > button,
+  #app[data-home=a] [data-card=help] > .Polaris-Box > .Polaris-InlineStack { grid-column: 1; grid-row: auto; margin-top: 8px; }
+}
+
 </style>
 </head>
 <body>
@@ -1880,7 +1944,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   const NO_PRODUCT_STATES = ['Development', 'Enterprise'];                    // no "over" / "90%" case: free under 50,000 / no limit
   const LANGS = { en: 'English', fr: 'Français', de: 'Deutsch', vi: 'Tiếng Việt', ja: '日本語' };
   const DEMO_KEY = 'findter.demoStatus';
-  const DEFAULTS = { plan: 'Trial', sub: 'active', days: 14, over: 'normal', lang: 'en', wm: 'shown' };
+  const DEFAULTS = { plan: 'Trial', sub: 'active', days: 14, over: 'normal', lang: 'en', wm: 'shown', home: 'current' };
   const DEMO = { ...DEFAULTS };
   const load = () => {
     try {
@@ -1890,6 +1954,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
       if ([14, 7, 3, 1, 0].includes(s.days)) DEMO.days = s.days;
       DEMO.over = s.over === true ? 'over' : ['normal', 'near', 'over'].includes(s.over) ? s.over : 'normal';   // older saves stored a boolean
       if (LANGS[s.lang]) DEMO.lang = s.lang;
+      if (['current', 'a', 'b', 'c'].includes(s.home)) DEMO.home = s.home;     // Homepage UI option (index.html only): the current layout or suggestion A / B / C
       if (['shown', 'removed'].includes(s.wm)) DEMO.wm = s.wm;                // the "Powered by Findter" badge: still on the storefront, or removed
     } catch (e) { /* storage blocked */ }
   };
@@ -1913,17 +1978,19 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     ['Language', 'lang', Object.entries(LANGS), 'select'],
     ['Badge', 'wm', [['shown', 'Shown'], ['removed', 'Removed']]],
   ];
-  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  if ($('[data-card=status]')) groups.push(['Home UI', 'home', [['a', 'A'], ['b', 'B'], ['c', 'C']], 'buttons', '<button type="button" class="demo-btn demo-btn--reset" data-act="home-reset" title="Back to the current homepage UI">Current UI</button>']);   // the homepage only
+  const esc =s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   bar.innerHTML = '<button type="button" class="demo-toggle" aria-expanded="false" aria-controls="demo-panel">Demo data</button><div class="demo-panel" id="demo-panel" role="group" aria-label="Demo data for the shop">'
-    + groups.map(([label, key, opts, kind]) => '<div class="demo-group" role="group" aria-label="' + label + '"><span class="demo-label">' + label + '</span>'
+    + groups.map(([label, key, opts, kind, extra]) => '<div class="demo-group" role="group" aria-label="' + label + '"><span class="demo-label">' + label + '</span>'
       + (kind === 'select'
         ? '<select class="demo-select" data-key="' + key + '" aria-label="' + label + '">' + opts.map(([v, t]) => '<option value="' + esc(v) + '">' + esc(t) + '</option>').join('') + '</select>'
-        : opts.map(([v, t]) => '<button type="button" class="demo-btn" data-key="' + key + '" data-val="' + v + '" aria-pressed="false">' + t + '</button>').join(''))
+        : opts.map(([v, t]) => '<button type="button" class="demo-btn" data-key="' + key + '" data-val="' + v + '" aria-pressed="false">' + t + '</button>').join('') + (extra || ''))
       + '</div>').join('') + '<button type="button" class="demo-reset" data-act="reset" title="Back to the start values: Trial store, badge shown">Reset</button></div>';
   top.insertBefore(bar, $('.sh-more', top));
   paint = () => {
     const p = PLANS[DEMO.plan];
-    $$('.demo-btn', bar).forEach(b => b.setAttribute('aria-pressed', String(String(DEMO[b.dataset.key]) === b.dataset.val)));
+    $$('.demo-btn[data-key]', bar).forEach(b => b.setAttribute('aria-pressed', String(String(DEMO[b.dataset.key]) === b.dataset.val)));
+    $$('[data-act=home-reset]', bar).forEach(b => { b.disabled = DEMO.home === 'current'; });
     $$('.demo-select', bar).forEach(s => { s.value = DEMO[s.dataset.key]; });
     $$('.demo-btn[data-key=sub]', bar).forEach(b => { b.disabled = p.date !== 'paid'; });                     // plan state: paid plans only
     $$('.demo-btn[data-key=days]', bar).forEach(b => { b.disabled = !p.date; });                              // days left: stores with a date row
@@ -1931,6 +1998,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   };
   bar.addEventListener('change', e => { const s = e.target.closest('.demo-select'); if (s) { DEMO[s.dataset.key] = s.value; save(); changed(); } });
   bar.addEventListener('click', e => {
+    if (e.target.closest('[data-act=home-reset]')) { window.FindterDemo.set('home', 'current'); return; }
     if (e.target.closest('.demo-reset')) { window.FindterDemo.reset(); return; }
     const b = e.target.closest('.demo-btn');
     if (b) { DEMO[b.dataset.key] = b.dataset.key === 'days' ? +b.dataset.val : b.dataset.val; save(); changed(); return; }
@@ -2179,6 +2247,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     idxBadge.setAttribute('aria-label', n(m.x) + ' of ' + (m.limit === Infinity ? 'unlimited' : n(m.limit)) + ' products');
     toneOf(idxBadge, m.xTone);
     if (onLimitBanner) onLimitBanner(m);
+    renderHx(m);
   }
   renderStatus();
   [['embed', true], ['suggest', true]].forEach(([k, on]) => {                  // App embed / Search suggestion: Active (green) or Inactive (neutral)
@@ -2186,7 +2255,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     if (!on) badge.outerHTML = '<span class="st-badge">Inactive</span>';
   });
 
-  FindterDemo.onChange(() => { renderStatus(); renderPromotion(); });          // the header demo bar (demo.js) changed the fake shop
+  FindterDemo.onChange(() => { renderStatus(); renderPromotion(); if (hxReady) applyHome(); });          // the header demo bar (demo.js) changed the fake shop
   // dismiss (X) buttons — they come back on reload
   const dismiss = card => { card.hidden = true; };
   $('button[aria-label="Close"]', guideCard).addEventListener('click', e => { e.stopPropagation(); dismiss(guideCard); });
@@ -2440,6 +2509,78 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 
   const mobileLayout = document.createElement('div'); mobileLayout.className = layout.className + ' mobile-layout'; mobileLayout.hidden = true;
   layout.after(mobileLayout);
+    /* ---------- Homepage UI options A / B / C (prototype: pick one from the "Home UI" group in the Demo data bar) ----------
+     "Current" = the layout above (Master → Home order, left / right columns). A, B and C use their own frame (#hx-root) built from the same cards.
+     Rules every option follows:
+       1. The Onboarding guide is the first block, full width, never beside another card: opening / closing it only pushes the rest down.
+       2. Our own Promotion banner is always above Recommended apps (partner apps), and a content card sits between it and the top banners (BFS 4.3.4).
+       3. The layout follows the width of the page itself (container query), so the sidebar collapsing to the rail or the phone drawer re-flows
+          it the same way a narrower window does. Columns are independent stacks (no equal-height rows): one card growing, shrinking or being
+          dismissed never stretches or shifts its neighbours, and a row or column with no visible card disappears without a gap.
+     Nothing here is saved to the real Home layout: the choice lives in the demo data (findter.demoStatus) and "Current UI" puts everything back. */
+  var hxReady = false;
+  const HOME_UIS = ['a', 'b', 'c'];
+  const homeUI = () => (HOME_UIS.includes(DEMO.home) ? DEMO.home : null);
+  const useMobile = () => mq.mobile.matches && !homeUI();                     // the separate phone order only belongs to the current UI
+  // rows: [columns, width of the columns]. mo = reading order on a narrow page (it is also what a phone gets).
+  const UIS = {
+    a: { rows: [[[['guide', 'status', 'sync', 'data', 'promotion', 'rec', 'help', 'master']]]],                                                   // A: one column
+         mo: ['guide', 'status', 'sync', 'data', 'promotion', 'rec', 'help', 'master'] },
+    b: { rows: [[[['guide']]], [[['data', 'promotion', 'rec'], ['status', 'sync', 'help']], 'minmax(0,2fr) minmax(0,1fr)'], [[['master']]]],        // B: main column + status rail
+         mo: ['guide', 'status', 'sync', 'data', 'promotion', 'rec', 'help', 'master'] },
+    c: { rows: [[[['guide']]], [[['data']]], [[['promotion']]], [[['status', 'sync'], ['help']], 'minmax(0,1fr) minmax(0,1fr)'], [[['rec']]], [[['master']]]],   // C: metrics, then bands
+         mo: ['guide', 'data', 'promotion', 'status', 'sync', 'help', 'rec', 'master'] },
+  };
+  const hxRoot = document.createElement('div'); hxRoot.className = 'hx-root'; hxRoot.hidden = true;
+  layout.after(hxRoot);
+  function hxRefresh() {                                                      // hide rows / columns that have no visible card, so nothing leaves a gap
+    $$(':scope > .hx-row', hxRoot).forEach(r => {
+      let n = 0;
+      $$(':scope > .hx-col', r).forEach(c => { const vis = $$(':scope > [data-card]', c).some(k => !k.hidden); if (c.hidden === vis) c.hidden = !vis; if (vis) n++; });
+      if (r.dataset.n !== String(n)) r.dataset.n = n;
+      if (r.hidden === (n > 0)) r.hidden = n === 0;
+    });
+  }
+  new MutationObserver(hxRefresh).observe(hxRoot, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden'] });
+  function placeHx() {
+    const ui = UIS[homeUI()];
+    hxRoot.dataset.ui = homeUI();
+    $$(':scope > .hx-row', hxRoot).forEach(r => r.remove());
+    ui.rows.forEach(([cols, w]) => {
+      const row = document.createElement('div'); row.className = 'hx-row'; if (w) row.style.setProperty('--w', w);
+      cols.forEach(ids => { const col = document.createElement('div'); col.className = 'hx-col'; ids.forEach(id => col.appendChild(cardEls[id])); row.appendChild(col); });
+      hxRoot.appendChild(row);
+    });
+    ui.mo.forEach((id, i) => cardEls[id].style.setProperty('--mo', i));
+    hxRefresh();
+  }
+  // C: two extra tiles in Data insight (same bevel + box as the two existing tiles)
+  const hxGrid = $('.Polaris-InlineGrid', cardEls.data);
+  const t0 = hxGrid.firstElementChild, t0Bevel = t0.getAttribute('style').replace(/"/g, '&quot;'), t0Box = t0.firstElementChild.getAttribute('style').replace(/"/g, '&quot;');
+  const hxTile = (key, title) => '<div class="Polaris-ShadowBevel hx-tile hx-tile--' + key + '" style="' + t0Bevel + '"><div class="Polaris-Box" style="' + t0Box + '"><div class="ft-card-header-underline"><span><span style="display:inline-block"><h3 class="Polaris-Text--root Polaris-Text--headingSm">' + title + '</h3></span></span></div><div class="hx-tile__v"></div><div class="hx-tile__s"></div><div class="hx-bar" aria-hidden="true"><span></span></div></div></div>';
+  const hxExtra = document.createElement('div'); hxExtra.className = 'hx-extra'; hxExtra.innerHTML = hxTile('indexed', 'Products indexed') + hxTile('plan', 'Plan');
+  hxGrid.appendChild(hxExtra);
+  function renderHx(m) {
+    if (!hxReady) return;
+    const n = v => v.toLocaleString('en-US'), date = fmtDate(m.date, DEMO.lang), unl = m.limit === Infinity;
+    const pct = unl ? 0 : Math.min(100, Math.round(m.x / m.limit * 100));
+    const ti = $('.hx-tile--indexed', hxExtra), tp = $('.hx-tile--plan', hxExtra);
+    $('.hx-tile__v', ti).textContent = n(m.x); $('.hx-tile__s', ti).textContent = unl ? 'No product limit' : 'of ' + n(m.limit) + ' (' + pct + '%)';
+    $('.hx-bar span', ti).style.width = pct + '%'; ti.dataset.tone = m.xTone; ti.querySelector('.hx-bar').hidden = unl;
+    $('.hx-tile__v', tp).textContent = m.label; $('.hx-tile__s', tp).textContent = m.dateLabel ? m.dateLabel + ' ' + date : (unl ? 'No product limit' : 'Up to ' + n(m.limit) + ' products');
+    tp.dataset.tone = m.tone; tp.querySelector('.hx-bar').hidden = true;
+  }
+  hxReady = true;
+  const appRoot = $('#app');
+  function applyHome() {
+    const ui = homeUI();
+    if (ui) appRoot.dataset.home = ui; else delete appRoot.dataset.home;
+    hxRoot.hidden = !ui;
+    if (ui) { layout.hidden = true; mobileLayout.hidden = true; }
+    applyOrder();
+    renderStatus();                                                             // refreshes the extra tiles
+  }
+
   function placeDesktop() {
     savedLayout.left.forEach(id => {
       const card = cardEls[id], p = card.parentElement;
@@ -2451,7 +2592,8 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     $$(':scope > .Polaris-Layout__Section', leftHost).forEach(s => { if (!s.firstElementChild) s.remove(); });
   }
   function applyOrder() {
-    if (mq.mobile.matches) {
+    if (homeUI()) { placeHx(); placeSyncBanner(); renderPromotion(); updateCarousel(true); return; }   // Home UI option A / B / C: its own frame (home-ui.js)
+    if (useMobile()) {
       mobileLayout.innerHTML = '';
       savedLayout.mobile.forEach(k => { const s = document.createElement('div'); s.className = 'Polaris-Layout__Section'; s.appendChild(cardEls[k]); mobileLayout.appendChild(s); });
       layout.hidden = true; mobileLayout.hidden = false;
@@ -2501,7 +2643,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
     placeSyncBanner();
   };
   function placeSyncBanner() {
-    const host = mq.mobile.matches ? mobileLayout : leftHost;
+    const host = homeUI() ? hxRoot : useMobile() ? mobileLayout : leftHost;
     if (limHost.firstElementChild) host.prepend(limHost); else limHost.remove();
     if (syncHost.firstElementChild) host.prepend(syncHost); else syncHost.remove();
   }
@@ -2965,7 +3107,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   });
 
   addEventListener('beforeunload', e => { if (isDirty() || wmDirty()) { e.preventDefault(); e.returnValue = ''; } });
-  applyNav(); applyOrder(); updateCarousel(true); route();
+  applyNav(); applyHome(); updateCarousel(true); route();
 })();
 
 </script>

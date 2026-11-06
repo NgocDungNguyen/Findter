@@ -94,3 +94,34 @@
 
 /* error toast (window.shopify.toast.show(msg,{isError:true})) */
 #toast.is-error{background:#8e1f0b}
+
+/* Phase 2: table caption row with the Add metafield sort button, the info icon of Rating / Review, the review app picker, the metafield sort window */
+.so-tablehead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;min-height:28px;margin-bottom:4px}
+.so-tablehead .so-caption{margin:0}
+.sort-label-info{display:inline-flex;flex:none;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;cursor:default}
+.sort-label-info svg{width:16px;height:16px;fill:#8a8a8a}
+.sort-label-info:hover svg,.sort-label-info:focus-visible svg{fill:#4a4a4a}
+.sort-label-info:focus-visible{outline:2px solid #005bd3;outline-offset:1px}
+.so-note--icon{display:flex;align-items:flex-start;gap:8px}
+.so-note__i{display:inline-flex;flex:none;margin-top:2px}
+.so-note__i svg{width:16px;height:16px;fill:#8a8a8a}
+.so-apps{border:0;margin:16px 0 0;padding:0;min-width:0}
+.so-apps__h{padding:0;margin-bottom:8px;font-size:13px;line-height:20px;font-weight:650;color:var(--so-text,#303030)}
+.so-apps__grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.so-app{display:block;position:relative;cursor:pointer}
+.so-app__in{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.so-app__box{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:88px;padding:12px;border:1px solid #c9c9c9;border-radius:12px;background:#fff;font-size:13px;line-height:20px;font-weight:550;color:#303030}
+.so-app__box img{width:40px;height:40px;border-radius:8px;object-fit:contain}
+.so-app:hover .so-app__box{border-color:#8a8a8a;background:#fafafa}
+.so-app__in:checked+.so-app__box{border:2px solid #303030;padding:11px}
+.so-app__in:focus-visible+.so-app__box{outline:2px solid #005bd3;outline-offset:2px}
+.so-app-error{margin:8px 0 0;font-size:13px;line-height:20px;color:#8e1f0b}
+.so-app-error[hidden]{display:none}
+.so-dirs{display:flex;flex-direction:column;gap:12px}
+.so-dir{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px;align-items:center}
+.so-dir .mf-check{padding:0}
+.so-dir__hint{color:#616161}
+@media (max-width:767.98px){
+  .so-apps__grid{grid-template-columns:1fr}
+  .so-dir{grid-template-columns:1fr;gap:4px}
+}

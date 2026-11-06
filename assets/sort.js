@@ -12,9 +12,9 @@
     set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* storage blocked: keep going */ } },
     del: k => { try { localStorage.removeItem(k); } catch (e) { /* storage blocked: keep going */ } },
   };
-  const KEY = 'findter.sortConfig.v1';
+  const KEY = 'findter.sortConfig.v1', SYNC_KEY = 'findter.sortSync.v1', SYNC_MS = 6000;
   const params = new URLSearchParams(location.search);
-  if (params.get('reset') === '1') { store.del(KEY); history.replaceState(null, '', location.pathname); }
+  if (params.get('reset') === '1') { store.del(KEY); store.del(SYNC_KEY); history.replaceState(null, '', location.pathname); }
   const FORCE_EMPTY = params.get('state') === 'empty';
 
   /* ---------- the app's sort options (default.config.ts: defaultSortConfigs + availableSortConfigs; SortBy.type_* in en.json) ---------- */
@@ -22,10 +22,31 @@
     featured: 'Default / Manually sort', relevance: 'Best matches for your search first', created_at: 'Latest created',
     price_low_high: 'Cheapest first', price_high_low: 'Most expensive first', title_asc: 'Alphabet from A to Z', title_desc: 'Alphabet from Z to A',
     created_at_asc: 'By created date, oldest first', sale_asc: 'By sale percentage, ascending', sale_desc: 'By sale percentage, descending', available_count: 'Most in-stock product first',
+    rating_desc: 'Product rating high to low', review_desc: 'Review amount high to low',
   };
   const DEFAULT_SORTS = [['featured', 'Featured']];                  // Best selling was retired (14/10): it sorted by the same collection order as Featured
   const AVAILABLE_SORTS = [['relevance', 'Relevance'], ['created_at', 'What\'s new?'], ['title_asc', 'A-Z'], ['title_desc', 'Z-A'], ['price_low_high', 'Price low to high'], ['price_high_low', 'Price high to low'],
-    ['available_count', 'Stock Availability'], ['created_at_asc', 'Old to New'], ['sale_asc', 'Sale low to high'], ['sale_desc', 'Sale high to low']];
+    ['available_count', 'Stock Availability'], ['created_at_asc', 'Old to New'], ['sale_asc', 'Sale low to high'], ['sale_desc', 'Sale high to low'],
+    ['rating_desc', 'Rating'], ['review_desc', 'Review']];             // Phase 2 (rds_shopify-881): they read the data the shop's review app saves
+  /* Rating + Review (Phase 2): the data comes from ONE review app the merchant picks in the Edit window. Findter does not keep its own rating data: it reads
+     what the picked app already saves on every product (Judge.me: reviews.rating + reviews.rating_count, Yotpo: its own reviews metafields). The pick is shared by both rows. */
+  const REVIEW_SORT_KEYS = ['rating_desc', 'review_desc'];
+  const REVIEW_APPS = [{ id: 'judgeme', name: 'Judge.me', logo: 'assets/img/judgeme-logo.png' }, { id: 'yotpo', name: 'Yotpo', logo: 'assets/img/yotpo-logo.png' }];
+  const appName = id => (REVIEW_APPS.find(a => a.id === id) || {}).name || '';
+  const REVIEW_TOOLTIP = 'You need to configure Judge.me/Yotpo app before enable this sort by option';
+  /* Metafield sorts (Phase 2): a saved metafield of a NUMBER type can be sorted (the app's MetafieldData.getSortConfigs: number_integer, number_decimal, rating);
+     text, list, color, file and metaobject metafields have no number to sort by. Each option is one direction of one metafield, products without a value come last. */
+  const SORTABLE_MF_TYPES = ['number_integer', 'number_decimal', 'rating'];
+  const MF_ORDER_TEXT = { asc: 'low to high', desc: 'high to low' };
+  const MFS = () => window.__pages && window.__pages.metafields;
+  const mfNs = id => 'custom.' + id;                                  // the demo store's metafields live in the custom namespace
+  const mfHandle = m => 'metafield_' + m.type + '_custom_' + m.id.replace(/\W/g, '_');
+  const mfSortKey = (m, order) => mfHandle(m) + '_' + order;
+  const mfTypeLabel = m => (MFS().typeLabel || {})[m.type] || m.type;
+  const savedSortableMetafields = () => { const s = MFS(); if (!s) return []; return s.load().map(r => s.catalog.find(c => c.id === r.id)).filter(m => m && SORTABLE_MF_TYPES.includes(m.type)); };
+  const mfByRow = o => o.mf ? savedSortableMetafields().find(m => m.id === o.mf.id) : null;
+  const pickLabel = m => `${m.label} (${mfTypeLabel(m)})`;
+  const mfDefaultLabel = (m, order) => (m.label + ' ' + MF_ORDER_TEXT[order]).slice(0, 40);
   const DEFAULT_ENABLED_SORT_KEYS = ['relevance', 'created_at', 'price_low_high', 'price_high_low'];
   // the order the admin lists the built-in options in (GET /api/sort-config/all: reservedKeys)
   const RESERVED = [...DEFAULT_SORTS, ...AVAILABLE_SORTS].map(([key, label]) => ({ key, label, status: DEFAULT_ENABLED_SORT_KEYS.includes(key) }));
@@ -68,7 +89,11 @@
     const folded = { key: 'featured', label: (featured && featured.label) || 'Featured', status: true, ...((legacy.default_collection === true || (featured && featured.default_collection === true)) ? { default_collection: true } : {}) };
     return raw.filter(e => e !== featured).map(e => e === legacy ? folded : e);
   };
-  const toRow = c => ({ key: c.key, label: c.label, status: c.status !== false });
+  // `app` rides on the Rating and Review rows; `info` + `mf` on a metafield sort row (the app stores info.field / order / missing for custom options)
+  const toRow = c => ({ key: c.key, label: c.label, status: c.status !== false,
+    ...(REVIEW_SORT_KEYS.includes(c.key) ? { app: REVIEW_APPS.some(a => a.id === c.app) ? c.app : null } : {}),
+    ...(c.mf ? { mf: c.mf, info: c.info } : {}) });
+  const originalLabel = row => ORIGINAL_LABELS[row.key] || (row.mf && mfByRow(row) ? mfDefaultLabel(mfByRow(row), row.mf.order) : row.label);
   const resolveDefaultSort = (picked, choices, fallback) =>
     (choices.find(o => o.key === picked) || {}).key || (choices.find(o => o.key === fallback) || {}).key || (choices[0] || {}).key || '';
 
@@ -88,7 +113,10 @@
     const d = { collection: ((configs.find(c => c.default_collection)) || {}).key || null, search: ((configs.find(c => c.default_search)) || {}).key || null };
     defaults = { ...d }; originalDefaults = { ...d };
   }
-  const visibleOptions = () => SPF_SORTING ? options : options.filter(o => !SPF_SORTING_ONLY_SORT_KEYS.includes(o.key));
+  // hidden but kept in the data: Featured without Collection Manual Sorting, and a metafield sort whose metafield is no longer saved on the Metafield page (adding it back restores the row)
+  const isShown = o => (SPF_SORTING || !SPF_SORTING_ONLY_SORT_KEYS.includes(o.key)) && (!o.mf || !!mfByRow(o));
+  const visibleOptions = () => options.filter(isShown);
+  const reviewApp = () => ((options.find(o => REVIEW_SORT_KEYS.includes(o.key) && o.app) || {}).app) || null;
   const collectionChoices = () => visibleOptions().filter(o => o.status && !SEARCH_ONLY_SORT_KEYS.includes(o.key));
   const searchChoices = () => visibleOptions().filter(o => o.status && !COLLECTION_ONLY_SORT_KEYS.includes(o.key));
   const effectiveDefaults = () => ({
@@ -96,6 +124,22 @@
     search: resolveDefaultSort(defaults.search, searchChoices(), DEFAULT_SORT_FALLBACK.search),
   });
   const isEdited = () => JSON.stringify(options) !== JSON.stringify(originalOptions) || JSON.stringify(defaults) !== JSON.stringify(originalDefaults);
+
+  /* ---------- sync banner: after Save, when the review app Rating / Review read from changed (yellow while the data is collected, then green) ---------- */
+  let hidePending = false, syncTimer = 0;
+  const readSync = () => { try { return JSON.parse(store.get(SYNC_KEY) || 'null'); } catch (e) { return null; } };
+  function bannerHtml() {
+    const s = readSync(); if (!s || !appName(s.app)) return '';
+    if (Date.now() < s.until) {
+      if (hidePending) return '';
+      return `<div class="mf-banner mf-banner--warn" role="status"><div class="mf-banner__head"><span class="mf-banner__icon">${ICON_ALERT}</span><strong>Collecting data</strong><button type="button" class="mf-banner__x" data-act="banner-hide" aria-label="Dismiss">${ICON_CLOSE}</button></div><p class="mf-banner__body">We are collecting ${appName(s.app)} ratings and review counts, please wait.</p></div>`;
+    }
+    return `<div class="mf-banner mf-banner--ok" role="status"><span class="mf-banner__icon">${ICON_OK}</span><span class="mf-banner__text">Data indexing is completed. Rating and Review are ready.</span><button type="button" class="mf-banner__x" data-act="banner-done" aria-label="Dismiss">${ICON_CLOSE}</button></div>`;
+  }
+  function scheduleSync() {
+    clearTimeout(syncTimer); const s = readSync(); if (!s || Date.now() >= s.until) return;
+    syncTimer = setTimeout(function tick() { if (drag || document.querySelector('[data-mfp]')) { syncTimer = setTimeout(tick, 1000); return; } render(); }, s.until - Date.now() + 50);   // wait while a window is open or a row is being dragged
+  }
 
   /* ---------- toast ---------- */
   const toastEl = $('#toast');
@@ -106,30 +150,36 @@
   const ICON_DRAG = '<svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><circle cx="7.5" cy="5.5" r="1.4"/><circle cx="12.5" cy="5.5" r="1.4"/><circle cx="7.5" cy="10" r="1.4"/><circle cx="12.5" cy="10" r="1.4"/><circle cx="7.5" cy="14.5" r="1.4"/><circle cx="12.5" cy="14.5" r="1.4"/></svg>';
   const ICON_CLOSE = '<svg viewBox="0 0 20 20" class="Polaris-Icon__Svg" focusable="false" aria-hidden="true"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94z"></path></svg>';
   const ICON_BAR = '<svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path d="M10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Z"/><path d="M11 13a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/><path fill-rule="evenodd" d="M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Zm-1.5 0a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z"/></svg>';
-  const CHEVRON = '<span class="Polaris-Select__Icon"><span class="Polaris-Icon"><svg viewBox="0 0 20 20" class="Polaris-Icon__Svg" focusable="false" aria-hidden="true"><path d="M10.884 4.323a1.25 1.25 0 0 0-1.768 0l-2.646 2.647a.75.75 0 0 0 1.06 1.06l2.47-2.47 2.47 2.47a.75.75 0 1 0 1.06-1.06z"></path><path d="m13.53 13.03-2.47 2.47-2.47-2.47a.75.75 0 0 0-1.06 1.06l2.646 2.647a1.25 1.25 0 0 0 1.768 0l2.646-2.647a.75.75 0 0 0-1.06-1.06"></path></svg></span></span>';
+  const ICON_DELETE = '<svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path d="M11.5 8.25a.75.75 0 0 1 .75.75v4.25a.75.75 0 0 1-1.5 0v-4.25a.75.75 0 0 1 .75-.75Z"></path><path d="M9.25 9a.75.75 0 0 0-1.5 0v4.25a.75.75 0 0 0 1.5 0v-4.25Z"></path><path fill-rule="evenodd" d="M7.25 5.25a2.75 2.75 0 0 1 5.5 0h3a.75.75 0 0 1 0 1.5h-.75v5.45c0 1.68 0 2.52-.327 3.162a3 3 0 0 1-1.311 1.311c-.642.327-1.482.327-3.162.327h-.4c-1.68 0-2.52 0-3.162-.327a3 3 0 0 1-1.311-1.311c-.327-.642-.327-1.482-.327-3.162v-5.45h-.75a.75.75 0 0 1 0-1.5h3Zm1.5 0a1.25 1.25 0 1 1 2.5 0h-2.5Zm-2.25 1.5h7v5.45c0 .865-.001 1.423-.036 1.848-.033.408-.09.559-.128.633a1.5 1.5 0 0 1-.655.655c-.074.038-.225.095-.633.128-.425.035-.983.036-1.848.036h-.4c-.865 0-1.423-.001-1.848-.036-.408-.033-.559-.09-.633-.128a1.5 1.5 0 0 1-.656-.655c-.037-.074-.094-.225-.127-.633-.035-.425-.036-.983-.036-1.848v-5.45Z"></path></svg>';
+  const ICON_ALERT = '<svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path fill-rule="evenodd" d="M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm0 3.25a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0V7a.75.75 0 0 1 .75-.75ZM10 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"></path></svg>';
+  const ICON_OK = '<svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path fill-rule="evenodd" d="M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm3.28 5.78a.75.75 0 0 0-1.06-1.06L9 10.94 7.78 9.72a.75.75 0 1 0-1.06 1.06l1.75 1.75c.3.3.77.3 1.06 0l3.75-3.75Z"></path></svg>';
+  const CHEVRON ='<span class="Polaris-Select__Icon"><span class="Polaris-Icon"><svg viewBox="0 0 20 20" class="Polaris-Icon__Svg" focusable="false" aria-hidden="true"><path d="M10.884 4.323a1.25 1.25 0 0 0-1.768 0l-2.646 2.647a.75.75 0 0 0 1.06 1.06l2.47-2.47 2.47 2.47a.75.75 0 1 0 1.06-1.06z"></path><path d="m13.53 13.03-2.47 2.47-2.47-2.47a.75.75 0 0 0-1.06 1.06l2.646 2.647a1.25 1.25 0 0 0 1.768 0l2.646-2.647a.75.75 0 0 0-1.06-1.06"></path></svg></span></span>';
   const ghostBar = (w = '100%', h = 20) => `<div class="ft-sort-skeleton-bar" style="width:${w};height:${h}px"></div>`;
 
   const skeletonHtml = () => `<div class="so-stack" aria-busy="true" aria-label="Loading sort options">
     <section class="so-card"><div class="so-col"><h2 class="so-card__h">Default sort by value</h2><p class="so-sub">Choose the default sort by value of each pages</p>
       <div class="ft-sort-defaults">${['Collection page', 'Search result page'].map(t => `<div class="so-box"><h3 class="so-box__h">${t}</h3>${ghostBar('100%', 32)}</div>`).join('')}</div></div></section>
-    <section class="so-card"><div class="so-col so-col--tight"><p class="so-caption">Enable or disable sort option. Drag to reorder.</p>
+    <section class="so-card"><div class="so-col so-col--tight"><div class="so-tablehead"><p class="so-caption">Enable or disable sort option. Drag to reorder.</p>${ghostBar('132px', 28)}</div>
       <div class="ft-table ft-sort-table"><div class="table-head"><div style="width:40px"></div><div>Status</div><div>Label</div><div>Type</div><div class="action">Actions</div></div>
       ${Array.from({ length: RESERVED.length }, () => `<div class="table-row"><div class="so-handle">${ICON_DRAG}</div><div>${ghostBar('36px')}</div><div>${ghostBar('60%')}</div><div>${ghostBar('70%')}</div><div class="action so-action">${ghostBar('32px', 32)}</div></div>`).join('')}</div></div></section></div>`;
 
-  const selectHtml = (id, label, choices, value) => {
+  const selectHtml = (id, label, choices, value, act = 'default') => {
     const disabled = choices.length === 0;
     const current = (choices.find(c => c.key === value) || {}).label || '';
-    return `<div class="Polaris-Select${disabled ? ' Polaris-Select--disabled' : ''}"><select id="${id}" class="Polaris-Select__Input" aria-label="${esc(label)}" data-act="default"${disabled ? ' disabled' : ''}>${choices.map(c => `<option value="${c.key}"${c.key === value ? ' selected' : ''}>${esc(c.label)}</option>`).join('')}</select><div class="Polaris-Select__Content" aria-hidden="true"><span class="Polaris-Select__SelectedOption">${esc(current)}</span>${CHEVRON}</div><div class="Polaris-Select__Backdrop"></div></div>`;
+    return `<div class="Polaris-Select${disabled ? ' Polaris-Select--disabled' : ''}"><select id="${id}" class="Polaris-Select__Input" aria-label="${esc(label)}"${act ? ` data-act="${act}"` : ''}${disabled ? ' disabled' : ''}>${choices.map(c => `<option value="${c.key}"${c.key === value ? ' selected' : ''}>${esc(c.label)}</option>`).join('')}</select><div class="Polaris-Select__Content" aria-hidden="true"><span class="Polaris-Select__SelectedOption">${esc(current)}</span>${CHEVRON}</div><div class="Polaris-Select__Backdrop"></div></div>`;
   };
   const rowHtml = o => {
     const badge = SORT_SCOPE_BADGES[o.key];
     const grab = 'tabindex="0" role="button" aria-roledescription="sortable"';
+    const m = o.mf ? mfByRow(o) : null;
+    const typeText = m ? `Metafield ${mfNs(m.id)}, ${MF_ORDER_TEXT[o.mf.order]}` : (TYPE_TEXT[o.key] || '');
+    const info = REVIEW_SORT_KEYS.includes(o.key) ? `<span class="sort-label-info" data-tip="${esc(REVIEW_TOOLTIP)}" tabindex="0" role="img" aria-label="${esc(REVIEW_TOOLTIP)}">${ICON_BAR}</span>` : '';
     return `<div class="table-row" data-key="${o.key}">
       <div class="so-handle so-grab" ${grab} aria-label="Reorder ${esc(o.label)}">${ICON_DRAG}</div>
       <div><input type="checkbox" class="pg-switch" role="switch" data-act="toggle" aria-label="Status"${o.status ? ' checked' : ''}></div>
-      <div class="sort-label so-sort-label"><div class="so-grab" ${grab}><span>${esc(o.label)}</span></div>${badge ? `<span class="sort-label-badge" data-tip="${esc(badge.tooltip)}" tabindex="0"><span class="Polaris-Badge Polaris-Badge--toneInfo"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">${badge.tag}</span></span></span>` : ''}</div>
-      <div class="sort-type so-grab" ${grab}><span class="so-t so-sub-text">${esc(TYPE_TEXT[o.key] || '')}</span></div>
-      <div class="action"><div class="so-action"><button type="button" class="so-iconbtn" data-act="edit" aria-label="Edit ${esc(o.label)}">${ICON_EDIT}</button></div></div>
+      <div class="sort-label so-sort-label"><div class="so-grab" ${grab}><span>${esc(o.label)}</span></div>${badge ? `<span class="sort-label-badge" data-tip="${esc(badge.tooltip)}" tabindex="0"><span class="Polaris-Badge Polaris-Badge--toneInfo"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">${badge.tag}</span></span></span>` : ''}${info}</div>
+      <div class="sort-type so-grab" ${grab}><span class="so-t so-sub-text">${esc(typeText)}</span></div>
+      <div class="action"><div class="so-action"><button type="button" class="so-iconbtn" data-act="edit" aria-label="Edit ${esc(o.label)}">${ICON_EDIT}</button>${o.mf ? `<button type="button" class="so-iconbtn" data-act="delete" aria-label="Delete ${esc(o.label)}">${ICON_DELETE}</button>` : ''}</div></div>
     </div>`;
   };
   function pageHtml() {
@@ -137,13 +187,13 @@
       return `<section class="so-card" aria-label="No sort options yet"><div class="so-empty"><img src="assets/img/emptystate-files-10e84ca8.png" alt="No sort options yet"><h2>No sort options yet</h2><p>Please contact us to enable sort options.</p><button type="button" class="Polaris-Button Polaris-Button--pressable Polaris-Button--variantPrimary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">Contact us</span></button></div></section>`;
     }
     const eff = effectiveDefaults();
-    return `<div class="so-stack">
+    return `<div class="so-stack">${bannerHtml()}
       <section class="so-card"><div class="so-col"><h2 class="so-card__h">Default sort by value</h2><p class="so-sub">Choose the default sort by value of each pages</p>
         <div class="ft-sort-defaults">
           <div class="so-box"><h3 class="so-box__h">Collection page</h3>${selectHtml('so-def-collection', 'Collection page', collectionChoices(), eff.collection)}</div>
           <div class="so-box"><h3 class="so-box__h">Search result page</h3>${selectHtml('so-def-search', 'Search result page', searchChoices(), eff.search)}</div>
         </div></div></section>
-      <section class="so-card"><div class="so-col so-col--tight"><p class="so-caption">Enable or disable sort option. Drag to reorder.</p>
+      <section class="so-card"><div class="so-col so-col--tight"><div class="so-tablehead"><p class="so-caption">Enable or disable sort option. Drag to reorder.</p><button type="button" class="Polaris-Button Polaris-Button--pressable Polaris-Button--variantSecondary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter" data-act="add-mf"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">Add metafield sort</span></button></div>
         <div class="ft-table ft-sort-table"><div class="table-head"><div style="width:40px"></div><div>Status</div><div>Label</div><div>Type</div><div class="action">Actions</div></div>
         <div id="so-rows">${visibleOptions().map(rowHtml).join('')}</div></div></div></section></div>`;
   }
@@ -168,7 +218,10 @@
   function persist() {                                                          // POST /api/sort-config/update
     const eff = effectiveDefaults();
     const config = options.map(o => ({ key: o.key, label: o.label, status: o.status,
+      ...(o.app ? { app: o.app } : {}), ...(o.mf ? { mf: o.mf, info: o.info } : {}),
       ...(o.key === eff.collection ? { default_collection: true } : {}), ...(o.key === eff.search ? { default_search: true } : {}) }));
+    const prevApp = ((originalOptions.find(o => REVIEW_SORT_KEYS.includes(o.key) && o.app)) || {}).app || null, nextApp = reviewApp();
+    if (nextApp && nextApp !== prevApp) { store.set(SYNC_KEY, JSON.stringify({ app: nextApp, until: Date.now() + SYNC_MS })); hidePending = false; scheduleSync(); }   // a new review app: its data has to be collected first
     store.set(KEY, JSON.stringify(config));
     options = config.map(toRow); originalOptions = clone(options);
     defaults = { collection: (config.find(o => o.default_collection) || {}).key || null, search: (config.find(o => o.default_search) || {}).key || null };
@@ -200,7 +253,7 @@
     function onKey(e) {
       if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
       else if (e.key === 'Tab') {
-        const f = $$('button:not([disabled]), input:not([disabled])', scrim), first = f[0], last = f[f.length - 1];
+        const f = $$('button:not([disabled]), input:not([disabled]), select:not([disabled]), a[href]', scrim), first = f[0], last = f[f.length - 1];
         if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
       }
@@ -213,11 +266,14 @@
     if (onOpen) onOpen(scrim, okBtn);
     return close;
   }
+  const labelFieldHtml = label => `<div class="so-field"><label for="so-edit-label">Label</label><input id="so-edit-label" class="mf-input" type="text" autocomplete="off" maxlength="${LABEL_MAX_LENGTH}" value="${esc(label)}"><span class="so-counter" id="so-edit-count"></span></div>`;
   function openEditModal(row) {
+    if (REVIEW_SORT_KEYS.includes(row.key)) return openReviewModal(row, false);
     let label = row.label;
+    const m = row.mf ? mfByRow(row) : null;
     openModal({
-      title: 'Edit Sort by ' + (ORIGINAL_LABELS[row.key] || row.label),
-      content: `<div class="so-field"><label for="so-edit-label">Label</label><input id="so-edit-label" class="mf-input" type="text" autocomplete="off" maxlength="${LABEL_MAX_LENGTH}" value="${esc(row.label)}"><span class="so-counter" id="so-edit-count"></span></div><p class="so-note">${MSG.editNote}</p>`,
+      title: 'Edit Sort by ' + originalLabel(row),
+      content: `${labelFieldHtml(row.label)}<p class="so-note">${MSG.editNote}</p>${m ? `<p class="so-note">Metafield: <strong>${esc(mfNs(m.id))}</strong> (${esc(mfTypeLabel(m))})</p>` : ''}`,
       ok: 'Save', cancel: 'Cancel',
       onOpen: (scrim, okBtn) => {
         const input = $('#so-edit-label', scrim), count = $('#so-edit-count', scrim);
@@ -232,6 +288,86 @@
         changed(`[data-key="${row.key}"] [data-act=edit]`);
       },
     });
+  }
+  /* Rating / Review: Label + the review app to read from. Exactly one app; the pick is shared by Rating and Review. Opens by itself the first time one of them is turned on
+     (no app picked yet): Cancel leaves it off. Save needs an app. Changing the app makes the sync banner show once the page is saved. */
+  function openReviewModal(row, fromToggle) {
+    let label = row.label, app = reviewApp();
+    const box = a => `<label class="so-app"><input type="radio" class="so-app__in" name="so-app" value="${a.id}"${a.id === app ? ' checked' : ''}><span class="so-app__box"><img src="${a.logo}" alt="" width="40" height="40"><span class="so-app__name">${a.name}</span></span></label>`;
+    openModal({
+      title: 'Edit Sort by ' + (ORIGINAL_LABELS[row.key] || row.label),
+      content: `${labelFieldHtml(row.label)}<p class="so-note so-note--icon"><span class="so-note__i">${ICON_BAR}</span><span>${MSG.editNote}</span></p>
+        <fieldset class="so-apps"><legend class="so-apps__h">Choose integrated app</legend><div class="so-apps__grid">${REVIEW_APPS.map(box).join('')}</div>
+        <p class="so-note">Only one app can be active at a time.</p><p class="so-app-error" id="so-app-error" role="alert" hidden>Choose an app to continue.</p></fieldset>`,
+      ok: 'Save', cancel: 'Cancel',
+      onOpen: (scrim, okBtn) => {
+        const input = $('#so-edit-label', scrim), count = $('#so-edit-count', scrim), err = $('#so-app-error', scrim);
+        const sync = () => { label = input.value; count.textContent = `${label.length}/${LABEL_MAX_LENGTH}`; okBtn.disabled = !label.trim(); };
+        input.addEventListener('input', sync); sync();
+        scrim.addEventListener('change', e => { if (e.target.matches('.so-app__in')) { app = e.target.value; err.hidden = true; } });
+        input.focus(); input.select();
+      },
+      onOk: scrim => {
+        const trimmed = label.trim();
+        if (!trimmed) return false;
+        if (!app) { const err = $('#so-app-error', scrim); err.hidden = false; const first = $('.so-app__in', scrim); if (first) first.focus(); return false; }
+        options = options.map(o => {
+          let n = o;
+          if (REVIEW_SORT_KEYS.includes(o.key)) n = { ...n, app };
+          if (o.key === row.key) n = { ...n, label: trimmed, ...(fromToggle ? { status: true } : {}) };
+          return n;
+        });
+        changed(`[data-key="${row.key}"] [data-act=toggle]`);
+      },
+    });
+  }
+  /* Add metafield sort: pick one saved metafield of a number type (Integer / Decimal / Rating), then which directions to add. Each direction becomes its own row. */
+  function openAddMetafieldModal() {
+    const taken = (m, order) => options.some(o => o.key === mfSortKey(m, order));
+    const free = savedSortableMetafields().filter(m => !(taken(m, 'asc') && taken(m, 'desc')));
+    const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+    const dirRow = d => `<div class="so-dir"><label class="mf-check"><input type="checkbox" data-dir="${d}"><span>${cap(MF_ORDER_TEXT[d])}<span class="so-dir__hint" data-hint="${d}"></span></span></label><input class="mf-input" id="so-mf-label-${d}" type="text" autocomplete="off" maxlength="${LABEL_MAX_LENGTH}" aria-label="Label for ${MF_ORDER_TEXT[d]}"></div>`;
+    const content = free.length
+      ? `<div class="so-field"><label for="so-mf-pick">Metafield</label>${selectHtml('so-mf-pick', 'Metafield', free.map(m => ({ key: m.id, label: pickLabel(m) })), free[0].id, '')}</div>
+         <fieldset class="so-apps"><legend class="so-apps__h">Sort direction</legend><div class="so-dirs">${['asc', 'desc'].map(dirRow).join('')}</div></fieldset>`
+      : `<p class="mf-modal__text">No number metafield saved. Add an Integer, Decimal or Rating metafield on the <a href="metafield.html">Metafield page</a>.</p>`;
+    openModal({
+      title: 'Add metafield sort', content, ok: 'Add', cancel: 'Cancel',
+      onOpen: (scrim, okBtn) => {
+        if (!free.length) { okBtn.disabled = true; return; }
+        const pick = $('#so-mf-pick', scrim), cur = () => free.find(m => m.id === pick.value);
+        const checks = $$('input[data-dir]', scrim), inputs = { asc: $('#so-mf-label-asc', scrim), desc: $('#so-mf-label-desc', scrim) };
+        const refresh = () => { okBtn.disabled = !checks.some(c => c.checked) || checks.some(c => c.checked && !inputs[c.dataset.dir].value.trim()); };
+        const load = () => {                                                      // a metafield was picked: reset the directions and labels
+          const m = cur(); $('.Polaris-Select__SelectedOption', scrim).textContent = pickLabel(m);
+          checks.forEach(c => { const d = c.dataset.dir, used = taken(m, d); c.disabled = used; c.checked = !used; $(`[data-hint=${d}]`, scrim).textContent = used ? ' (already in the table)' : '';
+            inputs[d].disabled = used; inputs[d].value = used ? '' : mfDefaultLabel(m, d); });
+          refresh();
+        };
+        pick.addEventListener('change', load);
+        checks.forEach(c => c.addEventListener('change', () => { inputs[c.dataset.dir].disabled = !c.checked; refresh(); }));
+        Object.values(inputs).forEach(i => i.addEventListener('input', refresh));
+        load(); pick.focus();
+      },
+      onOk: scrim => {
+        const m = free.find(x => x.id === $('#so-mf-pick', scrim).value); if (!m) return false;
+        const adds = $$('input[data-dir]:checked', scrim).map(c => ({ key: mfSortKey(m, c.dataset.dir), label: $('#so-mf-label-' + c.dataset.dir, scrim).value.trim(), status: false,
+          mf: { id: m.id, order: c.dataset.dir }, info: { field: mfHandle(m), order: c.dataset.dir, missing: '_last' } }));
+        if (!adds.length) return false;
+        options = [...options, ...adds];                                          // new rows go to the end of the table, turned off
+        changed(`[data-key="${adds[0].key}"] [data-act=toggle]`);
+        const first = $(`[data-key="${adds[0].key}"]`, body); if (first) first.scrollIntoView({ block: 'nearest' });
+      },
+    });
+  }
+  function openDeleteModal(row) {
+    openModal({ title: 'Delete this sort option?', content: `<p class="mf-modal__text">Shoppers will no longer see “${esc(row.label)}”.</p>`,
+      ok: 'Delete', okClass: 'mf-btn--critical', cancel: 'Cancel',
+      onOk: () => {
+        const next = options.filter(o => o.key !== row.key), err = validateSortOptions(next.filter(isShown));
+        if (err && row.status) { showToast(err, true); return; }                  // the same "keep one option" rule as turning an option off
+        options = next; changed('[data-act=add-mf]');
+      } });
   }
   function openDiscardModal() {
     openModal({ title: 'Discard all unsaved changes?', content: '<p class="mf-modal__text">If you discard changes, you’ll delete any edits you made since you last saved.</p>',
@@ -365,7 +501,8 @@
     const t = e.target;
     if (t.matches('[data-act=toggle]')) {
       const key = t.closest('.table-row').dataset.key, value = t.checked;
-      const next = applyToggle(options, key, value), err = validateSortOptions(SPF_SORTING ? next : next.filter(o => !SPF_SORTING_ONLY_SORT_KEYS.includes(o.key)));
+      if (value && REVIEW_SORT_KEYS.includes(key) && !reviewApp()) { t.checked = false; openReviewModal(options.find(o => o.key === key), true); return; }   // no review app yet: pick one first, Save turns the option on
+      const next = applyToggle(options, key, value), err = validateSortOptions(next.filter(isShown));
       if (err && !value) { t.checked = !value; showToast(err, true); return; }     // only the change that breaks the rule is blocked; turning an option ON is always allowed
       options = next; changed(`[data-key="${key}"] [data-act=toggle]`);
     } else if (t.matches('[data-act=default]')) {
@@ -374,7 +511,12 @@
   });
   body.addEventListener('click', e => {
     const edit = e.target.closest('[data-act=edit]');
-    if (edit) { const row = options.find(o => o.key === edit.closest('.table-row').dataset.key); if (row) openEditModal(row); }
+    if (edit) { const row = options.find(o => o.key === edit.closest('.table-row').dataset.key); if (row) openEditModal(row); return; }
+    const del = e.target.closest('[data-act=delete]');
+    if (del) { const row = options.find(o => o.key === del.closest('.table-row').dataset.key); if (row) openDeleteModal(row); return; }
+    if (e.target.closest('[data-act=add-mf]')) { openAddMetafieldModal(); return; }
+    if (e.target.closest('[data-act=banner-hide]')) { hidePending = true; render(); return; }
+    if (e.target.closest('[data-act=banner-done]')) { store.del(SYNC_KEY); render(); }
   });
   body.addEventListener('mouseover', e => { const b = e.target.closest('[data-tip]'); if (b) showTip(b); });
   body.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]')) hideTip(); });
@@ -391,5 +533,5 @@
 
   /* ---------- start: the skeleton shows while "fetching" ---------- */
   render();
-  setTimeout(() => { loadFromStore(); loading = false; render(); }, 650);
+  setTimeout(() => { loadFromStore(); loading = false; render(); scheduleSync(); }, 650);
 })();

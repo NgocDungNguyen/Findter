@@ -73,7 +73,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(await p.locator('.chat-choice').count() === 0, 'Free: no Yes / No question in the chat');
   ok(!(await p.evaluate(() => FindterWatermark.removed())) && await p.locator('.wm-badge').count() === 0, 'Free: nothing is removed in the first moment (loading)');
   await p.waitForTimeout(1400);
-  m = await msgs(); ok(m.length === before + 2 && /The “Powered by Findter” badge is now removed/.test(m[m.length - 1]) && /Just reply here/.test(m[m.length - 1]), 'Free: then the auto reply "The badge is now removed…" inviting a reply');
+  m = await msgs(); ok(m.length === before + 2 && /We’ve removed the badge/.test(m[m.length - 1]) && /confirm it’s no longer showing/.test(m[m.length - 1]), 'Free: then the auto reply "We’ve removed the badge…" asking to confirm');
   ok(await p.evaluate(() => FindterWatermark.removed()) && await p.locator('.wm-badge').isVisible() && await p.locator('[data-wm-btn]').count() === 0, 'Free: badge removed, the button becomes the green "Removed" badge (no way back)');
   ok(await p.locator('.demo-btn[data-key=wm][data-val=removed]').getAttribute('aria-pressed') === 'true', 'the demo bar Badge group follows (Removed)');
   await p.click('.demo-btn[data-key=wm][data-val=shown]'); await p.waitForTimeout(100);
@@ -95,7 +95,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(await p.locator('.wm-badge').isVisible(), 'before Reset: a store with the badge removed shows "Removed"');
   await p.click('.demo-reset'); await p.waitForTimeout(150);
   const st = await p.evaluate(() => JSON.stringify(FindterDemo.DEMO));
-  ok(st === '{"plan":"Trial","sub":"active","days":14,"over":"normal","lang":"en","wm":"shown"}', 'Reset: every demo value is back to its start value (' + st + ')');
+  ok(st === '{"plan":"Trial","sub":"active","days":14,"over":"normal","lang":"en","wm":"shown","home":"current"}', 'Reset: every demo value is back to its start value (' + st + ')');
   ok(await p.locator('[data-wm-btn]').isVisible() && !(await busy()) && await p.locator('.wm-badge').count() === 0, 'Reset: the card shows the Remove button (no "Removed")');
   for (const v of ['Trial', 'Free', 'Starter']) { await store(v); ok(await p.locator('[data-wm-btn]').isVisible() && await p.locator('.wm-badge').count() === 0, 'after Reset, ' + v + ' shows the Remove button (not "Removed")'); }
   await store('Free'); await p.click('[data-wm-btn]'); await p.waitForTimeout(200);
@@ -104,13 +104,13 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await store('Free');
 
   /* ---- a shop that spams the button: one request, one message, one reply ---- */
-  const hi = () => p.getByText(/Hi, I would like to remove/).count();
+  const hi = () => p.getByText(/Hi, please remove/).count();
   await p.click('.demo-reset'); await p.waitForTimeout(150); await store('Free');
-  const h0 = await hi(), r0 = await p.getByText(/is now removed from your storefront/).count();   // the chat keeps what earlier checks put in it
+  const h0 = await hi(), r0 = await p.getByText(/We’ve removed the badge/).count();   // the chat keeps what earlier checks put in it
   for (let i = 0; i < 4; i++) { await p.click('[data-wm-btn]', { force: true }); await p.waitForTimeout(40); }
   ok(await busy(), 'clicking the button again while the request runs changes nothing');
   await p.waitForTimeout(1600);
-  ok(await hi() === h0 + 1 && await p.getByText(/is now removed from your storefront/).count() === r0 + 1 && await p.locator('.wm-badge').isVisible(), 'clicking many times: one message from the shop, one auto reply, one "Removed"');
+  ok(await hi() === h0 + 1 && await p.getByText(/We’ve removed the badge/).count() === r0 + 1 && await p.locator('.wm-badge').isVisible(), 'clicking many times: one message from the shop, one auto reply, one "Removed"');
   await p.click('.demo-reset'); await p.waitForTimeout(150); await store('Free');
 
   /* ---- Master -> Features on a phone: the chat launcher does not cover the Save button of the last container ---- */
@@ -171,6 +171,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.goto(url('index.html') + '#/master/features'); await p.waitForTimeout(300); await p.check('[data-wm=enabled]'); await p.click('[data-wm-act=save]');
   await sf.fill('#sf-q', ''); await sf.keyboard.press('Escape'); ok(await sf.locator('#sf-search').isHidden(), 'storefront: Esc closes the search');
 
+  ok(await sf.evaluate(() => { const L = [...document.querySelectorAll('.sf-powered__logo')].filter(i => i.getBoundingClientRect().width > 0); return L.length >= 1 && L.every(i => Math.round(i.getBoundingClientRect().width) === 24 && Math.round(i.getBoundingClientRect().height) === 24); }), 'storefront: every logo in a watermark is 24×24px');
   /* ---- filter layouts: Filter design chooses, the storefront follows (Vertical / Horizontal / Off-canvas; phones are always Off-canvas) ---- */
   await p.goto(url('design.html')); await p.waitForTimeout(400);
   const pick = n => p.locator('label.Polaris-Choice', { hasText: new RegExp('^' + n + '$') }).first().click();

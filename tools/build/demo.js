@@ -25,7 +25,7 @@
   const NO_PRODUCT_STATES = ['Development', 'Enterprise'];                    // no "over" / "90%" case: free under 50,000 / no limit
   const LANGS = { en: 'English', fr: 'Français', de: 'Deutsch', vi: 'Tiếng Việt', ja: '日本語' };
   const DEMO_KEY = 'findter.demoStatus';
-  const DEFAULTS = { plan: 'Trial', sub: 'active', days: 14, over: 'normal', lang: 'en', wm: 'shown' };
+  const DEFAULTS = { plan: 'Trial', sub: 'active', days: 14, over: 'normal', lang: 'en', wm: 'shown', home: 'current' };
   const DEMO = { ...DEFAULTS };
   const load = () => {
     try {
@@ -35,6 +35,7 @@
       if ([14, 7, 3, 1, 0].includes(s.days)) DEMO.days = s.days;
       DEMO.over = s.over === true ? 'over' : ['normal', 'near', 'over'].includes(s.over) ? s.over : 'normal';   // older saves stored a boolean
       if (LANGS[s.lang]) DEMO.lang = s.lang;
+      if (['current', 'a', 'b', 'c'].includes(s.home)) DEMO.home = s.home;     // Homepage UI option (index.html only): the current layout or suggestion A / B / C
       if (['shown', 'removed'].includes(s.wm)) DEMO.wm = s.wm;                // the "Powered by Findter" badge: still on the storefront, or removed
     } catch (e) { /* storage blocked */ }
   };
@@ -58,17 +59,19 @@
     ['Language', 'lang', Object.entries(LANGS), 'select'],
     ['Badge', 'wm', [['shown', 'Shown'], ['removed', 'Removed']]],
   ];
-  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  if ($('[data-card=status]')) groups.push(['Home UI', 'home', [['a', 'A'], ['b', 'B'], ['c', 'C']], 'buttons', '<button type="button" class="demo-btn demo-btn--reset" data-act="home-reset" title="Back to the current homepage UI">Current UI</button>']);   // the homepage only
+  const esc =s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   bar.innerHTML = '<button type="button" class="demo-toggle" aria-expanded="false" aria-controls="demo-panel">Demo data</button><div class="demo-panel" id="demo-panel" role="group" aria-label="Demo data for the shop">'
-    + groups.map(([label, key, opts, kind]) => '<div class="demo-group" role="group" aria-label="' + label + '"><span class="demo-label">' + label + '</span>'
+    + groups.map(([label, key, opts, kind, extra]) => '<div class="demo-group" role="group" aria-label="' + label + '"><span class="demo-label">' + label + '</span>'
       + (kind === 'select'
         ? '<select class="demo-select" data-key="' + key + '" aria-label="' + label + '">' + opts.map(([v, t]) => '<option value="' + esc(v) + '">' + esc(t) + '</option>').join('') + '</select>'
-        : opts.map(([v, t]) => '<button type="button" class="demo-btn" data-key="' + key + '" data-val="' + v + '" aria-pressed="false">' + t + '</button>').join(''))
+        : opts.map(([v, t]) => '<button type="button" class="demo-btn" data-key="' + key + '" data-val="' + v + '" aria-pressed="false">' + t + '</button>').join('') + (extra || ''))
       + '</div>').join('') + '<button type="button" class="demo-reset" data-act="reset" title="Back to the start values: Trial store, badge shown">Reset</button></div>';
   top.insertBefore(bar, $('.sh-more', top));
   paint = () => {
     const p = PLANS[DEMO.plan];
-    $$('.demo-btn', bar).forEach(b => b.setAttribute('aria-pressed', String(String(DEMO[b.dataset.key]) === b.dataset.val)));
+    $$('.demo-btn[data-key]', bar).forEach(b => b.setAttribute('aria-pressed', String(String(DEMO[b.dataset.key]) === b.dataset.val)));
+    $$('[data-act=home-reset]', bar).forEach(b => { b.disabled = DEMO.home === 'current'; });
     $$('.demo-select', bar).forEach(s => { s.value = DEMO[s.dataset.key]; });
     $$('.demo-btn[data-key=sub]', bar).forEach(b => { b.disabled = p.date !== 'paid'; });                     // plan state: paid plans only
     $$('.demo-btn[data-key=days]', bar).forEach(b => { b.disabled = !p.date; });                              // days left: stores with a date row
@@ -76,6 +79,7 @@
   };
   bar.addEventListener('change', e => { const s = e.target.closest('.demo-select'); if (s) { DEMO[s.dataset.key] = s.value; save(); changed(); } });
   bar.addEventListener('click', e => {
+    if (e.target.closest('[data-act=home-reset]')) { window.FindterDemo.set('home', 'current'); return; }
     if (e.target.closest('.demo-reset')) { window.FindterDemo.reset(); return; }
     const b = e.target.closest('.demo-btn');
     if (b) { DEMO[b.dataset.key] = b.dataset.key === 'days' ? +b.dataset.val : b.dataset.val; save(); changed(); return; }

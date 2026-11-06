@@ -96,13 +96,20 @@
     { id: 'year', label: 'Year', type: 'list.single_line_text_field' },
     { id: 'material', label: 'Material', type: 'single_line_text_field' },
     { id: 'swatch', label: 'Swatch color', type: 'color' },
+    /* Number metafields (Sort > Add metafield sort offers the saved ones). Every product of the sample storefront has a value for each of them (build/storefront.js, PRODUCTS). */
+    { id: 'popularity', label: 'Popularity score', type: 'number_integer' },
+    { id: 'shelf_life', label: 'Shelf life (months)', type: 'number_integer' },
+    { id: 'net_weight', label: 'Net weight (g)', type: 'number_decimal' },
+    { id: 'customer_rating', label: 'Customer rating', type: 'rating' },
+    { id: 'purity', label: 'Active ingredient (%)', type: 'number_decimal' },    // not saved at first: add it on this page to see it offered on the Sort page
   ];
-  const MF_TYPE_LABEL = { single_line_text_field: 'Text', 'list.single_line_text_field': 'Text List', multi_line_text_field: 'Multi Line Text', number_decimal: 'Decimal', file_reference: 'File', color: 'Color' };
+  const MF_TYPE_LABEL = { single_line_text_field: 'Text', 'list.single_line_text_field': 'Text List', multi_line_text_field: 'Multi Line Text', number_decimal: 'Decimal', number_integer: 'Integer', rating: 'Rating', file_reference: 'File', color: 'Color' };
   const MF_TEXT_TYPES = ['single_line_text_field', 'list.single_line_text_field', 'multi_line_text_field'];   // the only types Search works for
   const MF_SEED = [                                                            // what the demo store has selected the first time
     { id: 'snowboard', applies: ['search'] }, { id: 'multi', applies: ['filter'] }, { id: 'height', applies: ['filter'] },
     { id: 'sale', applies: ['search', 'filter'] }, { id: 'year', applies: ['filter'] },
-  ];
+    { id: 'popularity', applies: ['filter'] }, { id: 'shelf_life', applies: ['filter'] }, { id: 'net_weight', applies: ['filter'] }, { id: 'customer_rating', applies: ['filter'] },
+  ];                                                                           // (storefront.js keeps the same list of ids: SEED_METAFIELD_IDS)
   const WEIGHT_ERROR = 'Enter a whole number, 0 or higher.';
   const isWhole = v => /^\d+$/.test(String(v).trim());
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
@@ -113,6 +120,7 @@
     const rows = parse(MFS_KEY, null);
     return (Array.isArray(rows) ? rows : MF_SEED).filter(r => r && mfMeta(r.id)).map(r => ({ id: r.id, applies: ['search', 'filter'].filter(a => (r.applies || []).includes(a)) }));
   };
+  window.__pages.metafields = { catalog: MF_CATALOG, typeLabel: MF_TYPE_LABEL, load: mfsLoad };   // read by the Sort page (Add metafield sort lists the saved numeric ones)
   const searchIdsOf = rows => rows.filter(r => r.applies.includes('search') && isText(r.id)).map(r => r.id);
   const idxLoad = () => { const s = parse(MFI_KEY, null) || {}; return { pendingUntil: Number(s.pendingUntil) || 0, notice: s.notice === 'done' ? 'done' : null }; };
   const idxSave = i => store.set(MFI_KEY, JSON.stringify(i));

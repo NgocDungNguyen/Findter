@@ -59,13 +59,13 @@ p{margin:0}
 .sf-powered:hover span{text-decoration:underline;text-underline-offset:.3rem}
 .sf-powered:focus-visible{outline:2px solid #121212;outline-offset:2px}
 #sf-powered:focus-visible{outline-color:#fff;outline-offset:-3px}
-.sf-powered__logo{flex:none;display:block;width:2.8rem;height:2.8rem}
+.sf-powered__logo{flex:none;display:block;width:2.4rem;height:2.4rem}
 .sf-powered[hidden]{display:none}
 /* the same mark in two more places (one family with the widget badge: the app's logo + the wordmark; flat, no lines, no shadow; never over content).
    filter bar: no field of its own, it takes the sidebar's background. End of the search results: a full-width ink line that scrolls the mark from left to right, like the running line of a sale banner */
 .sf-powered--filter{position:static;min-width:0;justify-content:center;gap:.9rem;margin-top:0;padding:1.4rem 0 0;border-radius:0;background:none;box-shadow:none;white-space:nowrap;letter-spacing:0;color:#5c5c5c;font-size:1.4rem;line-height:2.2rem}
 .sf-powered--filter strong{font-weight:700;color:#121212}
-.sf-powered--filter .sf-powered__logo{width:2.6rem;height:2.6rem}
+.sf-powered--filter .sf-powered__logo{width:2.4rem;height:2.4rem}
 /* the store's own footer (a plain theme footer) */
 .sf-store-footer{background:#f3f3f3;color:rgba(18,18,18,.75)}
 .sf-store-footer__inner{display:grid;grid-template-columns:2fr 1fr 1fr;gap:4rem;max-width:120rem;margin:0 auto;padding:6.4rem 5rem 3.6rem}
@@ -96,7 +96,7 @@ body[data-filter-layout=horizontal] .sf-main,body[data-filter-layout=offcanvas] 
 .sf-hpanel.is-right{left:auto;right:0}
 .sf-powered--hbar{position:static;grid-column:2;justify-self:start;min-width:0;justify-content:flex-start;gap:.9rem;margin:1.2rem 0 .4rem;padding:0;border-radius:0;background:none;box-shadow:none;white-space:nowrap;letter-spacing:0;color:#5c5c5c;font-size:1.4rem;line-height:2.2rem}
 .sf-powered--hbar strong{color:#121212;font-weight:700}
-.sf-powered--hbar .sf-powered__logo{width:2.6rem;height:2.6rem}
+.sf-powered--hbar .sf-powered__logo{width:2.4rem;height:2.4rem}
 .sf-fbtn{display:inline-flex;align-items:center;gap:1rem;padding:.6rem 0;border:0;background:none;color:#121212;font-size:1.4rem;font-weight:700;cursor:pointer}
 .sf-fbtn svg{width:2.7rem;height:2.7rem;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
 .sf-fbtn__m{display:none}
@@ -214,3 +214,5 @@ html.sf-lock{overflow:hidden}
   .sf-suggest .sf-powered{position:static;flex:none;width:100%;min-width:0;padding:1rem 2rem calc(1rem + env(safe-area-inset-bottom));border-radius:0;box-shadow:none}
 }
 @media (prefers-reduced-motion:reduce){.sf-search__label,.sf-group summary::before{transition:none}}
+/* demo aid: the value the chosen sort option looked at, under the price (shown for Rating, Review and metafield sorts) */
+.sf-card__sortval{margin:2px 0 0;font-size:1.3rem;line-height:1.7;font-weight:600;color:#1f6b45}

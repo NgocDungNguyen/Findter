@@ -162,7 +162,7 @@ const shellCss = bld('shell.css').replace(/\/\* ===== Icon rail between[\s\S]*$/
 body.nav-collapsed .sh-expanded-only{display:none}
 .sh-expanded-only+.sh-expanded-only{}
 `;
-const allCss = [css.polaris, css.app1, css.app2, css.carousel, css.chart, css.extra, pruneFlat(cap('flat.css')), appExtra, shellCss, bld('master.css')].join('\n');
+const allCss = [css.polaris, css.app1, css.app2, css.carousel, css.chart, css.extra, pruneFlat(cap('flat.css')), appExtra, shellCss, bld('master.css'), bld('home-ui.css')].join('\n');
 
 /* ---------- 3. icons & templates ---------- */
 const rootOnly = s => s.replace(/<svg([^>]*)>/, (m, a) => '<svg' + a.replace(/ (width|height)="[^"]*"/g, '') + '>');
@@ -343,7 +343,7 @@ ${bld('demo.js')}
 ${bld('watermark.js')}
 </script>
 <script>
-${(() => { const [dataPart, uiPart] = bld('promotion.js').split('/*--UI--*/'); return bld('app.js').replace('/*PROMOTION_DATA*/', () => dataPart).replace('/*PROMOTION_MODULE*/', () => uiPart).replace('/*WATERMARK_MASTER*/', () => bld('master-watermark.js')); })()}
+${(() => { const [dataPart, uiPart] = bld('promotion.js').split('/*--UI--*/'); return bld('app.js').replace('/*PROMOTION_DATA*/', () => dataPart).replace('/*PROMOTION_MODULE*/', () => uiPart).replace('/*WATERMARK_MASTER*/', () => bld('master-watermark.js')).replace('/*HOME_UI*/', () => bld('home-ui.js')); })()}
 </script>
 </body>
 </html>

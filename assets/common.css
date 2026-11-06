@@ -1607,6 +1607,70 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .ft-apply{margin-top:12px;font-weight:550}
 @media (max-width:767px){[data-panel=features]{padding-bottom:96px}}   /* the chat launcher is fixed bottom-right (~84px) and would sit on the last container's Save button */
 
+/* ===== Homepage UI options A / B / C (prototype). Chosen in the Demo data bar ("Home UI"); #app gets data-home="a|b|c". "Current UI" = no attribute = nothing below applies. =====
+   A  Linear      one column, a health strip right under the guide
+   B  Split       wide main column + a status rail (independent stacks)
+   C  Dashboard   metric tiles first, then full-width bands, then two stacks
+   All: the Onboarding guide is first and full width; our Promotion sits above Recommended apps; the layout follows the page width (container query),
+   not the window, so the sidebar collapsing re-flows it correctly; phones are one column. Polaris cards, 16px gaps, dark primary button, no animation, no red. */
+
+.hx-extra { display: none; }
+.hx-root { container-type: inline-size; container-name: hx; display: flex; flex-direction: column; gap: 16px; width: 100%; min-width: 0; box-sizing: border-box; }
+.hx-root[hidden], .hx-row[hidden], .hx-col[hidden] { display: none !important; }
+.hx-root > .sy-host { flex: none; margin: 0 !important; padding: 0 !important; max-width: none !important; min-width: 0 !important; }
+.hx-row { display: grid; grid-template-columns: var(--w, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.hx-row[data-n="1"] { grid-template-columns: minmax(0, 1fr); }
+.hx-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.hx-col > [data-card] { min-width: 0; }
+
+/* shared: a smaller welcome so the guide starts higher */
+#app[data-home] .ft-welcome { padding: 4px 5px 0; gap: 4px; }
+#app[data-home] .ft-welcome__title { font-size: 24px; line-height: 32px; }
+#app[data-home] .ft-welcome__subtitle { font-size: 13px; line-height: 20px; }
+#app[data-home] [data-card][hidden] { display: none !important; }
+
+/* ---------- A: health strip (the Findter app status card laid out as tiles) + slim Sync and Help bars ---------- */
+#app[data-home=a] [data-card=status] .f37 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 12px; }
+#app[data-home=a] [data-card=status] [data-st] > .f38 { box-sizing: border-box; height: 100%; padding: 10px 12px; border: 1px solid #e3e3e3; border-radius: 8px; background: #fff; }
+#app[data-home=a] [data-card=status] .f39 { flex-direction: column; align-items: flex-start; gap: 6px; }
+#app[data-home=a] [data-card=status] .f39 > p { font-size: 12px; line-height: 16px; color: #616161; }
+#app[data-home=a] [data-card=sync] > .Polaris-Box,
+#app[data-home=a] [data-card=help] > .Polaris-Box { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; row-gap: 4px; align-items: center; }
+#app[data-home=a] [data-card=sync] > .Polaris-Box > .Polaris-Box .Polaris-BlockStack { flex-direction: row; flex-wrap: wrap; gap: 4px 8px; }
+#app[data-home=a] [data-card=sync] > .Polaris-Box > button { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+#app[data-home=a] [data-card=help] > .Polaris-Box > .Polaris-InlineStack { grid-column: 2; grid-row: 1 / span 2; align-self: center; flex-wrap: nowrap; }
+#app[data-home=a] [data-card=help] > .Polaris-Box > h2 { grid-column: 1; }
+#app[data-home=a] [data-card=help] .f37 { gap: 6px; }
+#app[data-home=a] [data-card=help] ul.f47 { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 6px 0 0; padding: 0; list-style: none; }
+#app[data-home=a] [data-card=help] ul.f47 > li { margin: 0; padding: 2px 10px; border: 1px solid #e3e3e3; border-radius: 999px; background: #f7f7f7; }
+#app[data-home=a] [data-card=help] ul.f47 > li::marker { content: ''; }
+
+/* ---------- C: four metric tiles in Data insight; Sync keeps its button at the bottom of its card ---------- */
+#app[data-home=c] .hx-extra { display: contents; }
+#app[data-home=c] [data-card=data] .Polaris-InlineGrid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; }
+#app[data-home=c] [data-card=data] .Polaris-InlineGrid > .Polaris-ShadowBevel { height: 100%; }
+#app[data-home=c] [data-card=data] .Polaris-InlineGrid > .Polaris-ShadowBevel .Polaris-InlineStack { flex-direction: column !important; align-items: flex-start !important; flex-wrap: nowrap !important; gap: 8px !important; }
+.hx-tile > .Polaris-Box { box-sizing: border-box; height: 100%; }
+.hx-tile__v { margin-top: 12px; font-size: 24px; line-height: 32px; font-weight: 650; color: #303030; }
+.hx-tile__s { margin-top: 2px; font-size: 13px; line-height: 20px; color: #616161; }
+.hx-bar { height: 6px; margin-top: 12px; border-radius: 3px; background: #e3e3e3; overflow: hidden; }
+.hx-bar[hidden] { display: none; }
+.hx-bar span { display: block; height: 100%; background: #29845a; }
+.hx-tile[data-tone=orange] .hx-bar span { background: #b98900; }
+
+/* ---------- narrow page (any reason: small window, sidebar open, rail, phone): one column in reading order ---------- */
+@container hx (max-width: 719px) {
+  .hx-row, .hx-col { display: contents; }
+  .hx-root [data-card] { order: var(--mo, 0); }
+  .hx-root > .sy-host { order: -1; }
+}
+@container hx (max-width: 559px) {
+  #app[data-home=a] [data-card=sync] > .Polaris-Box,
+  #app[data-home=a] [data-card=help] > .Polaris-Box { grid-template-columns: minmax(0, 1fr); }
+  #app[data-home=a] [data-card=sync] > .Polaris-Box > button,
+  #app[data-home=a] [data-card=help] > .Polaris-Box > .Polaris-InlineStack { grid-column: 1; grid-row: auto; margin-top: 8px; }
+}
+
 
 /* ===== Extra styles for the stand-alone pages (filter.html / search.html / metafield.html) ===== */
 /* page frame (the s-page + s-stack wrappers of the original, as plain classes) */
@@ -2434,6 +2498,37 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 
 /* error toast (window.shopify.toast.show(msg,{isError:true})) */
 #toast.is-error{background:#8e1f0b}
+
+/* Phase 2: table caption row with the Add metafield sort button, the info icon of Rating / Review, the review app picker, the metafield sort window */
+.so-tablehead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;min-height:28px;margin-bottom:4px}
+.so-tablehead .so-caption{margin:0}
+.sort-label-info{display:inline-flex;flex:none;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;cursor:default}
+.sort-label-info svg{width:16px;height:16px;fill:#8a8a8a}
+.sort-label-info:hover svg,.sort-label-info:focus-visible svg{fill:#4a4a4a}
+.sort-label-info:focus-visible{outline:2px solid #005bd3;outline-offset:1px}
+.so-note--icon{display:flex;align-items:flex-start;gap:8px}
+.so-note__i{display:inline-flex;flex:none;margin-top:2px}
+.so-note__i svg{width:16px;height:16px;fill:#8a8a8a}
+.so-apps{border:0;margin:16px 0 0;padding:0;min-width:0}
+.so-apps__h{padding:0;margin-bottom:8px;font-size:13px;line-height:20px;font-weight:650;color:var(--so-text,#303030)}
+.so-apps__grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.so-app{display:block;position:relative;cursor:pointer}
+.so-app__in{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.so-app__box{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:88px;padding:12px;border:1px solid #c9c9c9;border-radius:12px;background:#fff;font-size:13px;line-height:20px;font-weight:550;color:#303030}
+.so-app__box img{width:40px;height:40px;border-radius:8px;object-fit:contain}
+.so-app:hover .so-app__box{border-color:#8a8a8a;background:#fafafa}
+.so-app__in:checked+.so-app__box{border:2px solid #303030;padding:11px}
+.so-app__in:focus-visible+.so-app__box{outline:2px solid #005bd3;outline-offset:2px}
+.so-app-error{margin:8px 0 0;font-size:13px;line-height:20px;color:#8e1f0b}
+.so-app-error[hidden]{display:none}
+.so-dirs{display:flex;flex-direction:column;gap:12px}
+.so-dir{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px;align-items:center}
+.so-dir .mf-check{padding:0}
+.so-dir__hint{color:#616161}
+@media (max-width:767.98px){
+  .so-apps__grid{grid-template-columns:1fr}
+  .so-dir{grid-template-columns:1fr;gap:4px}
+}
 
 /* Search > Translations, Search > Synonyms Search, Filter set > Translate (extra.js). Everything is scoped to .ex-page. */
 .ex-page{--ex-text:#303030;--ex-sub:#616161}
