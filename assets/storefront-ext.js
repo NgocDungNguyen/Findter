@@ -144,12 +144,17 @@
     const p = bySku[li.dataset.sku]; if (!p) return;
     $$('.sfx', li).forEach(e => e.remove());
     const g = grid(), img = $('.sf-card__img', li), price = $('.sf-card__price', li), saved = wish.includes(p.sku);
-    if (g.rating) price.insertAdjacentHTML('afterend', `<p class="sfx sfx-rating" aria-label="Rated ${p.rating.toFixed(1)} out of 5">${starHtml(p)}<span>${p.rating.toFixed(1)}${g.rating.show_count ? ' (' + p.reviews + ')' : ''}</span></p>`);
+    /* every button sits in the corner the admin chose (Product grid & card); buttons in the same corner stack (the Unavailable tag already takes the top left) */
+    const st = { top: { left: $('.sf-tag', li) ? 54 : 14, right: 14 }, bottom: { left: 14, right: 14 } };
+    const place = (pos, size) => { const v = String(pos).includes('bottom') ? 'bottom' : 'top', h = String(pos).includes('left') ? 'left' : 'right'; const css = h + ':14px;' + v + ':' + st[v][h] + 'px'; st[v][h] += size + 6; return css; };
+    const stars = '<span class="sfx-stars-wrap">' + starHtml(p) + '<span>' + p.rating.toFixed(1) + (g.rating && g.rating.show_count ? ' (' + p.reviews + ')' : '') + '</span></span>';
+    if (g.rating && (!g.rating.position || g.rating.position === 'below')) price.insertAdjacentHTML('afterend', '<p class="sfx sfx-rating" aria-label="Rated ' + p.rating.toFixed(1) + ' out of 5">' + stars + '</p>');
     let h = '';
-    if (g.wl) h += `<button type="button" class="sfx sfx-heart${g.wl.position === 'top left' ? ' sfx-heart--left' : ''}${saved ? ' is-on' : ''}" data-wish aria-pressed="${saved}" aria-label="${saved ? 'Saved to wishlist' : 'Add to wishlist'}: ${esc(p.title)}">${ICON.heart}</button>`;
-    if (g.qv) h += `<button type="button" class="sfx sfx-qv-btn${g.qv.style === 'text' ? ' sfx-qv-btn--text' : ''}${g.qa ? ' has-qa' : ''}" data-qv aria-label="Quick view: ${esc(p.title)}">${g.qv.style === 'text' ? 'Quick view' : ICON.eye}</button>`;
-    if (g.qa) h += `<button type="button" class="sfx sfx-qa${g.qa.show === 'always' ? ' is-always' : ''}" data-qa${p.stock === 'out' ? ' disabled' : ''}>${p.stock === 'out' ? 'Sold out' : esc(g.qa.label_style === 'custom' ? (g.qa.custom_text || 'Quick add') : 'Quick add')}</button>`;
-    if (cmpMode) { const on = sel.includes(p.sku), full = sel.length >= MAX && !on; h += `<label class="sfx sfx-cmpbox${g.qa ? ' has-qa' : ''}${full ? ' is-off' : ''}"><input type="checkbox" data-cmp${on ? ' checked' : ''}${full ? ' disabled' : ''}><span>Compare</span><span class="sfx-sr"> ${esc(p.title)}</span></label>`; }
+    if (g.wl) h += `<button type="button" class="sfx sfx-heart${saved ? ' is-on' : ''}" style="${place(g.wl.position || 'top right', 34)}" data-wish aria-pressed="${saved}" aria-label="${saved ? 'Saved to wishlist' : 'Add to wishlist'}: ${esc(p.title)}">${ICON.heart}</button>`;
+    if (g.qv) h += `<button type="button" class="sfx sfx-qv-btn${g.qv.style === 'text' ? ' sfx-qv-btn--text' : ''}" style="${place(g.qv.position || 'bottom right', g.qv.style === 'text' ? 30 : 34)}" data-qv aria-label="Quick view: ${esc(p.title)}">${g.qv.style === 'text' ? 'Quick view' : ICON.eye}</button>`;
+    if (g.qa) h += `<button type="button" class="sfx sfx-qa${g.qa.show === 'always' ? ' is-always' : ''}" style="${place(g.qa.position || 'bottom left', 32)}" data-qa${p.stock === 'out' ? ' disabled' : ''}>${p.stock === 'out' ? 'Sold out' : esc(g.qa.label_style === 'custom' ? (g.qa.custom_text || 'Quick add') : 'Quick add')}</button>`;
+    if (g.rating && g.rating.position && g.rating.position !== 'below') h += `<p class="sfx sfx-rating sfx-rating--on" style="${place(g.rating.position, 26)}" aria-label="Rated ${p.rating.toFixed(1)} out of 5">${stars}</p>`;
+    if (cmpMode) { const on = sel.includes(p.sku), full = sel.length >= MAX && !on; h += `<label class="sfx sfx-cmpbox${full ? ' is-off' : ''}" style="${place('bottom left', 32)}"><input type="checkbox" data-cmp${on ? ' checked' : ''}${full ? ' disabled' : ''}><span>Compare</span><span class="sfx-sr"> ${esc(p.title)}</span></label>`; }
     img.insertAdjacentHTML('beforeend', h);
   }
   const decorateAll = () => $$('.sf-card', gridEl).forEach(decorate);

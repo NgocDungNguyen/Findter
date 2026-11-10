@@ -2893,9 +2893,7 @@ tr.is-drag{opacity:.5}
 .fdt-product-card__stars{color:#b98900;letter-spacing:1px}
 .fdt-product-card__heart,.fdt-product-card__qv{position:absolute;z-index:2;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:pointer}
 .fdt-product-card__heart svg,.fdt-product-card__qv svg{width:16px;height:16px;fill:none;stroke:#303030;stroke-width:1.5;stroke-linejoin:round}
-.fdt-product-card__qv{right:10px}
 .fdt-product-card__qv--text{width:auto;height:28px;padding:0 12px;border-radius:14px;font:inherit;font-size:12px;line-height:16px;font-weight:550;color:#303030;text-align:center}
-.fdt-product-card__qa{position:absolute;z-index:2;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;min-height:36px;border:0;background:rgba(48,48,48,.92);color:#fff;font:inherit;font-size:13px;line-height:20px;font-weight:550;cursor:pointer}
 
 .pl-page .fdt-header__title:focus,.pl-page .fdt-header__title:focus-visible{outline:none}
 
@@ -2912,3 +2910,6 @@ tr.is-drag{opacity:.5}
 .pl-page .Polaris-Select--error .Polaris-Select__Backdrop{border-color:var(--p-color-border-critical,#e51c00)}
 
 .mc-fieldset{border:0;margin:0;padding:0;min-width:0}
+
+.fdt-product-card__qa{position:absolute;z-index:2;display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 12px;border:0;border-radius:14px;background:rgba(48,48,48,.92);color:#fff;font:inherit;font-size:12px;line-height:16px;font-weight:550;cursor:pointer}
+.fdt-product-card__rating--on{position:absolute;z-index:2;margin:0;padding:2px 8px;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);color:#303030}

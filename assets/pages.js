@@ -407,6 +407,7 @@
   const W_OPTS = [['normal', 'Regular'], ['bold', 'Bold']];
   const TF_OPTS = [['none', 'None'], ['capitalize', 'Capitalize'], ['uppercase', 'Uppercase']];
   const POS_OPTS = [['top left', 'Top left'], ['top right', 'Top right']];
+  const CORNER_OPTS = [['top left', 'Top left'], ['top right', 'Top right'], ['bottom left', 'Bottom left'], ['bottom right', 'Bottom right']];
   const DZ_DEFAULTS = {
     filter: {
       layout_type: 'vertical',
@@ -423,9 +424,9 @@
       image_ratio: '3-4', image_shape: 'default', image_radius: '4', effect_on_hover: { show_second_image: true, zoom_in: true },
       show_vendor: true, show_button_quick_add: true,
       /* Phase 3: review stars from ONE review app, Quick add, Quick view and Wishlist (their windows are on the storefront, assets/storefront-ext.js) */
-      rating_review: { enabled: false, app: 'judgeme', show_count: true },
-      quick_add: { enabled: false, show: 'hover', label_style: 'default', custom_text: 'Quick add' },
-      quick_view: { enabled: false, style: 'icon' },
+      rating_review: { enabled: false, app: 'judgeme', show_count: true, position: 'below' },
+      quick_add: { enabled: false, show: 'hover', position: 'bottom left', label_style: 'default', custom_text: 'Quick add' },
+      quick_view: { enabled: false, style: 'icon', position: 'bottom right' },
       wishlist: { enabled: false, position: 'top right' },
       element_order: [{ id: 'product_title', position: 0 }, { id: 'vendor', position: 1 }, { id: 'price', position: 2 }],
       product_card: { enable_custom: false, content_alignment: 'start', background: '#FFFFFF', show_border: false, border_color: '#CCCCCC', border_radius: 5, content_padding: 0 },
@@ -546,17 +547,16 @@
       { id: 'rating-review-settings', title: 'Rating and review', action: { path: 'rating_review.enabled', label: 'Show rating and review' }, items: [
         { t: 'apps', title: 'Review app', path: 'rating_review.app', opts: [['judgeme', 'Judge.me'], ['yotpo', 'Yotpo']] },
         { t: 'checks', items: [['Show the number of reviews', 'rating_review.show_count']] },
-        { t: 'help', html: 'Shows the star rating and review count that your review app saves on each product. Only one review app can be used at a time.' }] },
+        { t: 'select', label: 'Position', path: 'rating_review.position', opts: [['below', 'Below the price']].concat(CORNER_OPTS) }] },
       { id: 'quick-add-settings', title: 'Quick add button', action: { path: 'quick_add.enabled', label: 'Quick add button' }, items: [
+        { t: 'select', label: 'Position', path: 'quick_add.position', opts: CORNER_OPTS },
         { t: 'select', label: 'Show', path: 'quick_add.show', opts: [['hover', 'On hover'], ['always', 'Always']] },
-        { t: 'style', path: 'quick_add.label_style', text: 'quick_add.custom_text', opts: [['default', 'Default'], ['custom', 'Custom text']] },
-        { t: 'help', html: 'A button over the product image. For a product with options, it opens a small box to choose them, then adds the product to the cart.' }] },
+        { t: 'style', path: 'quick_add.label_style', text: 'quick_add.custom_text', opts: [['default', 'Default'], ['custom', 'Custom text']] }] },
       { id: 'quick-view-settings', title: 'Quick view button', action: { path: 'quick_view.enabled', label: 'Quick view button' }, items: [
-        { t: 'select', label: 'Button', path: 'quick_view.style', opts: [['icon', 'Icon'], ['text', 'Text']] },
-        { t: 'help', html: 'Opens a window with the product photos, price, options and an Add to cart button, so shoppers do not leave the collection page.' }] },
+        { t: 'select', label: 'Position', path: 'quick_view.position', opts: CORNER_OPTS },
+        { t: 'select', label: 'Button', path: 'quick_view.style', opts: [['icon', 'Icon'], ['text', 'Text']] }] },
       { id: 'wishlist-settings', title: 'Wishlist button', action: { path: 'wishlist.enabled', label: 'Wishlist button' }, items: [
-        { t: 'select', label: 'Position', path: 'wishlist.position', opts: POS_OPTS },
-        { t: 'help', html: 'A heart on the product image. Shoppers save products and see them in a Wishlist window, where they can add them to the cart.' }] },
+        { t: 'select', label: 'Position', path: 'wishlist.position', opts: CORNER_OPTS }] },
     ],
   };
 
@@ -657,15 +657,21 @@
       vendor: c.show_vendor ? '<p class="fdt-product-card__brand">Nike Sportswear</p>' : '',
       price: hidePrice ? '' : `<div class="fdt-product-card__price-row"><span class="fdt-product-card__price-regular">${money(59)}</span><span class="fdt-product-card__price-original">${money(89)}</span><span class="fdt-product-card__price-sale">${money(49)}</span></div>`,
     };
-    const rr = c.rating_review || {};
-    const stars = rr.enabled ? `<p class="fdt-product-card__rating" aria-label="Rated 4.6 out of 5"><span class="fdt-product-card__stars" aria-hidden="true">★★★★★</span><span>4.6${rr.show_count ? ' (128)' : ''}</span></p>` : '';
+    const rr = c.rating_review || {}, ratingBelow = !rr.position || rr.position === 'below';
+    const ratingHtml = cls => `<p class="fdt-product-card__rating${cls}" aria-label="Rated 4.6 out of 5"><span class="fdt-product-card__stars" aria-hidden="true">★★★★★</span><span>4.6${rr.show_count ? ' (128)' : ''}</span></p>`;
+    const stars = rr.enabled && ratingBelow ? ratingHtml('') : '';
     const elements = [...(c.element_order || [])].sort((a, b) => a.position - b.position).map(e => R[e.id] || '').join('') + stars;
     const auto = c.image_ratio === 'auto', radius = dzNum(c.image_radius) + 'px';
     const saleOn = !!sb.show_sale_badge, saleSide = sb.position === 'top right' && sb.enable_custom ? 'right' : 'left';
     const so = resolveSoldOut(c.sold_out_badge), ls = resolveLowStock(c.low_stock_badge, MOCK_AVAILABLE_QUANTITY);
-    const wl = c.wishlist || {}, wlSide = wl.position === 'top left' ? 'left' : 'right', qv = c.quick_view || {}, qa = c.quick_add || {};
-    const topBySide = { left: 10, right: 10 }, top = {};
-    [['sale', saleOn, saleSide], ['soldOut', !!so, so && so.side], ['lowStock', !!ls, ls && ls.side], ['wish', !!wl.enabled, wlSide]].forEach(([k, on, side]) => { if (!on) return; top[k] = topBySide[side]; topBySide[side] += 30; });
+    const wl = c.wishlist || {}, qv = c.quick_view || {}, qa = c.quick_add || {};
+    const topBySide = { left: 10, right: 10 }, botBySide = { left: 10, right: 10 }, top = {}, slot = {};
+    [['sale', saleOn, saleSide], ['soldOut', !!so, so && so.side], ['lowStock', !!ls, ls && ls.side]].forEach(([k, on, side]) => { if (!on) return; top[k] = topBySide[side]; topBySide[side] += 30; });
+    const place = (k, pos, size) => { const v = String(pos).includes('bottom') ? 'bottom' : 'top', h = String(pos).includes('left') ? 'left' : 'right', st = v === 'top' ? topBySide : botBySide; slot[k] = `${h}:10px;${v}:${st[h]}px`; st[h] += size + 4; };   // badges and buttons share the four corners and stack
+    if (wl.enabled) place('wish', wl.position || 'top right', 30);
+    if (qv.enabled) place('qv', qv.position || 'bottom right', qv.style === 'text' ? 28 : 30);
+    if (qa.enabled) place('qa', qa.position || 'bottom left', 28);
+    if (rr.enabled && !ratingBelow) place('rating', rr.position, 22);
     const wrapCls = ['fdt-product-card__image-wrapper', auto && 'fdt-product-card__image-wrapper--auto', c.effect_on_hover.zoom_in && 'fdt-product-card__image-wrapper--zoom', c.effect_on_hover.show_second_image && 'fdt-product-card__image-wrapper--has-second'].filter(Boolean).join(' ');
     const cardStyle = pc.enable_custom ? `--fdt-card-border-width:${pc.show_border ? 1 : 0}px;--fdt-card-border-radius:${dzNum(pc.border_radius)}px;--fdt-card-border-color:${pc.border_color};--fdt-card-background:${pc.background}` : '';
     const infoStyle = pc.enable_custom ? `--fdt-card-info-padding:${dzNum(pc.content_padding)}px;--fdt-card-info-alignment:${pc.content_alignment}` : '';
@@ -676,9 +682,10 @@
       + (c.effect_on_hover.show_second_image ? `<img class="fdt-product-card__image fdt-product-card__image--secondary" src="assets/img/preview-2-a586acf8.png" alt="Product secondary" style="border-radius:${radius}">` : '')
       + (saleOn ? badge('fdt-product-card__badge--discount', saleSide, top.sale, '', sb.enable_custom ? BADGE[sb.style] : BADGE.custom) : '')
       + (so ? badge('fdt-product-card__badge--sold-out', so.side, top.soldOut, `font-size:${dzNum(so.size)}px;color:${so.color};background-color:${so.background};font-weight:${so.weight === 'bold' ? 700 : 400};border-radius:${dzNum(so.radius)}px`, so.label) : '')
-      + (wl.enabled ? `<button type="button" class="fdt-product-card__heart" style="${wlSide}:10px;top:${top.wish}px" tabindex="-1" aria-label="Add to wishlist">${HEART_SVG}</button>` : '')
-      + (qv.enabled ? `<button type="button" class="fdt-product-card__qv${qv.style === 'text' ? ' fdt-product-card__qv--text' : ''}" style="bottom:${qa.enabled ? 46 : 10}px" tabindex="-1" aria-label="Quick view">${qv.style === 'text' ? 'Quick view' : EYE_SVG}</button>` : '')
-      + (qa.enabled ? `<button type="button" class="fdt-product-card__qa" tabindex="-1">${esc(qa.label_style === 'custom' ? (qa.custom_text || 'Quick add') : 'Quick add')}</button>` : '')
+      + (wl.enabled ? `<button type="button" class="fdt-product-card__heart" style="${slot.wish}" tabindex="-1" aria-label="Add to wishlist">${HEART_SVG}</button>` : '')
+      + (qv.enabled ? `<button type="button" class="fdt-product-card__qv${qv.style === 'text' ? ' fdt-product-card__qv--text' : ''}" style="${slot.qv}" tabindex="-1" aria-label="Quick view">${qv.style === 'text' ? 'Quick view' : EYE_SVG}</button>` : '')
+      + (qa.enabled ? `<button type="button" class="fdt-product-card__qa" style="${slot.qa}" tabindex="-1">${esc(qa.label_style === 'custom' ? (qa.custom_text || 'Quick add') : 'Quick add')}</button>` : '')
+      + (rr.enabled && !ratingBelow ? ratingHtml(' fdt-product-card__rating--on').replace('<p class="', `<p style="${slot.rating}" class="`) : '')
       + (ls ? badge('fdt-product-card__badge--low-stock', ls.side, top.lowStock, `font-size:${dzNum(ls.size)}px;color:${ls.color};background-color:${ls.background};font-weight:${ls.weight === 'bold' ? 700 : 400}`, `Only ${ls.qty} left`) : '')
       + `</div><div class="fdt-product-card__info" style="${infoStyle}">${elements}</div>`
       + (c.show_button_quick_add ? `<div class="fdt-product-card__actions"><button type="button" class="fdt-product-card__btn-cart" tabindex="-1">${esc(btnLabel)}</button></div>` : '')
