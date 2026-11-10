@@ -67,6 +67,10 @@
     if (save) { try { localStorage.setItem('findter.navExpanded', on ? '1' : ''); } catch (e) { /* storage blocked */ } }
   }
   try { if (localStorage.getItem('findter.navExpanded')) setNavExpanded(true, false); } catch (e) { /* storage blocked */ }
+  /* Year Make Model is a per-store feature: its sidebar item shows only while the demo bar's YMM switch is On (the real app: the ymm feature flag) */
+  const ymmItem = $('.sh-item--ymm');
+  const syncYmm = () => { if (ymmItem && window.FindterDemo) ymmItem.hidden = window.FindterDemo.DEMO.ymm === 'off'; };
+  syncYmm(); if (window.FindterDemo) window.FindterDemo.onChange(syncYmm);
 
   /* ---------- nav links ---------- */
   $$('.sh-nav a, .sh-nav .sh-item--more, .sh-nav .sh-section').forEach(a => a.addEventListener('click', e => {
@@ -647,6 +651,6 @@
 
   /*PROMOTION_MODULE*/
   /*WATERMARK_MASTER*/
-  addEventListener('beforeunload', e => { if (isDirty() || wmDirty()) { e.preventDefault(); e.returnValue = ''; } });
+  addEventListener('beforeunload', e => { if (isDirty()) { e.preventDefault(); e.returnValue = ''; } });
   applyNav(); applyHome(); updateCarousel(true); route();
 })();

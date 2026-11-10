@@ -727,3 +727,19 @@
 
 /* rds_shopify-900: keyboard focus ring for the guideline link in page headers (same 2px ring as the promo links); shared by every page that uses this link */
 .fdt-header__link:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; border-radius: 2px; }
+
+/* Settings page: a card per settings page (name + one-line description); the four pages open from it and come back with their back arrow */
+.st-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:0}
+.st-card{display:flex;align-items:flex-start;gap:14px;padding:20px;border-radius:12px;background:#fff;color:#303030;text-decoration:none;box-shadow:0 0 0 1px #e3e3e3,0 1px 0 rgba(26,26,26,.07);transition:box-shadow .12s,background-color .12s}
+.st-card:hover{background:#fafafa;box-shadow:0 0 0 1px #cccccc,0 1px 2px rgba(26,26,26,.1)}
+.st-card:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
+.st-card__icon{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:#f1f1f1;color:#303030}
+.st-card__icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.st-card__body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.st-card__title{font-size:14px;line-height:20px;font-weight:650}
+.st-card__desc{font-size:13px;line-height:20px;color:#616161}
+.st-card__go{flex:none;align-self:center;display:grid;place-items:center;width:20px;height:20px;color:#8a8a8a}
+.st-card__go svg{width:16px;height:16px;fill:currentColor}
+.st-card:hover .st-card__go{color:#303030}
+.sh-item[hidden]{display:none}
+@media (max-width:767.98px){.st-cards{grid-template-columns:1fr}}

@@ -11,7 +11,7 @@
     '/': 'index.html', '/home': 'index.html',
     '/filter': 'filter.html', '/filter-booster': 'filter-boost.html',
     '/search': 'search.html', '/search-booster': 'search-boost.html',
-    '/metafield': 'metafield.html', '/ymm': 'ymm.html', '/features': 'features.html',
+    '/metafield': 'metafield.html', '/settings': 'settings.html', '/merchandising': 'merchandising.html', '/search-redirect': 'search-redirect.html', '/variants': 'separated-variants.html', '/custom-sort': 'sort.html', '/ymm': 'ymm.html', '/features': 'features.html',
     '/design': 'design.html', '/product-grid': 'design-product-grid.html',
     '/pricing': 'pricing.html',
   };

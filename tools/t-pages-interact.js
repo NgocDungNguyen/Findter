@@ -13,7 +13,7 @@ const log = (...a) => console.log(...a);
   log('home           :', await where());
   await p.locator('.sh-item--sub', { hasText: /^Filter$/ }).click(); await p.waitForTimeout(700); log('-> Filter       :', await where());
   await p.locator('.sh-item--sub', { hasText: /^Search$/ }).click(); await p.waitForTimeout(700); log('-> Search       :', await where());
-  await p.locator('.sh-item--sub', { hasText: /^Metafield$/ }).click(); await p.waitForTimeout(700); log('-> Metafield    :', await where());
+  await p.locator('.sh-item--sub', { hasText: /^Settings$/ }).click(); await p.waitForTimeout(700); log('-> Settings     :', await where());
   await p.locator('.sh-appgroup .sh-item--parent').click(); await p.waitForTimeout(800); log('-> app item     :', await where());
   await p.locator('.sh-item--sub', { hasText: /^Year Make Model$/ }).click(); await p.waitForTimeout(300); log('other sub item  :', await toast());
 

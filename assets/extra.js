@@ -131,9 +131,9 @@
   function synonymsPage() {
     const KEY = 'findter.synonyms.v1', MAX = 10;
     const SEED = [
-      { id: 1, status: true, name: 'tv', relation: 'one_way', synonym_term: ['television', 'telly'] },
-      { id: 2, status: true, name: 'sneakers', relation: 'two_ways', synonym_term: ['trainers', 'kicks'] },
-      { id: 3, status: false, name: 'tshirt', relation: 'one_way', synonym_term: ['t-shirt', 'tee', 'tea shirt'] },
+      { id: 1, status: true, name: 'moisturizer', relation: 'two_ways', synonym_term: ['cream', 'lotion'] },     // keep in step with SYNONYM_SEED in catalog.js (other pages read the same rows)
+      { id: 2, status: true, name: 'spf', relation: 'one_way', synonym_term: ['sunscreen', 'sun cream'] },
+      { id: 3, status: false, name: 'lippy', relation: 'one_way', synonym_term: ['lipstick', 'lip balm'] },
     ];
     let rows = load(KEY, SEED);
     const persist = () => store.set(KEY, JSON.stringify(rows));

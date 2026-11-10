@@ -3,34 +3,43 @@
 const fs = require('fs'); const path = require('path'); const { JSDOM } = require('jsdom');
 const root = path.join(__dirname, '..');
 const rd = p => fs.readFileSync(path.join(__dirname, p), 'utf8');
+/* Draft features (Settings > A/B testing, Search > Preview search) are built only while their source files exist: tools/build/abtest.js, tools/build/preview.js (+ draft-ab-preview.css). Without them the pages, the Settings card and the Search tab are left out. */
+const HAS_AB = fs.existsSync(path.join(__dirname, 'build', 'abtest.js')), HAS_PREVIEW = fs.existsSync(path.join(__dirname, 'build', 'preview.js')), HAS_DRAFT_CSS = fs.existsSync(path.join(__dirname, 'build', 'draft-ab-preview.css'));
 
 // flat: false = plain Polaris capture (wrapped by the pg-* classes); flat: true = Shopify web components flattened from the live app (cap/pages/<key>.flat.html)
-const PAGES = [
+const ALL_PAGES = [
   { key: 'filter', file: 'filter.html', active: 'Filter' },
-  { key: 'search', file: 'search.html', active: 'Search' },
-  { key: 'metafield', file: 'metafield.html', active: 'Metafield' },
+  { key: 'search', file: 'search.html', active: 'Search', script: ['assets/catalog.js', 'assets/ui.js', 'assets/pl.js', 'assets/suggest.js'] },   // + the No results / Zero character suggestion cards (suggest.js)
+  { key: 'settings', file: 'settings.html', active: 'Settings', custom: 'settings' },                                  // written by hand: the Settings page (cards)
+  { key: 'metafield', file: 'metafield.html', active: 'Settings' },
+  { key: 'merchandising', file: 'merchandising.html', active: 'Merchandising', custom: 'merch', script: ['assets/catalog.js', 'assets/ui.js', 'assets/pl.js', 'assets/merch.js'] },   // written by hand, rebuilt in Polaris from the Boost prototype
+  { key: 'search-redirect', file: 'search-redirect.html', active: 'Settings', custom: 'redirect', script: ['assets/ui.js', 'assets/pl.js', 'assets/settings-more.js'] },
+  { key: 'ab-testing', file: 'ab-testing.html', active: 'Settings', custom: 'ab', script: ['assets/catalog.js', 'assets/ui.js', 'assets/abtest.js'] },
+  { key: 'separated-variants', file: 'separated-variants.html', active: 'Settings', custom: 'variants', script: ['assets/ui.js', 'assets/pl.js', 'assets/settings-more.js'] },
   { key: 'filter-booster', file: 'filter-boost.html', active: 'Filter', flat: true },
   { key: 'search-booster', file: 'search-boost.html', active: 'Search', flat: true },
-  { key: 'ymm', file: 'ymm.html', active: 'Year Make Model', flat: true },
-  { key: 'features', file: 'features.html', active: 'Advanced features', flat: true },
-  { key: 'design', file: 'design.html', active: 'Filter and grid design', flat: true, script: 'assets/watermark-card.js' },
+  { key: 'ymm', file: 'ymm.html', active: 'Year Make Model', custom: 'ymm', script: ['assets/ui.js', 'assets/pl.js', 'assets/ymm.js'] },     // written by hand: options, widget labels, remember vehicle, import, history
+  { key: 'features', file: 'features.html', active: 'Advanced features', flat: true, script: 'assets/features-extra.js' },
+  { key: 'design', file: 'design.html', active: 'Settings', flat: true, script: 'assets/watermark-card.js' },
   { key: 'pricing', file: 'pricing.html', active: 'Pricing', srcdoc: true },
-  { key: 'sort', file: 'sort.html', active: 'Custom sort', custom: true, script: 'assets/sort.js' },       // written by hand (no capture): ported from the app's Settings/SortBody.jsx
+  { key: 'sort', file: 'sort.html', active: 'Settings', custom: true, script: 'assets/sort.js' },       // written by hand (no capture): ported from the app's Settings/SortBody.jsx
   { key: 'search-translation', file: 'search-translation.html', active: 'Search', custom: 'extra', script: 'assets/extra.js' },    // written by hand: ported from the app's pages/search/locales.jsx
+  { key: 'search-preview', file: 'search-preview.html', active: 'Search', custom: 'preview', script: ['assets/catalog.js', 'assets/ui.js', 'assets/preview.js'] },     // Search > Preview search (written by hand)
   { key: 'search-synonym', file: 'search-synonym.html', active: 'Search', custom: 'extra', script: 'assets/extra.js' },        // ported from components/Synonym/*
   { key: 'filter-translate', file: 'filter-translate.html', active: 'Filter', custom: 'extra', script: 'assets/extra.js' },  // ported from pages/filter/set/[name]/translations.jsx + TranslationEditor.jsx
   { key: 'filter-set', file: 'filter-set.html', active: 'Filter', custom: 'extra', script: 'assets/extra.js' },                 // the filter set's own page (read-only Default filter set); its Translations button opens filter-translate.html
-  { key: 'design-tab2', file: 'design-product-grid.html', active: 'Filter and grid design', flat: true },
+  { key: 'design-tab2', file: 'design-product-grid.html', active: 'Settings', flat: true },
 ];
+const PAGES = ALL_PAGES.filter(p => !(p.key === 'ab-testing' && !HAS_AB) && !(p.key === 'search-preview' && !HAS_PREVIEW));
 // tabs that are separate pages
-const TAB_PAGES = { 'Manage filter set': 'filter.html', 'Collection booster': 'filter-boost.html', 'Search settings': 'search.html', 'Search booster': 'search-boost.html', 'Translations': 'search-translation.html', 'Synonyms search': 'search-synonym.html', 'Filter design': 'design.html', 'Product grid design': 'design-product-grid.html' };
+const TAB_PAGES = { 'Manage filter set': 'filter.html', 'Collection booster': 'filter-boost.html', 'Search settings': 'search.html', 'Search booster': 'search-boost.html', 'Translations': 'search-translation.html', 'Synonyms search': 'search-synonym.html', 'Preview search': 'search-preview.html', 'Filter design': 'design.html', 'Product grid design': 'design-product-grid.html' };
 const APP_ASSETS = 'https://findter-production.flintverse.com/assets/';
 const CHEVRON = '<span type="chevron-right" class="pg-chevron" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5.72 12.53a.75.75 0 0 1 0-1.06l3.47-3.47-3.47-3.47a.749.749 0 1 1 1.06-1.06l4 4a.75.75 0 0 1 0 1.06l-4 4a.75.75 0 0 1-1.06 0"></path></svg></span>';
 
 /* ---------- shared assets ---------- */
 const home = new JSDOM(fs.readFileSync(path.join(root, 'index.html'), 'utf8')).window.document;
 fs.mkdirSync(path.join(root, 'assets'), { recursive: true });
-const css = [...home.querySelectorAll('style')].map(s => s.textContent).join('\n') + '\n' + rd('build/pages.css') + '\n' + rd('build/sort.css') + String.fromCharCode(10) + rd('build/extra.css');
+const css = [...home.querySelectorAll('style')].map(s => s.textContent).join('\n') + '\n' + rd('build/pages.css') + '\n' + rd('build/sort.css') + String.fromCharCode(10) + rd('build/extra.css') + String.fromCharCode(10) + (HAS_DRAFT_CSS ? rd('build/draft-ab-preview.css') + String.fromCharCode(10) : '') + rd('build/polaris-extra.css');
 fs.writeFileSync(path.join(root, 'assets', 'common.css'), css);
 
 // shell behaviour = the first part of the home script (nav, menus, search, Sidekick, chat); home-only features are stubbed
@@ -46,6 +55,7 @@ fs.writeFileSync(path.join(root, 'assets', 'code-notice.js'), rd('build/code-not
 fs.writeFileSync(path.join(root, 'assets', 'demo.js'), rd('build/demo.js'));
 fs.writeFileSync(path.join(root, 'assets', 'watermark.js'), rd('build/watermark.js'));
 fs.writeFileSync(path.join(root, 'assets', 'watermark-card.js'), rd('build/watermark-card.js'));
+for (const n of ['ui', 'pl', 'catalog', 'merch', 'settings-more', 'suggest', 'ymm', 'features-extra'].concat(HAS_PREVIEW ? ['preview'] : [], HAS_AB ? ['abtest'] : [])) fs.writeFileSync(path.join(root, 'assets', n + '.js'), rd('build/' + n + '.js'));
 
 /* ---------- shell pieces copied from index.html so every page stays in sync with it ---------- */
 const pick = sel => [...home.querySelectorAll(sel)].map(e => e.outerHTML).join('\n');
@@ -113,11 +123,11 @@ function addSearchTabs(root, active) {
   const ul = root.querySelector('ul.Polaris-Tabs'); if (!ul) throw new Error('search tabs: tab list not found');
   root.querySelectorAll('.Polaris-Tabs__TabsMeasurer, .Polaris-Tabs__DisclosureTab').forEach(e => e.remove());
   const tpl = [...ul.querySelectorAll('.Polaris-Tabs__Tab')].pop().closest('li');
-  for (const [id, label] of [['locales', 'Translations'], ['synonym-search', 'Synonyms search']]) {
+  for (const [id, label] of [['locales', 'Translations'], ['synonym-search', 'Synonyms search']].concat(HAS_PREVIEW ? [['preview-search', 'Preview search']] : [])) {
     const li = tpl.cloneNode(true), b = li.querySelector('.Polaris-Tabs__Tab');
     b.id = id; b.setAttribute('aria-label', label); b.querySelector('.Polaris-Text--root').textContent = label; ul.appendChild(li);
   }
-  ul.querySelectorAll('.Polaris-Tabs__Tab').forEach(b => { if (b.id === 'locales' || b.id === 'synonym-search') { b.classList.remove('Polaris-Tabs__Tab--active'); b.setAttribute('aria-selected', 'false'); b.setAttribute('tabindex', '-1'); } });
+  ul.querySelectorAll('.Polaris-Tabs__Tab').forEach(b => { if (b.id === 'locales' || b.id === 'synonym-search' || b.id === 'preview-search') { b.classList.remove('Polaris-Tabs__Tab--active'); b.setAttribute('aria-selected', 'false'); b.setAttribute('tabindex', '-1'); } });
   if (active) ul.querySelectorAll('.Polaris-Tabs__Tab').forEach(b => { const on = b.id === active; b.classList.toggle('Polaris-Tabs__Tab--active', on); b.setAttribute('aria-selected', String(on)); b.setAttribute('tabindex', on ? '0' : '-1'); });
 }
 const guideLink = (href, text) => `<p class="fdt-header__description"><a class="fdt-header__link" href="${href}" target="_blank" rel="noopener noreferrer">${text}</a></p>`;
@@ -145,7 +155,81 @@ function extraContent(p) {
   }
   return `<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack ex-page">${head}${tabs}<div id="ex-body" data-page="${kind}"></div></div></div></main></div></div>`;
 }
+/* ---------- Settings: one sidebar item that opens its own page (settings.html): a card per settings page, each with a name and a one-line description.
+   The four pages (Metafield, Filter design, Product grid & card, Custom sort) keep a back arrow before their title that returns to Settings, like the app's sub pages. ---------- */
+const SETTINGS_ICONS = {
+  metafield: '<path d="M4 5.5h12M4 10h12M4 14.5h7"/>',
+  'ab-testing': '<path d="M4 16V9m4 7V5m4 11v-5m4 5V7"/>',
+  'search-redirect': '<path d="M4 10h11m0 0-4-4m4 4-4 4"/>',
+  'separated-variants': '<rect x="3.5" y="4.5" width="5" height="11" rx="1"/><rect x="11.5" y="4.5" width="5" height="11" rx="1"/>',
+  design: '<path d="M4 6h7M15 6h1M4 14h1M9 14h7"/><circle cx="13" cy="6" r="1.75"/><circle cx="7" cy="14" r="1.75"/>',
+  'design-tab2': '<rect x="4" y="4" width="5" height="5" rx="1"/><rect x="11" y="4" width="5" height="5" rx="1"/><rect x="4" y="11" width="5" height="5" rx="1"/><rect x="11" y="11" width="5" height="5" rx="1"/>',
+  sort: '<path d="M7 16V4m0 0L4 7m3-3 3 3M13 4v12m0 0-3-3m3 3 3-3"/>',
+};
+const SETTINGS_PAGES_ALL = [   // key, name, one-line description, file
+  ['metafield', 'Metafield', 'Choose the product metafields shoppers can filter and search by.', 'metafield.html'],
+  ['design', 'Filter design', 'Set the filter layout, colors and text, and see it in a live preview.', 'design.html'],
+  ['design-tab2', 'Product grid &amp; card', 'Change the product grid, the card elements, badges and buttons.', 'design-product-grid.html'],
+  ['sort', 'Custom sort', 'Choose which sort options shoppers see and in what order.', 'sort.html'],
+  ['search-redirect', 'Search redirect', 'Send shoppers to a page when they search for certain keywords.', 'search-redirect.html'],
+  ['ab-testing', 'A/B testing', 'Compare your setup and results across two periods.', 'ab-testing.html'],
+  ['separated-variants', 'Separated variant products', 'Show each variant as its own product in collections.', 'separated-variants.html'],
+];
+const SETTINGS_PAGES = SETTINGS_PAGES_ALL.filter(t => t[0] !== 'ab-testing' || HAS_AB);
+const isSettingsPage = key => SETTINGS_PAGES.some(t => t[0] === key);
+const pageWrap = (inner, cls = 'pl-page') => '<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack ' + cls + '">' + inner + '</div></div></main></div></div>';
+function settingsContent() {
+  const BOXV = n => '--pc-box-padding-block-start-xs:var(--p-space-' + n + ');--pc-box-padding-block-end-xs:var(--p-space-' + n + ');--pc-box-padding-inline-start-xs:var(--p-space-' + n + ');--pc-box-padding-inline-end-xs:var(--p-space-' + n + ')';
+  const card = ([k, name, desc, href]) => '<a class="pl-setcard" href="' + href + '" data-nav="page"><div class="Polaris-ShadowBevel" style="--pc-shadow-bevel-z-index:32;--pc-shadow-bevel-content-xs:&quot;&quot;;--pc-shadow-bevel-box-shadow-xs:var(--p-shadow-100);--pc-shadow-bevel-border-radius-xs:var(--p-border-radius-300)"><div class="Polaris-Box" style="--pc-box-background:var(--p-color-bg-surface);--pc-box-min-height:100%;--pc-box-overflow-x:clip;--pc-box-overflow-y:clip;' + BOXV('400') + '">'
+    + '<div class="Polaris-InlineStack" style="--pc-inline-stack-align:start;--pc-inline-stack-block-align:start;--pc-inline-stack-wrap:nowrap;--pc-inline-stack-gap-xs:var(--p-space-300);--pc-inline-stack-flex-direction-xs:row"><span class="pl-setcard__ico" aria-hidden="true"><svg viewBox="0 0 20 20" focusable="false">' + SETTINGS_ICONS[k] + '</svg></span>'
+    + '<div class="Polaris-BlockStack" style="--pc-block-stack-order:column;--pc-block-stack-gap-xs:var(--p-space-050);flex:1;min-width:0"><span class="Polaris-Text--root Polaris-Text--headingSm">' + name + '</span><span class="Polaris-Text--root Polaris-Text--bodyMd Polaris-Text--subdued">' + desc + '</span></div><span class="pl-setcard__go" aria-hidden="true">' + CHEVRON + '</span></div></div></div></a>';
+  return '<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack pl-page"><div class="fdt-header"><h1 class="fdt-header__title">Settings</h1></div>'
+    + '<nav class="pl-settings" aria-label="Settings pages">' + SETTINGS_PAGES.map(card).join('') + '</nav></div></div></main></div></div>';
+}
+function withSettings(key, html) {                                            // html = the page's content (#app ...); puts a back arrow (to Settings) before the page's own title
+  const doc = new JSDOM('<body>' + html + '</body>').window.document;
+  const head = doc.querySelector('.fdt-header'); if (!head) throw new Error(key + ': page header not found');
+  const own = head.querySelector('h1'); if (!own) throw new Error(key + ': page title not found');
+  const t = { design: 'Filter design', 'design-tab2': 'Product grid &amp; card' }[key]; // the other pages keep their own title
+  if (t) own.innerHTML = t;
+  const bar = doc.createElement('div'); bar.className = 'ex-titlebar ex-titlebar--split';
+  bar.innerHTML = '<div class="ex-titlebar__l"><a class="ex-back" href="settings.html" data-nav="page" aria-label="Back to Settings"><span class="Polaris-Icon">' + BACK_ICON + '</span></a><div class="ex-titlebar__text"></div></div>';
+  const text = bar.querySelector('.ex-titlebar__text'); while (head.firstChild) text.appendChild(head.firstChild); head.appendChild(bar);
+  const tabs = doc.querySelector('.fdt-menu-tabs'); if (tabs) tabs.closest('.Polaris-Layout__Section').remove();   // the two design tabs are now two cards on the Settings page
+  return doc.body.innerHTML;
+}
+// Search > Preview search: the Search header + tabs (Preview search current) and the container preview.js fills
+function previewContent() {
+  const doc = new JSDOM(`<body>${rd('cap/pages/search.html')}</body>`).window.document, stack = doc.querySelector('s-stack');
+  const inner = doc.createElement('div'); [...stack.childNodes].forEach(n => inner.appendChild(n));
+  const tabSection = inner.querySelector('.fdt-menu-tabs').closest('.Polaris-Layout__Section');
+  addSearchTabs(tabSection, 'preview-search'); markTabs(tabSection);
+  return '<div id="app"><div class="pg-contents"><main class="pg-main"><div class="pg-grid"><div class="pg-stack so-page mc-page"><div class="fdt-header"><h1 class="fdt-header__title">Search</h1>' + guideLink(GUIDE + 'advanced-features/synonym-search', 'Search guidelines here') + '</div><div class="Polaris-Layout">' + tabSection.outerHTML + '</div><div id="sp-root" data-mfp></div></div></div></main></div></div>';
+}
+/* Advanced features: one more card, Product compare (the switch is wired by features-extra.js; it turns the compare option on for the storefront) */
+function addCompareCard(doc) {
+  const g = doc.querySelector('.display-features-grid'); if (!g) throw new Error('features: grid not found');
+  const card = g.firstElementChild.cloneNode(true);
+  const img = card.querySelector('img.display-features-thumbnail'); img.setAttribute('src', 'assets/img/feature-compare.svg'); img.setAttribute('alt', 'Product compare');
+  const v = card.querySelector('video'); if (v) v.remove();
+  const o = card.querySelector('.display-features-preview-overlay'); if (o) o.remove();
+  card.querySelector('h3').textContent = 'Product compare';
+  const sw = card.querySelector('.pg-switch'); sw.setAttribute('aria-label', 'Turn Product compare on or off'); sw.setAttribute('data-feature', 'compare'); sw.removeAttribute('checked');
+  const tip = card.querySelector('[data-polaris-tooltip-activator]'); if (tip) tip.remove();
+  g.appendChild(card);
+}
 function contentFor(p) {
+  const html = contentRaw(p);
+  return isSettingsPage(p.key) ? withSettings(p.key, html) : html;
+}
+function contentRaw(p) {
+  if (p.custom === 'settings') return settingsContent();
+  if (p.custom === 'ymm') return pageWrap('<div class="fdt-header"><h1 class="fdt-header__title">Year Make Model</h1><p class="fdt-header__description"><a class="fdt-header__link" href="' + GUIDE + 'advanced-features/year-make-model-ymm" target="_blank" rel="noopener noreferrer">Year Make Model guidelines here</a></p></div><div id="ym-root" data-mfp></div>');
+  if (p.custom === 'merch') return pageWrap('<div id="mc-root" data-mfp></div>');
+  if (p.custom === 'ab') return pageWrap('<div class="fdt-header"><h1 class="fdt-header__title">A/B testing</h1><p class="fdt-header__description">Compare how your setup and results changed between two periods.</p></div><div id="ab-root" data-mfp></div>', 'so-page mc-page');
+  if (p.custom === 'redirect') return pageWrap('<div class="fdt-header"><h1 class="fdt-header__title">Search redirect</h1></div><div id="sr-root" data-mfp></div>');
+  if (p.custom === 'variants') return pageWrap('<div class="fdt-header"><h1 class="fdt-header__title">Separated variant products</h1></div><div id="sv-root" data-mfp></div>');
+  if (p.custom === 'preview') return previewContent();
   if (p.custom === 'extra') return extraContent(p);
   if (p.custom) return sortContent();
   if (p.srcdoc) return pricingContent();
@@ -155,6 +239,7 @@ function contentFor(p) {
     doc.querySelectorAll('[aria-owns]').forEach(e => e.removeAttribute('aria-owns'));
     doc.querySelectorAll('[data-state]').forEach(e => e.removeAttribute('data-state'));
     if (p.key === 'search-booster') addSearchTabs(doc);
+    if (p.key === 'features') addCompareCard(doc);
     markTabs(doc);
     chatWiring(p, doc, doc.body);
     return doc.querySelector('#app').outerHTML.split(APP_ASSETS).join('assets/img/');
@@ -265,7 +350,10 @@ fs.writeFileSync(path.join(root, 'storefront.html'), rd('build/storefront.html')
     .replace('<title>Catalog – Sample store</title>', '<title>Search – Sample store</title>').replace(' aria-current="page"', '').replace('data-page="collection"', 'data-page="search"'));
 }
 fs.writeFileSync(path.join(root, 'assets', 'storefront.css'), rd('build/storefront.css'));
+fs.writeFileSync(path.join(root, 'assets', 'img', 'feature-compare.svg'), rd('build/feature-compare.svg'));
 fs.writeFileSync(path.join(root, 'assets', 'storefront.js'), rd('build/storefront.js'));
+fs.writeFileSync(path.join(root, 'assets', 'storefront-ext.js'), rd('build/storefront-ext.js'));
+fs.writeFileSync(path.join(root, 'assets', 'storefront-ext.css'), rd('build/storefront-ext.css'));
 for (const n of ['black', 'white']) fs.writeFileSync(path.join(root, 'assets', 'img', 'findter-logo-' + n + '.webp'), fs.readFileSync(path.join(__dirname, 'build', 'findter-logo-' + n + '.webp')));      // the app's logo as a plain glyph: white on the dark search-widget badge, black on the filter badges
 console.log('wrote storefront.html + assets/storefront.css, storefront.js');
 console.log('wrote assets/common.css', (css.length / 1024).toFixed(0) + ' KB, assets/shell.js, assets/pages.js');

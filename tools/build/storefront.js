@@ -44,7 +44,8 @@
   const searchUrl = term => 'storefront-search.html?q=' + encodeURIComponent(term);
   const isSearchPage = document.body.dataset.page === 'search';
   const pageTerm = isSearchPage ? (new URLSearchParams(location.search).get('q') || '').trim() : '';
-  const base = isSearchPage ? (pageTerm ? matchesOf(pageTerm) : []) : PRODUCTS;     // Featured / Relevance = this order
+  const baseAll = isSearchPage ? (pageTerm ? matchesOf(pageTerm) : []) : PRODUCTS;     // Featured / Relevance = this order
+  let base = baseAll;                                                           // storefront-ext.js narrows it for a chosen vehicle (Year Make Model widget)
   let shown = base;
 
   /* ---------- Sort by: the options the admin turned on in Custom sort (findter.sortConfig.v1), in the admin's order with the admin's labels; the page's default is the one picked
@@ -71,7 +72,7 @@
     if (!row || row.key === 'featured' || row.key === 'relevance') return base;
     if (row.key === 'title_asc' || row.key === 'title_desc') return [...base].sort((a, b) => (row.key === 'title_asc' ? 1 : -1) * a.title.localeCompare(b.title));
     const dir = row.mf ? (row.mf.order === 'asc' ? 1 : -1) : DIR[row.key];
-    return [...base].sort((a, b) => { const x = valueOf(a, row), y = valueOf(b, row); if (x === null || y === null) return x === y ? 0 : x === null ? 1 : -1; return dir * (x - y); });   // missing value always last
+    return [...base].sort((a, b) => { const x = valueOf(a, row), y = valueOf(b, row); if (x === null || y === null) return x === y ? 0 : x === null ? 1 : -1; return dir * (x - y) || b.created - a.created; });   // missing value always last; the same value -> the newer product first
   }
   const sortNote = (p, row) => {                                                 // demo aid: under the price, the value the chosen option sorted by
     if (!row) return '';
@@ -89,7 +90,7 @@
   /* ---------- collection / search results ---------- */
   $('#sf-count').textContent = shown.length + ' products';
   const BATCH = 12, grid = $('#sf-grid'), more = $('#sf-more'); let loaded = 0;
-  const cardsOf = list => list.map(p => '<li class="sf-card"><div class="sf-card__img">' + (p.stock === 'out' ? '<span class="sf-tag">Unavailable</span>' : '') + '</div>'
+  const cardsOf = list => list.map(p => '<li class="sf-card" data-sku="' + p.sku + '"><div class="sf-card__img">' + (p.stock === 'out' ? '<span class="sf-tag">Unavailable</span>' : '') + '</div>'
     + '<p class="sf-card__title">' + esc(p.title) + '</p><p class="sf-card__meta">' + p.sku + '</p><p class="sf-card__meta">' + esc(p.vendor) + '</p><p class="sf-card__price">' + money(p.price) + '</p>'
     + (sortNote(p, sortRow) ? '<p class="sf-card__sortval">' + esc(sortNote(p, sortRow)) + '</p>' : '')
     + '<button type="button" class="sf-card__btn"' + (p.stock === 'out' ? ' disabled' : '') + '>' + (p.stock === 'out' ? 'Sold out' : 'Add to cart') + '</button></li>').join('');
@@ -111,6 +112,8 @@
     sortSel.addEventListener('change', () => setSort(sortSel.value));
     sortRow = SORT.rows.find(r => r.key === SORT.def); shown = sortedBy(sortRow); sortSel.value = sortRow.key;
   }
+  /* storefront-ext.js (compare, rating, quick add / view, wishlist, Year Make Model) works on the same products and can narrow the list */
+  window.FindterStore = { PRODUCTS, money, esc, setFilter: fn => { base = fn ? baseAll.filter(fn) : baseAll; shown = SORT && sortRow ? sortedBy(sortRow) : base; $('#sf-count').textContent = shown.length + ' products'; renderResults(); } };
   renderResults();
   if (isSearchPage) {
     document.title = 'Search: ' + shown.length + ' results found for ' + pageTerm + ' – Sample store';

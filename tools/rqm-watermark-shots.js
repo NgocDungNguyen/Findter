@@ -49,11 +49,9 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   await p.setViewportSize({ width: 1440, height: 1300 });
   await open('index.html', {}, '#/master/features');
   await p.evaluate(() => document.querySelector('[data-wm-master]').scrollIntoView({ block: 'end' })); await p.waitForTimeout(200);
-  await capture('Master > Features: container "Powered by Findter badge" duoi Recommended Apps (mac dinh)', [['[data-wm-master]', 1], ['[data-wm=enabled]', 2], ['[data-wm-types]', 3], ['[data-wm-link]', 4], ['[data-wm-act=save]', 5]], ['[data-panel=features] .prm-card:nth-of-type(2)', '[data-wm-master]']);
-  await p.uncheck('[data-wm=enabled]'); await p.check('[data-wm=enabled]');
-  for (const t of ['Subscription', 'Trial', 'Paid before', 'Service', 'Free']) await p.uncheck(`[data-wm-type="${t}"]`);
-  await p.evaluate(() => document.querySelector('[data-wm-master]').scrollIntoView({ block: 'center' })); await p.waitForTimeout(200);
-  await capture('Master > Features: bat tinh nang nhung khong tick shop type nao (loi, Save bi khoa)', [['[data-wm-err]', 1], ['[data-wm-act=save]', 2]], ['[data-wm-master]']);
+  await capture('Master > Features: container "Powered by Findter badge" duoi Recommended Apps (mac dinh): chi con muc "Remove or restore for one store", khong con cong tac, danh sach shop type, o link va nut Save', [['[data-wm-master]', 1], ['[data-wm-domain]', 2], ['[data-wm-shop=remove]', 3], ['[data-wm-shop=restore]', 4], ['[data-wm-shop=none]', 5]], ['[data-panel=features] .prm-card:nth-of-type(2)', '[data-wm-master]']);
+  await p.fill('[data-wm-domain]', 'abc'); await p.locator('[data-wm-domain]').blur(); await p.waitForTimeout(150);
+  await capture('Master > Features: nhap domain sai ("abc"): hien loi sau khi roi o, hai nut Remove badge va Restore badge bi khoa', [['[data-wm-domain]', 1], ['[data-wm-domain-err]', 2], ['[data-wm-shop=remove]', 3]], ['[data-wm-master]']);
 
   await p.setViewportSize({ width: 1440, height: 1000 });
 
@@ -68,11 +66,11 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   await p.waitForTimeout(1400);
   await capture('Sau khoang 1 giay: tin tu dong "The badge is now removed…" hoi them ho tro, nut doi thanh badge Removed', [['.wm-badge', 1], ['.chat-panel__body', 2]]);
 
-  // ---- Subscription (paid): the same row, the same button, the same chat
-  await open('design.html', { plan: 'Starter' }); await tagDesign();
-  await capture('Store Subscription: dong truoc khi bam, cung nut Remove nhu moi shop type', [[card, 1], [sw, 2]], band);
-  await p.click(sw); await p.waitForTimeout(350);
-  await capture('Store Subscription sau khi bam Remove: chat cung mo va tu gui tin, nut "Removing…" (mot luong cho moi shop type)', [[sw, 1], ['.chat-panel__body', 2]]);
+  // ---- Free (has the flag): the same row as Trial; Subscription (paying at the release): no flag, no row
+  await open('design.html', { plan: 'Free' }); await tagDesign();
+  await capture('Store Free (co co): dong truoc khi bam, cung nut Remove nhu Trial', [[card, 1], [sw, 2]], band);
+  await open('design.html', { plan: 'Starter' }); await tagDesign(); await p.waitForTimeout(300);
+  await capture('Store Subscription (dang tra phi tai ngay release, khong co co): khong co dong go badge, card Filter layout bat dau bang tieu de va mo ta', [], band);
 
   // ---- demo bar
   await p.setViewportSize({ width: 1920, height: 400 });
@@ -128,16 +126,11 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   await open('index.html', {}, '#/master/features');
   await p.evaluate(() => document.querySelector('[data-wm-shop-box]').scrollIntoView({ block: 'center' })); await p.waitForTimeout(200);
   await p.fill('[data-wm-domain]', 'abc-store.myshopify.com'); await p.waitForTimeout(100);
-  await capture('Master > Features: muc "Remove or restore for one store" duoi cac shop type, nhap domain hop le (Shown), chi "Remove badge" sang', [['[data-wm-shop-box]', 1], ['[data-wm-domain]', 2], ['[data-wm-shop=remove]', 3], ['[data-wm-shop=restore]', 4]], ['[data-wm-types]', '[data-wm-shop-box]']);
+  await capture('Master > Features: muc "Remove or restore for one store" duoi cac shop type, nhap domain hop le (Shown), chi "Remove badge" sang', [['[data-wm-shop-box]', 1], ['[data-wm-domain]', 2], ['[data-wm-shop=remove]', 3], ['[data-wm-shop=restore]', 4]], ['[data-wm-master]']);
   await p.click('[data-wm-shop=remove]'); await p.waitForTimeout(150);
-  await capture('Master > Features: sau khi bam Remove badge: store do Removed, "Restore badge" sang (dung de test hoac bat lai)', [['[data-wm-domain-status]', 1], ['[data-wm-shop=restore]', 2]], ['[data-wm-types]', '[data-wm-shop-box]']);
-  // ---- Master -> Features: the Badge link field (link = clickable badge, empty = plain badge)
-  await open('index.html', {}, '#/master/features');
-  await p.evaluate(() => document.querySelector('[data-wm-link-field]').scrollIntoView({ block: 'center' })); await p.waitForTimeout(200);
-  await p.fill('[data-wm-link]', 'abc'); await p.locator('[data-wm-link]').blur(); await p.waitForTimeout(100);
-  await capture('Master > Features: o "Badge link" nhap sai (khong bat dau bang http:// hoac https://): hien loi, Save bi khoa', [['[data-wm-link]', 1], ['[data-wm-link-err]', 2], ['[data-wm-act=save]', 3]], ['[data-wm-types]', '[data-wm-act=save]']);
-  await p.fill('[data-wm-link]', ''); await p.waitForTimeout(100);
-  await capture('Master > Features: o "Badge link" de trong (cho phep): Save bam duoc, badge tren storefront chi la hinh va chu, khong bam duoc', [['[data-wm-link]', 1], ['[data-wm-act=save]', 2]], ['[data-wm-types]', '[data-wm-act=save]']);
+  await capture('Master > Features: sau khi bam Remove badge: store do Removed, "Restore badge" sang (dung de test hoac bat lai)', [['[data-wm-domain-status]', 1], ['[data-wm-shop=restore]', 2]], ['[data-wm-master]']);
+  await p.click('[data-wm-shop=none]'); await p.waitForTimeout(150);
+  await capture('Master > Features: sau khi bam Clear badge: store khong co cai dat badge (Not set), "Remove badge" va "Restore badge" bam duoc (dung de tao lai trang thai store da tra phi tai ngay release)', [['[data-wm-domain-status]', 1], ['[data-wm-shop=none]', 2], ['[data-wm-shop=restore]', 3]], ['[data-wm-master]']);
   fs.writeFileSync(path.join(OUT, 'list.txt'), list.join('\n') + '\n');
   console.log(errs.length ? 'page errors: ' + errs.join(' | ') : 'page errors: none'); await b.close();
   console.log(fails || errs.length ? 'CHECK FAILED' : 'done: ' + list.length + ' pictures in ' + OUT); process.exit(fails || errs.length ? 1 : 0);

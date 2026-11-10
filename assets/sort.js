@@ -33,7 +33,7 @@
   const REVIEW_SORT_KEYS = ['rating_desc', 'review_desc'];
   const REVIEW_APPS = [{ id: 'judgeme', name: 'Judge.me', logo: 'assets/img/judgeme-logo.png' }, { id: 'yotpo', name: 'Yotpo', logo: 'assets/img/yotpo-logo.png' }];
   const appName = id => (REVIEW_APPS.find(a => a.id === id) || {}).name || '';
-  const REVIEW_TOOLTIP = 'You need to configure Judge.me/Yotpo app before enable this sort by option';
+  const REVIEW_TOOLTIP = 'Set up Judge.me or Yotpo before turning on this sort option.';
   /* Metafield sorts (Phase 2): a saved metafield of a NUMBER type can be sorted (the app's MetafieldData.getSortConfigs: number_integer, number_decimal, rating);
      text, list, color, file and metaobject metafields have no number to sort by. Each option is one direction of one metafield, products without a value come last. */
   const SORTABLE_MF_TYPES = ['number_integer', 'number_decimal', 'rating'];
@@ -134,7 +134,7 @@
       if (hidePending) return '';
       return `<div class="mf-banner mf-banner--warn" role="status"><div class="mf-banner__head"><span class="mf-banner__icon">${ICON_ALERT}</span><strong>Collecting data</strong><button type="button" class="mf-banner__x" data-act="banner-hide" aria-label="Dismiss">${ICON_CLOSE}</button></div><p class="mf-banner__body">We are collecting ${appName(s.app)} ratings and review counts, please wait.</p></div>`;
     }
-    return `<div class="mf-banner mf-banner--ok" role="status"><span class="mf-banner__icon">${ICON_OK}</span><span class="mf-banner__text">Data indexing is completed. Rating and Review are ready.</span><button type="button" class="mf-banner__x" data-act="banner-done" aria-label="Dismiss">${ICON_CLOSE}</button></div>`;
+    return `<div class="mf-banner mf-banner--done" role="status"><div class="mf-banner__head"><span class="mf-banner__icon">${ICON_OK}</span><strong>Data indexing is completed</strong><button type="button" class="mf-banner__x" data-act="banner-done" aria-label="Dismiss">${ICON_CLOSE}</button></div><p class="mf-banner__body">Rating and Review are ready.</p></div>`;
   }
   function scheduleSync() {
     clearTimeout(syncTimer); const s = readSync(); if (!s || Date.now() >= s.until) return;
@@ -361,13 +361,11 @@
     });
   }
   function openDeleteModal(row) {
-    openModal({ title: 'Delete this sort option?', content: `<p class="mf-modal__text">Shoppers will no longer see “${esc(row.label)}”.</p>`,
+    const next = options.filter(o => o.key !== row.key), err = row.status ? validateSortOptions(next.filter(isShown)) : null;   // the same "keep one option" rule as turning an option off
+    openModal({ title: 'Delete this sort option?', content: `<p class="mf-modal__text">Shoppers will no longer see “${esc(row.label)}”.</p>${err ? `<p class="so-app-error" id="so-del-error" role="alert">${esc(err)}</p>` : ''}`,
       ok: 'Delete', okClass: 'mf-btn--critical', cancel: 'Cancel',
-      onOk: () => {
-        const next = options.filter(o => o.key !== row.key), err = validateSortOptions(next.filter(isShown));
-        if (err && row.status) { showToast(err, true); return; }                  // the same "keep one option" rule as turning an option off
-        options = next; changed('[data-act=add-mf]');
-      } });
+      onOpen: (scrim, okBtn) => { if (err) okBtn.disabled = true; },               // the reason is written in the window, not in a toast that disappears
+      onOk: () => { options = next; changed('[data-act=add-mf]'); } });
   }
   function openDiscardModal() {
     openModal({ title: 'Discard all unsaved changes?', content: '<p class="mf-modal__text">If you discard changes, you’ll delete any edits you made since you last saved.</p>',

@@ -12,7 +12,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
     const r = await p.evaluate(() => { const h = document.querySelector('.sh-top'), d = document.querySelector('.demo-bar'), m = document.querySelector('.sh-more');
       if (!d) return null; const a = d.getBoundingClientRect(), c = h.getBoundingClientRect(), mm = m.getBoundingClientRect();
       return { btn: d.querySelectorAll('.demo-btn').length, sel: d.querySelectorAll('.demo-select').length, n: document.querySelectorAll('.demo-bar').length, fits: a.right <= mm.left + 1 && a.left >= c.left && a.height <= c.height }; });
-    ok(r && r.n === 1 && r.btn === 15 && r.sel === 2 && r.fits, f + ': one demo bar in the header (15 buttons, 2 drop-downs, fits at 1900px)');
+    ok(r && r.n === 1 && r.btn === (f === 'index.html' ? 19 : 15) && r.sel === 2 && r.fits, f + ': one demo bar in the header (19 buttons on the home page, 15 elsewhere, 2 drop-downs, fits at 1900px)');
   }
   // the choice follows the merchant from page to page
   await p.goto(url('search.html')); await p.selectOption('.demo-select[data-key=plan]', 'Free'); await p.waitForTimeout(80);

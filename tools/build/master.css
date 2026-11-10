@@ -147,6 +147,9 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 /* sidebar: Analytics / Pricing stay hidden until "View more" */
 .sh-item--extra{display:none}
 .sh-appgroup.is-expanded .sh-item--extra{display:flex}
+/* the Master item is a prototype tool, not an app menu item: it sits under View more (with Analytics and Pricing) and shows while the Master page is open, so the collapsed list stays 5 items + View more */
+.sh-item--master{display:none}
+.sh-appgroup.is-expanded .sh-item--master,.sh-item--master[aria-current=page]{display:flex}
 
 /* sidebar: a sub page (or Master) is open, so the parent item shows highlighted text but no pill (the sub item gets the pill) */
 .sh-item--sub[aria-current=page]{background:var(--sh-active);color:#fcfcfc;font-weight:550}
@@ -215,6 +218,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .wm-shop h3{margin:0 0 4px;font-size:14px;line-height:20px;font-weight:650;color:#303030}
 .wm-shop .prm-field{max-width:420px}
 .wm-shop__acts{justify-content:flex-start}
+.prm-card > h2 + .wm-shop{margin-top:12px;padding-top:0;border-top:0}
 .prm-edit{max-width:760px}
 .prm-titlebar{display:flex;align-items:center;gap:8px;margin:4px 0 14px}
 .prm-titlebar h1{margin:0;font-size:20px;line-height:28px;font-weight:700}

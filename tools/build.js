@@ -186,8 +186,10 @@ const navMain = [['Home', 'home'], ['Orders', 'order'], ['Products', 'product'],
 const item = ([label, icon]) => `<a class="sh-item" href="#" ${''}>${ic(icon)}<span class="sh-item__label">${label}</span></a>`;
 const appIcon = 'https://cdn.shopify.com/s/files/applications/393b6ef120968ea1931a5ec86b58d041_200x200.png?v=1753934348';
 const smartIcon = 'https://cdn.shopify.com/s/files/applications/f44b43e81ef89598c0de05c8ea6dcf80_200x200.png?v=1543569774';
-const subs = ['Filter', 'Search', 'Metafield', 'Custom sort', 'Year Make Model', 'Filter and grid design', 'Advanced features'];
-const PAGE_LINKS = { Filter: 'filter.html', Search: 'search.html', Metafield: 'metafield.html', 'Custom sort': 'sort.html', 'Year Make Model': 'ymm.html', 'Filter and grid design': 'design.html', 'Advanced features': 'features.html' };
+// Sidebar: Filter, Search, Merchandising (rules that boost, demote or hide products), Settings (its page lists Metafield / Filter design / Product grid & card / Custom sort as cards), Year Make Model (only while the shop has the feature on), Advanced features;
+// Analytics and Pricing sit under "View more" (the collapsed list is never longer than 5 items + the View more button).
+const subs = ['Filter', 'Search', 'Settings', 'Year Make Model', 'Merchandising', 'Advanced features'];
+const PAGE_LINKS = { Filter: 'filter.html', Search: 'search.html', Settings: 'settings.html', 'Year Make Model': 'ymm.html', Merchandising: 'merchandising.html', 'Advanced features': 'features.html' };   // Settings has its own page: a card per settings page
 const alertsData = [
   ['Permissions', 'Sep 7 at 2:34 PM', 'New collaborator request for your store', 'Review collaborator request from collaborator@example.com.', false],
   ['Billing', 'Sep 7 at 2:30 PM', 'Let us know if you’ve registered for a tax number', 'Update your billing settings if you have a tax number for your business.', true],
@@ -227,7 +229,7 @@ const shell = `
     <a class="sh-item sh-only-collapsed sh-appsrail" href="#/" data-nav="page" aria-current="page">${ic('apps')}</a>
     <div class="sh-appgroup">
       <a class="sh-item sh-item--app" href="#/" data-nav="page" aria-current="page"><img class="sh-appicon" src="${appIcon}" alt=""><span class="sh-item__label">Findter Filter &amp; Search</span></a>
-      ${subs.map(s => PAGE_LINKS[s] ? `<a class="sh-item sh-item--sub" href="${PAGE_LINKS[s]}" data-nav="page"><span class="sh-item__label">${s}</span></a>` : `<a class="sh-item sh-item--sub" href="#"><span class="sh-item__label">${s.replace(/&/g, '&amp;')}</span></a>`).join('')}
+      ${subs.map(s => PAGE_LINKS[s] ? `<a class="sh-item sh-item--sub${s === 'Year Make Model' ? ' sh-item--ymm' : ''}" href="${PAGE_LINKS[s]}" data-nav="page"><span class="sh-item__label">${s}</span></a>` : `<a class="sh-item sh-item--sub" href="#"><span class="sh-item__label">${s.replace(/&/g, '&amp;')}</span></a>`).join('')}
       <a class="sh-item sh-item--sub sh-item--extra" href="#"><span class="sh-item__label">Analytics</span></a>
       <a class="sh-item sh-item--sub sh-item--extra" href="pricing.html" data-nav="page"><span class="sh-item__label">Pricing</span></a>
       <a class="sh-item sh-item--sub sh-item--master" href="#/master" data-nav="page"><span class="sh-item__label">Master</span></a>

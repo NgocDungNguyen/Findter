@@ -422,6 +422,11 @@
       product_per_page: 16, number_items_per_row: '3', pagination: 'show_more', product_grid_enable_custom: false, background: '#FFFFFF',
       image_ratio: '3-4', image_shape: 'default', image_radius: '4', effect_on_hover: { show_second_image: true, zoom_in: true },
       show_vendor: true, show_button_quick_add: true,
+      /* Phase 3: review stars from ONE review app, Quick add, Quick view and Wishlist (their windows are on the storefront, assets/storefront-ext.js) */
+      rating_review: { enabled: false, app: 'judgeme', show_count: true },
+      quick_add: { enabled: false, show: 'hover', label_style: 'default', custom_text: 'Quick add' },
+      quick_view: { enabled: false, style: 'icon' },
+      wishlist: { enabled: false, position: 'top right' },
       element_order: [{ id: 'product_title', position: 0 }, { id: 'vendor', position: 1 }, { id: 'price', position: 2 }],
       product_card: { enable_custom: false, content_alignment: 'start', background: '#FFFFFF', show_border: false, border_color: '#CCCCCC', border_radius: 5, content_padding: 0 },
       title: { enable_custom: false, font_size: 16, color: '#000000', font_weight: 'normal', text_transform: 'none' },
@@ -538,6 +543,20 @@
         { t: 'range', label: 'Size', path: 'button_add_to_cart.font_size', min: 1, max: 30 }, { t: 'range', label: 'Border radius', path: 'button_add_to_cart.border_radius', min: 1, max: 15 },
         { t: 'range', label: 'Padding', path: 'button_add_to_cart.padding', min: 0, max: 30 },
         { t: 'style', path: 'button_add_to_cart.label_style', text: 'button_add_to_cart.custom_text', opts: [['default', 'Default'], ['custom', 'Custom text']] }] }] },
+      { id: 'rating-review-settings', title: 'Rating and review', action: { path: 'rating_review.enabled', label: 'Show rating and review' }, items: [
+        { t: 'apps', title: 'Review app', path: 'rating_review.app', opts: [['judgeme', 'Judge.me'], ['yotpo', 'Yotpo']] },
+        { t: 'checks', items: [['Show the number of reviews', 'rating_review.show_count']] },
+        { t: 'help', html: 'Shows the star rating and review count that your review app saves on each product. Only one review app can be used at a time.' }] },
+      { id: 'quick-add-settings', title: 'Quick add button', action: { path: 'quick_add.enabled', label: 'Quick add button' }, items: [
+        { t: 'select', label: 'Show', path: 'quick_add.show', opts: [['hover', 'On hover'], ['always', 'Always']] },
+        { t: 'style', path: 'quick_add.label_style', text: 'quick_add.custom_text', opts: [['default', 'Default'], ['custom', 'Custom text']] },
+        { t: 'help', html: 'A button over the product image. For a product with options, it opens a small box to choose them, then adds the product to the cart.' }] },
+      { id: 'quick-view-settings', title: 'Quick view button', action: { path: 'quick_view.enabled', label: 'Quick view button' }, items: [
+        { t: 'select', label: 'Button', path: 'quick_view.style', opts: [['icon', 'Icon'], ['text', 'Text']] },
+        { t: 'help', html: 'Opens a window with the product photos, price, options and an Add to cart button, so shoppers do not leave the collection page.' }] },
+      { id: 'wishlist-settings', title: 'Wishlist button', action: { path: 'wishlist.enabled', label: 'Wishlist button' }, items: [
+        { t: 'select', label: 'Position', path: 'wishlist.position', opts: POS_OPTS },
+        { t: 'help', html: 'A heart on the product image. Shoppers save products and see them in a Wishlist window, where they can add them to the cart.' }] },
     ],
   };
 
@@ -626,6 +645,8 @@
     if (qty <= 0 || qty > x.show_when_stock_lte) return null;
     return { size: x.font_size, color: x.color, background: x.background, weight: x.font_weight, qty, side: x.position === 'top right' ? 'right' : 'left' };
   }
+  const HEART_SVG = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.5S3.5 12.6 3.5 8A3.4 3.4 0 0 1 10 6.6 3.4 3.4 0 0 1 16.5 8c0 4.6-6.500 8.500-6.500 8.500Z"/></svg>';
+  const EYE_SVG = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 10S5 5 10 5s7.500 5 7.500 5-2.500 5-7.500 5-7.500-5-7.500-5Z"/><circle cx="10" cy="10" r="2.200"/></svg>';
   function gridPreview(c) {
     const sb = c.sale_badge, pc = c.product_card, atc = c.button_add_to_cart || {};
     const BADGE = { percentage: '-30%', amount: '-$20', custom: sb.custom_text || 'Sale' };
@@ -636,12 +657,15 @@
       vendor: c.show_vendor ? '<p class="fdt-product-card__brand">Nike Sportswear</p>' : '',
       price: hidePrice ? '' : `<div class="fdt-product-card__price-row"><span class="fdt-product-card__price-regular">${money(59)}</span><span class="fdt-product-card__price-original">${money(89)}</span><span class="fdt-product-card__price-sale">${money(49)}</span></div>`,
     };
-    const elements = [...(c.element_order || [])].sort((a, b) => a.position - b.position).map(e => R[e.id] || '').join('');
+    const rr = c.rating_review || {};
+    const stars = rr.enabled ? `<p class="fdt-product-card__rating" aria-label="Rated 4.6 out of 5"><span class="fdt-product-card__stars" aria-hidden="true">★★★★★</span><span>4.6${rr.show_count ? ' (128)' : ''}</span></p>` : '';
+    const elements = [...(c.element_order || [])].sort((a, b) => a.position - b.position).map(e => R[e.id] || '').join('') + stars;
     const auto = c.image_ratio === 'auto', radius = dzNum(c.image_radius) + 'px';
     const saleOn = !!sb.show_sale_badge, saleSide = sb.position === 'top right' && sb.enable_custom ? 'right' : 'left';
     const so = resolveSoldOut(c.sold_out_badge), ls = resolveLowStock(c.low_stock_badge, MOCK_AVAILABLE_QUANTITY);
+    const wl = c.wishlist || {}, wlSide = wl.position === 'top left' ? 'left' : 'right', qv = c.quick_view || {}, qa = c.quick_add || {};
     const topBySide = { left: 10, right: 10 }, top = {};
-    [['sale', saleOn, saleSide], ['soldOut', !!so, so && so.side], ['lowStock', !!ls, ls && ls.side]].forEach(([k, on, side]) => { if (!on) return; top[k] = topBySide[side]; topBySide[side] += 30; });
+    [['sale', saleOn, saleSide], ['soldOut', !!so, so && so.side], ['lowStock', !!ls, ls && ls.side], ['wish', !!wl.enabled, wlSide]].forEach(([k, on, side]) => { if (!on) return; top[k] = topBySide[side]; topBySide[side] += 30; });
     const wrapCls = ['fdt-product-card__image-wrapper', auto && 'fdt-product-card__image-wrapper--auto', c.effect_on_hover.zoom_in && 'fdt-product-card__image-wrapper--zoom', c.effect_on_hover.show_second_image && 'fdt-product-card__image-wrapper--has-second'].filter(Boolean).join(' ');
     const cardStyle = pc.enable_custom ? `--fdt-card-border-width:${pc.show_border ? 1 : 0}px;--fdt-card-border-radius:${dzNum(pc.border_radius)}px;--fdt-card-border-color:${pc.border_color};--fdt-card-background:${pc.background}` : '';
     const infoStyle = pc.enable_custom ? `--fdt-card-info-padding:${dzNum(pc.content_padding)}px;--fdt-card-info-alignment:${pc.content_alignment}` : '';
@@ -652,6 +676,9 @@
       + (c.effect_on_hover.show_second_image ? `<img class="fdt-product-card__image fdt-product-card__image--secondary" src="assets/img/preview-2-a586acf8.png" alt="Product secondary" style="border-radius:${radius}">` : '')
       + (saleOn ? badge('fdt-product-card__badge--discount', saleSide, top.sale, '', sb.enable_custom ? BADGE[sb.style] : BADGE.custom) : '')
       + (so ? badge('fdt-product-card__badge--sold-out', so.side, top.soldOut, `font-size:${dzNum(so.size)}px;color:${so.color};background-color:${so.background};font-weight:${so.weight === 'bold' ? 700 : 400};border-radius:${dzNum(so.radius)}px`, so.label) : '')
+      + (wl.enabled ? `<button type="button" class="fdt-product-card__heart" style="${wlSide}:10px;top:${top.wish}px" tabindex="-1" aria-label="Add to wishlist">${HEART_SVG}</button>` : '')
+      + (qv.enabled ? `<button type="button" class="fdt-product-card__qv${qv.style === 'text' ? ' fdt-product-card__qv--text' : ''}" style="bottom:${qa.enabled ? 46 : 10}px" tabindex="-1" aria-label="Quick view">${qv.style === 'text' ? 'Quick view' : EYE_SVG}</button>` : '')
+      + (qa.enabled ? `<button type="button" class="fdt-product-card__qa" tabindex="-1">${esc(qa.label_style === 'custom' ? (qa.custom_text || 'Quick add') : 'Quick add')}</button>` : '')
       + (ls ? badge('fdt-product-card__badge--low-stock', ls.side, top.lowStock, `font-size:${dzNum(ls.size)}px;color:${ls.color};background-color:${ls.background};font-weight:${ls.weight === 'bold' ? 700 : 400}`, `Only ${ls.qty} left`) : '')
       + `</div><div class="fdt-product-card__info" style="${infoStyle}">${elements}</div>`
       + (c.show_button_quick_add ? `<div class="fdt-product-card__actions"><button type="button" class="fdt-product-card__btn-cart" tabindex="-1">${esc(btnLabel)}</button></div>` : '')
@@ -677,6 +704,7 @@
       case 'style': { const i = id(), j = id(); return `<div class="dz-style"><label for="${i}" class="dz-row__label">Style</label><div class="dz-style__ctl">${select(it.path, it.opts, i, 'Style')}</div><div class="dz-style__ctl" data-show="${it.path}=custom"${dzGet(c, it.path) === 'custom' ? '' : ' hidden'}>${textField(it.text, j, 'Custom text', ' placeholder="Custom text" required aria-required="true"')}</div></div>`; }
       case 'num': { const i = id(); return `<div class="dz-row"><label class="dz-row__label" for="${i}">${it.label}</label><div class="dz-row__ctl" style="flex:0 0 140px"><div class="Polaris-TextField"><input id="${i}" type="number" min="1" step="1" inputmode="numeric" class="Polaris-TextField__Input" data-p="${it.path}" data-kind="num" value="${esc(dzGet(c, it.path))}" aria-describedby="${i}-err"><div class="Polaris-TextField__Backdrop"></div></div></div></div><p class="dz-error" id="${i}-err" hidden>Must be a number greater than 0.</p>`; }
       case 'perpage': { const i = id(), v = c.product_per_page || 1; return `<div class="dz-row dz-row--perpage"><span class="dz-row__label dz-perpage__label"><label for="${i}">Product per page</label><span class="mf-tip" tabindex="0" role="img" aria-label="Select the number of products per page on Desktop. Pagination is not available on Mobile."><span class="Polaris-Icon">${ICON_INFO}</span><span class="mf-tip__bubble" role="tooltip">Select the number of products per page on Desktop. Pagination is not available on Mobile.</span></span></span><div class="dz-row__ctl dz-perpage__ctl">${range('product_per_page', 1, 36, i, 'Product per page').replace(/<output[^>]*>.*?<\/output>/, '')}</div><span class="dz-perpage__value" data-out="product_per_page">${v}</span></div>`; }
+      case 'apps': return `<fieldset class="dz-apps"><legend class="dz-row__label">${it.title}</legend><div class="dz-apps__row">${it.opts.map(([v, l]) => `<label class="dz-app"><input type="radio" name="${it.path}" data-p="${it.path}" value="${v}"${dzGet(c, it.path) === v ? ' checked' : ''}><span>${l}</span></label>`).join('')}</div></fieldset>`;
       case 'tags': return '<div class="fdt-toolbar-preview-row" data-tags></div>';
       case 'order': return '<div class="draggable-list-table dz-order" role="list" aria-label="Element order" data-order></div><p class="dz-sr" aria-live="polite" data-order-live></p>';
       case 'h': return `<h4 class="dz-h">${it.text}</h4>`;
@@ -774,6 +802,7 @@
     root.addEventListener('change', e => {
       const el = e.target, p = el.dataset.p; if (!p) return;
       if (el.type === 'checkbox') { change(p, el.checked); return; }
+      if (el.type === 'radio') { change(p, el.value); return; }
       if (el.tagName === 'SELECT') { $('.Polaris-Select__SelectedOption', el.parentElement).textContent = el.options[el.selectedIndex].text; change(p, el.value); return; }
       if (el.dataset.kind === 'hex') {                                          // ColorPickerField: applied on blur, an invalid value goes back to the last good one
         const box = el.closest('[data-color]'), hex = dzHex(el.value);

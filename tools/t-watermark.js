@@ -17,20 +17,11 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(await p.locator('[data-panel=load]').isHidden(), 'the empty "Load" panel is not shown on Features');
   const heads = await p.$$eval('[data-panel=features] .prm-card > h2, [data-panel=features] .prm-card > .ft-head > h2', h => h.map(x => x.textContent));
   ok(heads.join('|') === 'Features|Recommended Apps|Powered by Findter badge', 'the badge container comes after Features and Recommended Apps (' + heads.join('|') + ')');
-  ok(await p.locator('[data-wm-master] [data-wm-act=save]').count() === 1 && await p.locator('[data-wm-master] .Polaris-Button--variantPrimary').count() === 1 && await p.locator('[data-wm-master] .Polaris-Button').count() === 3, 'the badge container has its own Save button (no Discard) and the two per-store buttons');
-  ok(await p.locator('[data-wm=enabled]').isChecked(), 'feature is on by default');
-  const types = await p.$$eval('[data-wm-type]', i => i.map(x => x.dataset.wmType + ':' + x.checked));
-  ok(types.join() === 'Subscription:true,Development store:false,Trial:true,Paid before:true,Service:true,Free:true', 'six shop types, Development store unticked by default (' + types.join(' ') + ')');
-  ok(await p.locator('[data-wm-act=save]').isDisabled(), 'Save is disabled until something changes');
-  await p.uncheck('[data-wm-type="Free"]');
-  ok(await p.locator('.mt-tab[data-tab=features].has-changes').count() === 1 && await p.locator('[data-wm-act=save]').isEnabled(), 'a change marks the tab and enables Save');
-  await p.check('[data-wm-type="Free"]'); ok(await p.locator('[data-wm-act=save]').isDisabled(), 'putting the saved value back disables Save again');
-  await p.uncheck('[data-wm=enabled]'); ok(await p.locator('[data-wm-type="Free"]').isDisabled(), 'turning the feature off dims the shop types');
-  await p.check('[data-wm=enabled]');
-  for (const t of ['Subscription', 'Trial', 'Paid before', 'Service', 'Free']) await p.uncheck(`[data-wm-type="${t}"]`);
+  ok(await p.locator('[data-wm-master] input').count() === 1 && await p.locator('[data-wm-master] .Polaris-Button').count() === 3 && await p.locator('[data-wm-master] .Polaris-Button--variantPrimary').count() === 0, 'the badge container has only the store domain field and the three per-store buttons (Remove, Restore, Clear) (no Save, no switch, no shop types, no link field)');
+  ok(!(await p.locator('[data-wm=enabled]').count()) && !(await p.locator('[data-wm-type]').count()) && !(await p.locator('[data-wm-link]').count()) && !(await p.locator('[data-wm-act=save]').count()), 'Master → Features has no Enable switch, no Apply to list, no Badge link and no Save');
   /* ---- Master -> Features: remove or restore the badge for one store, by domain ---- */
-  const shopBtns = () => p.evaluate(() => ({ remove: document.querySelector('[data-wm-shop=remove]').disabled, restore: document.querySelector('[data-wm-shop=restore]').disabled, status: document.querySelector('[data-wm-domain-status]').textContent, err: document.querySelector('[data-wm-domain-field]').classList.contains('is-error') }));
-  ok(await p.locator('[data-wm-master] [data-wm-domain]').isVisible() && (await shopBtns()).remove && (await shopBtns()).restore, 'Master → Features: the store domain field is under the shop types, both buttons are disabled until a domain is typed');
+  const shopBtns = () => p.evaluate(() => ({ remove: document.querySelector('[data-wm-shop=remove]').disabled, restore: document.querySelector('[data-wm-shop=restore]').disabled, none: document.querySelector('[data-wm-shop=none]').disabled, status: document.querySelector('[data-wm-domain-status]').textContent, err: document.querySelector('[data-wm-domain-field]').classList.contains('is-error') }));
+  ok(await p.locator('[data-wm-master] [data-wm-domain]').isVisible() && (await shopBtns()).remove && (await shopBtns()).restore, 'Master → Features: the store domain field is the only control in the container, both buttons are disabled until a domain is typed');
   await p.fill('[data-wm-domain]', 'abc'); let sb = await shopBtns(); ok(!sb.err, 'no error while typing');
   await p.locator('[data-wm-domain]').blur(); sb = await shopBtns(); ok(sb.err && sb.remove && sb.restore, 'a wrong domain shows the error after leaving the field, buttons stay disabled');
   await p.fill('[data-wm-domain]', 'abc-store.myshopify.com'); sb = await shopBtns(); ok(!sb.err && /Shown/.test(sb.status) && !sb.remove && sb.restore, 'a valid domain: status Shown, only "Remove badge" is enabled');
@@ -39,8 +30,14 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.fill('[data-wm-domain]', 'brgmnnlukas.myshopify.com'); await p.click('[data-wm-shop=remove]');
   ok(await p.evaluate(() => FindterWatermark.removed()) && /Removed/.test((await shopBtns()).status), 'the demo store\'s own domain removes the badge of the demo store (the Filter design row and the storefront follow)');
   await p.click('[data-wm-shop=restore]'); ok(!(await p.evaluate(() => FindterWatermark.removed())), 'Restore badge brings the demo store badge back');
+  await p.fill('[data-wm-domain]', 'abc-store.myshopify.com'); await p.click('[data-wm-shop=none]'); sb = await shopBtns();
+  ok(/Not set/.test(sb.status) && sb.none && !sb.remove && !sb.restore, 'Clear badge: that store has no badge setting (Not set), "Restore badge" and "Remove badge" are enabled');
+  await p.click('[data-wm-shop=restore]'); ok(/Shown/.test((await shopBtns()).status), 'Restore badge on a Not set store puts it back to Shown');
+  await p.fill('[data-wm-domain]', 'brgmnnlukas.myshopify.com'); await p.click('[data-wm-shop=none]');
+  ok(!(await p.evaluate(() => FindterWatermark.hasFlag())) && !(await p.evaluate(() => FindterWatermark.onStorefront())), 'Clear badge on the demo store: no flag, no row, no badge on the storefront (even for a Trial store)');
+  await p.click('[data-wm-shop=restore]'); ok(await p.evaluate(() => FindterWatermark.hasFlag()), 'Restore badge on the demo store sets the flag');
+  await p.evaluate(() => FindterDemo.reset());
   await p.fill('[data-wm-domain]', '');
-  ok(/at least one/.test(await p.textContent('[data-wm-err]')) && await p.locator('[data-wm-act=save]').isDisabled(), 'feature on with no shop type: error, Save disabled');
   await p.reload(); await p.waitForTimeout(400);
 
   /* ---- the badge card (on Filter design, not on Search settings), per store type ---- */
@@ -49,7 +46,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.goto(url('search.html')); await p.waitForTimeout(300); ok(await p.evaluate(() => !document.querySelector('[data-wm-card]')) && !(await p.getByText('Remove “Powered by Findter” badge').count()), 'Search settings no longer has the card');
   await p.goto(url('design.html')); await p.waitForTimeout(400);
   const shape = async v => { await store(v); return p.evaluate(() => { const c = document.querySelector('[data-wm-card]'); const bt = c.querySelector('[data-wm-btn]'); return c.hidden ? 'hidden' : bt ? (bt.getAttribute('aria-disabled') === 'true' ? 'button-busy' : 'button') : c.querySelector('.wm-badge') ? 'removed' : '?'; }); };
-  const want = { Trial: 'button', Free: 'button', 'Paid before': 'button', Service: 'button', Starter: 'button', Enterprise: 'button', Development: 'hidden' };
+  const want = { Trial: 'button', Free: 'button', 'Paid before': 'hidden', Service: 'hidden', Starter: 'hidden', Enterprise: 'hidden', Development: 'hidden' };   // the flag: Trial and Free only (a store that was paying at the release, and a development store, never get it)
   for (const [plan, w] of Object.entries(want)) { const got = await shape(plan); ok(got === w, `${plan}: ${w} (${got})`); }
   await store('Free');
   ok((await p.locator('[data-wm-card] button').count()) === 1 && (await p.locator('[data-wm-btn]').textContent()).trim() === 'Remove' && (await p.locator('[data-wm-card] input').count()) === 0, 'the row has one text button "Remove" and no switch');
@@ -81,7 +78,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(await p.locator('.demo-group[aria-label=CSE]').count() === 0, 'the demo bar has no CSE group any more');
 
   /* ---- every store type goes through the chat: the shop's message, the removal ~1 s later, the support team's reply ---- */
-  for (const plan of ['Trial', 'Free', 'Starter', 'Paid before', 'Service']) {
+  for (const plan of ['Trial', 'Free']) {                  // the stores that carry the flag; a store that was paying at the release has no row
     await store(plan); const n = (await msgs()).length;
     await p.click('[data-wm-btn]'); await p.waitForTimeout(200);
     ok(await busy() && (await msgs()).length === n + 1, plan + ': the chat opens with the shop message and the button reads "Removing…"');
@@ -91,13 +88,13 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   }
 
   /* ---- demo bar Reset ---- */
-  await store('Starter'); await p.click('[data-wm-btn]'); await p.waitForTimeout(1600);
+  await store('Trial'); await p.click('[data-wm-btn]'); await p.waitForTimeout(1600);
   ok(await p.locator('.wm-badge').isVisible(), 'before Reset: a store with the badge removed shows "Removed"');
   await p.click('.demo-reset'); await p.waitForTimeout(150);
   const st = await p.evaluate(() => JSON.stringify(FindterDemo.DEMO));
-  ok(st === '{"plan":"Trial","sub":"active","days":14,"over":"normal","lang":"en","wm":"shown","home":"current"}', 'Reset: every demo value is back to its start value (' + st + ')');
+  ok(st === '{"plan":"Trial","sub":"active","days":14,"over":"normal","lang":"en","wm":"shown","home":"current","ymm":"on"}', 'Reset: every demo value is back to its start value (' + st + ')');
   ok(await p.locator('[data-wm-btn]').isVisible() && !(await busy()) && await p.locator('.wm-badge').count() === 0, 'Reset: the card shows the Remove button (no "Removed")');
-  for (const v of ['Trial', 'Free', 'Starter']) { await store(v); ok(await p.locator('[data-wm-btn]').isVisible() && await p.locator('.wm-badge').count() === 0, 'after Reset, ' + v + ' shows the Remove button (not "Removed")'); }
+  for (const v of ['Trial', 'Free']) { await store(v); ok(await p.locator('[data-wm-btn]').isVisible() && await p.locator('.wm-badge').count() === 0, 'after Reset, ' + v + ' shows the Remove button (not "Removed")'); }
   await store('Free'); await p.click('[data-wm-btn]'); await p.waitForTimeout(200);
   await p.click('.demo-reset'); await p.waitForTimeout(1600);
   ok(!(await busy()) && await p.locator('.wm-badge').count() === 0, 'Reset in the middle of a request: the button is idle, nothing ends up removed');
@@ -113,12 +110,12 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(await hi() === h0 + 1 && await p.getByText(/We’ve removed the badge/).count() === r0 + 1 && await p.locator('.wm-badge').isVisible(), 'clicking many times: one message from the shop, one auto reply, one "Removed"');
   await p.click('.demo-reset'); await p.waitForTimeout(150); await store('Free');
 
-  /* ---- Master -> Features on a phone: the chat launcher does not cover the Save button of the last container ---- */
+  /* ---- Master -> Features on a phone: the chat launcher does not cover the last button of the badge container ---- */
   const ph = await ctx.newPage(); ph.on('pageerror', e => errs.push('phone: ' + e.message)); await ph.setViewportSize({ width: 390, height: 800 });
   await ph.goto(url('index.html') + '#/master/features'); await ph.waitForTimeout(500);
   await ph.evaluate(() => { const sc = document.querySelector('.sh-scroll'); if (sc) sc.scrollTop = sc.scrollHeight; window.scrollTo(0, document.body.scrollHeight); }); await ph.waitForTimeout(300);
-  const hit = await ph.evaluate(() => { const s = document.querySelector('[data-wm-act=save]'), f = document.querySelector('.m-fab'); if (!s || !f) return 'missing'; const a = s.getBoundingClientRect(), c = f.getBoundingClientRect(); return !(a.right < c.left || a.left > c.right || a.bottom < c.top || a.top > c.bottom); });
-  ok(hit === false, 'phone: the chat launcher does not sit on the badge container Save button (' + hit + ')');
+  const hit = await ph.evaluate(() => { const s = document.querySelector('[data-wm-shop=restore]'), f = document.querySelector('.m-fab'); if (!s || !f) return 'missing'; const a = s.getBoundingClientRect(), c = f.getBoundingClientRect(); return !(a.right < c.left || a.left > c.right || a.bottom < c.top || a.top > c.bottom); });
+  ok(hit === false, 'phone: the chat launcher does not sit on the Restore badge button of the badge container (' + hit + ')');
   await ph.close();
 
   /* ---- Filter design: the row sits at the top of the Filter layout card, under its description, above "Desktop" ---- */
@@ -142,7 +139,8 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await sf.waitForTimeout(300); ok(!(await powered()), 'storefront (open tab) follows: badge gone after the removal');
   await p.click('.demo-btn[data-key=wm][data-val=shown]'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: Badge = Shown brings it back');
   await store('Development'); await sf.waitForTimeout(300); ok(!(await powered()) && await sf.locator('.sf-powered--filter').isHidden(), 'storefront: Development store never shows the badge or the filter-bar mark (not ticked in Master)');
-  await store('Starter'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: paid store shows it until the button is used');
+  await store('Starter'); await sf.waitForTimeout(300); ok(!(await powered()) && await sf.locator('.sf-powered--filter').isHidden(), 'storefront: a store that was paying at the release (Starter) has no flag, so it never shows the badge');
+  await store('Free'); await sf.waitForTimeout(300); ok(await powered(), 'storefront: a Free store (flag set) shows it until the button is used');
   // the same badge at the end of the filter bar (collection) and, on the search results page, also at the end of the results
   ok(await sf.locator('.sf-powered--filter').isVisible() && await sf.evaluate(() => { const b = document.querySelector('.sf-powered--filter').getBoundingClientRect(), last = [...document.querySelectorAll('.sf-group')].pop().getBoundingClientRect(); return b.top >= last.bottom && b.width > 200; }), 'storefront: the badge also shows under the last filter group');
   let cn = 0; for (let i = 0; i < 40 && cn < 72; i++) { await sf.evaluate(() => scrollBy(0, innerHeight * 0.8)); await sf.waitForTimeout(80); cn = await sf.locator('.sf-card').count(); }
@@ -158,29 +156,19 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(await sr.locator('.sf-card').count() === 1, 'search results page: Enter in the header search opens the results for the new term');
   await store('Development'); await sr.reload(); await sr.waitForTimeout(300);
   ok(await sr.locator('.sf-powered--filter').isHidden(), 'search results page: a Development store shows no badge anywhere');
-  await sr.setViewportSize({ width: 390, height: 800 }); await store('Starter'); await sr.reload(); await sr.waitForTimeout(300);
+  await sr.setViewportSize({ width: 390, height: 800 }); await store('Free'); await sr.reload(); await sr.waitForTimeout(300);
   ok(await sr.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'search results page at 390px: no horizontal scroll');
   await sr.close();
   ok(await sf.evaluate(u => [...document.querySelectorAll('.sf-powered')].length >= 2 && [...document.querySelectorAll('.sf-powered')].every(a => a.tagName === 'A' && a.getAttribute('href') === u && a.target === '_blank' && /noopener/.test(a.rel)), 'https://apps.shopify.com/findter-custom-filter-search?utm_source=trademark&utm_medium=referral'), 'storefront: every badge is a link to the app listing (new tab)');
   await sf.evaluate(() => document.querySelector('.sf-powered--filter').scrollIntoView({ block: 'center' })); await sf.waitForTimeout(150);
   ok(await sf.evaluate(() => { const sc = document.querySelector('#sf-scrim'), was = sc.hidden; sc.hidden = true; const vis = [...document.querySelectorAll('.sf-powered')].filter(e => { const q = e.getBoundingClientRect(); return q.width > 0 && q.top >= 0 && q.bottom <= innerHeight; }); const res = vis.length >= 1 && vis.every(e => { const q = e.getBoundingClientRect(); return [[q.left + 2, q.top + q.height / 2], [q.right - 2, q.top + q.height / 2], [q.left + q.width / 2, q.top + 3], [q.left + q.width / 2, q.bottom - 3], [q.left + q.width / 2, q.top + q.height / 2]].every(([x, y]) => { const t = document.elementFromPoint(x, y); return !!t && t.closest('a.sf-powered') === e; }); }); sc.hidden = was; return res; }), 'storefront: a click anywhere on a badge (edges, padding, logo or text) opens the link');
-  // Master -> Features: the badge link field (a link = clickable badge, empty = plain badge)
-  await p.goto(url('index.html') + '#/master/features'); await p.waitForTimeout(400);
-  ok(await p.inputValue('[data-wm-link]') === 'https://apps.shopify.com/findter-custom-filter-search?utm_source=trademark&utm_medium=referral', 'Master → Features: the Badge link field is filled with the app listing by default');
-  await p.fill('[data-wm-link]', 'abc'); await p.locator('[data-wm-link]').blur();
-  ok(await p.locator('[data-wm-link-err]').isVisible() && await p.locator('[data-wm-act=save]').isDisabled(), 'Master → Features: a link that is not http(s) shows the error and Save stays disabled');
-  await p.fill('[data-wm-link]', ''); ok(!(await p.locator('[data-wm-link-err]').isVisible()) && !(await p.locator('[data-wm-act=save]').isDisabled()), 'Master → Features: an empty link is allowed and can be saved');
-  await p.click('[data-wm-act=save]'); await sf.waitForTimeout(300);
-  ok(await sf.evaluate(() => { const A = [...document.querySelectorAll('.sf-powered')]; return A.length >= 2 && A.every(a => !a.hasAttribute('href')); }), 'storefront: with no link every badge is plain (no href, not clickable)');
-  ok(await sf.evaluate(() => getComputedStyle(document.querySelector('.sf-powered--filter')).cursor !== 'pointer'), 'storefront: a plain badge has no pointer cursor');
-  await p.fill('[data-wm-link]', 'https://example.com/powered'); await p.click('[data-wm-act=save]'); await sf.waitForTimeout(300);
-  ok(await sf.evaluate(() => [...document.querySelectorAll('.sf-powered')].every(a => a.getAttribute('href') === 'https://example.com/powered' && a.target === '_blank' && /noopener/.test(a.rel))), 'storefront: a saved link makes every badge clickable and opens it in a new tab');
-  await p.fill('[data-wm-link]', 'https://apps.shopify.com/findter-custom-filter-search?utm_source=trademark&utm_medium=referral'); await p.click('[data-wm-act=save]'); await sf.waitForTimeout(300);
-  // Master turns the feature off
-  await p.goto(url('index.html') + '#/master/features'); await p.waitForTimeout(400); await p.uncheck('[data-wm=enabled]'); await p.click('[data-wm-act=save]'); await sf.waitForTimeout(300);
-  ok(!(await powered()), 'storefront: Master → Features off (saved) removes the badge for everyone');
-  await p.goto(url('design.html')); await p.waitForTimeout(300); ok(await p.locator('[data-wm-card]').isHidden(), 'Filter design: the card is gone while the feature is off');
-  await p.goto(url('index.html') + '#/master/features'); await p.waitForTimeout(300); await p.check('[data-wm=enabled]'); await p.click('[data-wm-act=save]');
+  // the badge link is fixed in the theme extension code: every badge links to the app listing; Master has no field for it
+  // flag per store: removed stays removed after the plan changes (the row stays, as the green Removed badge)
+  await p.goto(url('design.html')); await p.waitForTimeout(300); await store('Trial'); await p.click('[data-wm-btn]'); await p.waitForTimeout(1600);
+  await store('Starter'); await p.waitForTimeout(300);
+  ok(await p.locator('[data-wm-card] .wm-badge').isVisible() && !(await p.locator('[data-wm-btn]').count()), 'a Trial store that removed the badge and then bought a plan still shows the green Removed badge');
+  await sf.waitForTimeout(300); ok(!(await powered()), 'storefront: the removed store stays without the badge after buying a plan');
+  await p.click('.demo-btn[data-key=wm][data-val=shown]'); await store('Free'); await sf.waitForTimeout(300);
   await sf.fill('#sf-q', ''); await sf.keyboard.press('Escape'); ok(await sf.locator('#sf-search').isHidden(), 'storefront: Esc closes the search');
 
   ok(await sf.evaluate(() => { const L = [...document.querySelectorAll('.sf-powered__logo')].filter(i => i.getBoundingClientRect().width > 0); return L.length >= 1 && L.every(i => Math.round(i.getBoundingClientRect().width) === 24 && Math.round(i.getBoundingClientRect().height) === 24); }), 'storefront: every logo in a watermark is 24×24px');

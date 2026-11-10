@@ -21,13 +21,13 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.goto(url('index.html')); await p.waitForTimeout(400);
   ok(!(await vis('Pricing')), 'folded state persists');
   // every page: sidebar links resolve, tabs link to the right files
-  const tabs = { 'filter': { 'Collection booster': 'filter-boost.html' }, 'filter-boost': { 'Manage filter set': 'filter.html' }, 'search': { 'Search booster': 'search-boost.html' }, 'search-boost': { 'Search settings': 'search.html' }, 'design': { 'Product grid design': 'design-product-grid.html' }, 'design-product-grid': { 'Filter design': 'design.html' } };
+  const tabs = { 'filter': { 'Collection booster': 'filter-boost.html' }, 'filter-boost': { 'Manage filter set': 'filter.html' }, 'search': { 'Search booster': 'search-boost.html' }, 'search-boost': { 'Search settings': 'search.html' } };   // the two design tabs are Settings pills now (t-settings-nav.js)
   for (const [f, m] of Object.entries(tabs)) for (const [tab, target] of Object.entries(m)) {
     await p.goto(url(f + '.html')); await p.waitForTimeout(400);
     await p.locator('.Polaris-Tabs__Tab', { hasText: tab }).first().click(); await p.waitForTimeout(500);
     ok(p.url().endsWith('/' + target), `${f}: tab "${tab}" -> ${target}`);
   }
-  for (const [label, target] of [['Filter','filter.html'],['Search','search.html'],['Metafield','metafield.html'],['Year Make Model','ymm.html'],['Filter and grid design','design.html'],['Advanced features','features.html']]) {
+  for (const [label, target] of [['Filter','filter.html'],['Search','search.html'],['Settings','settings.html'],['Year Make Model','ymm.html'],['Advanced features','features.html']]) {
     await p.goto(url('index.html')); await p.waitForTimeout(300);
     await p.locator('aside#nav .sh-item--sub', { hasText: label }).first().click(); await p.waitForTimeout(500);
     ok(p.url().endsWith('/' + target), `sidebar "${label}" -> ${target}`);

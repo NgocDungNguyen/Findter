@@ -118,7 +118,7 @@ let fails = 0; const ok = (name, cond, extra) => { if (!cond) fails++; log((cond
   await p.goto(U('sort.html') + '?reset=1'); await p.waitForSelector('#so-rows');
   const rw = k => p.locator(`.table-row[data-key="${k}"]`);
   ok('Rating + Review default OFF with the Phase 1 type texts', !(await on()).includes('rating_desc') && (await rw('rating_desc').locator('.so-t').innerText()) === 'Product rating high to low' && (await rw('review_desc').locator('.so-t').innerText()) === 'Review amount high to low');
-  ok('info icon with the tooltip text next to Rating and Review', await rw('rating_desc').locator('.sort-label-info').getAttribute('data-tip') === 'You need to configure Judge.me/Yotpo app before enable this sort by option' && await rw('review_desc').locator('.sort-label-info').count() === 1);
+  ok('info icon with the tooltip text next to Rating and Review', await rw('rating_desc').locator('.sort-label-info').getAttribute('data-tip') === 'Set up Judge.me or Yotpo before turning on this sort option.' && await rw('review_desc').locator('.sort-label-info').count() === 1);
   await sw('rating_desc').click(); await p.waitForTimeout(150);
   ok('first ON opens the app window, the option stays OFF until Save', await p.locator('.mf-modal__title').innerText() === 'Edit Sort by Rating' && !(await sw('rating_desc').isChecked()));
   ok('app window: two apps, none picked', await p.locator('.so-app__in').count() === 2 && await p.locator('.so-app__in:checked').count() === 0 && (await p.locator('.so-apps__h').innerText()) === 'Choose integrated app' && /Only one app can be active at a time/.test(await p.locator('.mf-modal__body').innerText()));
@@ -141,9 +141,9 @@ let fails = 0; const ok = (name, cond, extra) => { if (!cond) fails++; log((cond
   ok('Default dropdowns list Rating and Review when ON', (await opts('#so-def-collection')).includes('Rating') && (await opts('#so-def-search')).includes('Review'));
   await p.locator('[data-b=save]').click(); await p.waitForTimeout(900);
   ok('sync banner after saving a new app (yellow)', await p.locator('.mf-banner--warn').isVisible() && /Judge\.me ratings and review counts/.test(await p.locator('.mf-banner--warn').innerText()));
-  ok('only one banner', await p.locator('.mf-banner').count() === 1);
+  ok('only one banner', await p.locator('.mf-banner').count() === 1); const warnH = await p.locator('.mf-banner--warn').evaluate(e => e.getBoundingClientRect().height);
   await p.waitForTimeout(6300);
-  ok('banner turns green when the data is collected', await p.locator('.mf-banner--ok').isVisible());
+  ok('banner turns green when the data is collected, with the same height as the yellow one', await p.locator('.mf-banner--done').isVisible() && Math.abs(await p.locator('.mf-banner--done').evaluate(e => e.getBoundingClientRect().height) - warnH) < 1.5, warnH + ' vs ' + await p.locator('.mf-banner--done').evaluate(e => e.getBoundingClientRect().height));
   await p.locator('[data-act=banner-done]').click(); ok('green banner can be dismissed for good', await p.locator('.mf-banner').count() === 0);
   await p.reload(); await p.waitForSelector('#so-rows');
   ok('app + status persisted', (await on()).includes('rating_desc') && (await on()).includes('review_desc'));
@@ -182,6 +182,16 @@ let fails = 0; const ok = (name, cond, extra) => { if (!cond) fails++; log((cond
   ok('no number metafield saved: the window says so and links to the Metafield page', /no number metafield saved/i.test(await p.locator('.mf-modal__body').innerText()) && await p.locator('.mf-modal__body a[href="metafield.html"]').count() === 1 && await p.locator('[data-m=ok]').isDisabled());
   await p.locator('[data-m=cancel]').click();
   await p.evaluate(() => localStorage.removeItem('findter.metafields.v1'));
+
+  // ---- Delete that would leave a page with no valid option: the reason is inside the window, Delete is off, no toast
+  await p.goto(U('sort.html') + '?reset=1'); await p.waitForSelector('#so-rows');
+  await p.locator('[data-act=add-mf]').click(); await p.waitForSelector('.mf-modal'); await p.locator('#so-mf-pick').selectOption('popularity'); await p.locator('[data-m=ok]').click();
+  const popDesc = 'metafield_number_integer_custom_popularity_desc';
+  await sw(popDesc).check(); for (const k of ['created_at', 'price_low_high', 'price_high_low']) await sw(k).uncheck();
+  await rw(popDesc).locator('[data-act=delete]').click(); await p.waitForSelector('.mf-modal');
+  ok('blocked Delete: red reason in the window, Delete disabled, no toast', /Keep at least one sort option other than Relevance/.test(await p.locator('#so-del-error').innerText()) && await p.locator('[data-m=ok]').isDisabled() && !/Keep at least one/.test(await p.locator('#toast').innerText()));
+  await p.locator('[data-m=cancel]').click();
+  ok('blocked Delete keeps the row', (await keys()).includes(popDesc));
 
   // ---- the sample storefront follows the Sort page: its dropdown, order and labels, and every product has the values to sort by
   await p.goto(U('sort.html') + '?reset=1'); await p.waitForSelector('#so-rows');

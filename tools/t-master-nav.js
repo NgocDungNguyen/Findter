@@ -11,7 +11,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   ok(s.filter(x => !x.includes('(hidden)')).slice(-3)[0].startsWith('Advanced features') || true, 'list printed');
   const names = s.map(x => x.replace(/[*]|\(hidden\)/g, '')); const mi = names.indexOf('Master');
   ok(mi === names.indexOf('Pricing') + 1, 'Master is the last sub item (after Advanced features, Analytics, Pricing)');
-  ok(await p.locator('.sh-item--master').isVisible(), 'Master visible while the list is collapsed');
+  ok(!(await p.locator('.sh-item--master').isVisible()), 'Master is hidden while the list is collapsed'); await p.click('.sh-item--more'); ok(await p.locator('.sh-item--master').isVisible(), 'Master shows under View more');
   // dismiss the Master card, then open Master from the sidebar
   await p.locator('[data-card=master] button[aria-label="Dismiss master"]').click(); await p.waitForTimeout(200);
   ok(!(await p.locator('[data-card=master]').isVisible()), 'Master card dismissed');

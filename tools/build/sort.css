@@ -125,3 +125,8 @@
   .so-apps__grid{grid-template-columns:1fr}
   .so-dir{grid-template-columns:1fr;gap:4px}
 }
+/* the "ready" banner keeps the height of the yellow "collecting" one (no jump when the data is ready) */
+.mf-banner--done .mf-banner__head{background:#1d7a4f;color:#fff}
+/* unselected app boxes: a border that reaches 3:1 on white */
+.so-app__box{border-color:#8a8a8a}
+.so-app:hover .so-app__box{border-color:#4a4a4a}

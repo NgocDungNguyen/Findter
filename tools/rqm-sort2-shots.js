@@ -134,6 +134,21 @@ const MARK = `window.__mark = (el, n) => { if (typeof el === 'string') el = docu
   await sw('rating_desc').click(); await p.waitForSelector('.mf-modal'); await p.locator('.so-app', { hasText: 'Judge.me' }).click();
   await shotModal('rating-modal-phone', 'Window Rating tren dien thoai: 2 app xep doc', []);
 
+  // phone: the Add metafield sort window
+  await p.locator('[data-m=cancel]').click();
+  await p.evaluate(() => localStorage.removeItem('findter.sortConfig.v1')); await open(390, 900);
+  await p.locator('[data-act=add-mf]').click(); await p.waitForSelector('.mf-modal');
+  await shotModal('add-metafield-modal-phone', 'Window Add metafield sort tren dien thoai: 2 huong + label xep doc', []);
+  await p.locator('[data-m=cancel]').click();
+
+  // Delete that would leave a page with no valid option: the reason is inside the window, Delete is off
+  await open();
+  await p.locator('[data-act=add-mf]').click(); await p.waitForSelector('.mf-modal'); await p.locator('#so-mf-pick').selectOption('popularity'); await p.locator('[data-m=ok]').click();
+  const pop = 'metafield_number_integer_custom_popularity_desc'; await sw(pop).click(); for (const k of ['created_at', 'price_low_high', 'price_high_low']) await sw(k).click();
+  await row(pop).locator('[data-act=delete]').click(); await p.waitForSelector('.mf-modal');
+  await shotModal('delete-metafield-sort-blocked', 'Xoa bi chan (trang chi con 1 option hop le): ly do hien do trong window, nut Delete bi khoa, khong dung toast', [['#so-del-error', 1]]);
+  await p.locator('[data-m=cancel]').click();
+
   fs.writeFileSync(path.join(OUT, 'list.txt'), list.join('\n'));
   console.log(errs.length ? 'ERRORS: ' + errs.join('; ') : 'no page errors'); await b.close();
 })().catch(e => { console.error('CRASH', e); process.exit(1); });

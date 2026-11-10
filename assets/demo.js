@@ -25,7 +25,7 @@
   const NO_PRODUCT_STATES = ['Development', 'Enterprise'];                    // no "over" / "90%" case: free under 50,000 / no limit
   const LANGS = { en: 'English', fr: 'Français', de: 'Deutsch', vi: 'Tiếng Việt', ja: '日本語' };
   const DEMO_KEY = 'findter.demoStatus';
-  const DEFAULTS = { plan: 'Trial', sub: 'active', days: 14, over: 'normal', lang: 'en', wm: 'shown', home: 'current' };
+  const DEFAULTS = { plan: 'Trial', sub: 'active', days: 14, over: 'normal', lang: 'en', wm: 'shown', home: 'current', ymm: 'on' };
   const DEMO = { ...DEFAULTS };
   const load = () => {
     try {
@@ -36,6 +36,7 @@
       DEMO.over = s.over === true ? 'over' : ['normal', 'near', 'over'].includes(s.over) ? s.over : 'normal';   // older saves stored a boolean
       if (LANGS[s.lang]) DEMO.lang = s.lang;
       if (['current', 'a', 'b', 'c'].includes(s.home)) DEMO.home = s.home;     // Homepage UI option (index.html only): the current layout or suggestion A / B / C
+      if (['on', 'off'].includes(s.ymm)) DEMO.ymm = s.ymm;                    // the Year Make Model feature: the sidebar shows its item only while it is on
       if (['shown', 'removed'].includes(s.wm)) DEMO.wm = s.wm;                // the "Powered by Findter" badge: still on the storefront, or removed
     } catch (e) { /* storage blocked */ }
   };
@@ -58,6 +59,7 @@
     ['Products', 'over', [['normal', 'Normal'], ['near', '90%'], ['over', 'Over limit']]],
     ['Language', 'lang', Object.entries(LANGS), 'select'],
     ['Badge', 'wm', [['shown', 'Shown'], ['removed', 'Removed']]],
+    ['YMM', 'ymm', [['on', 'On'], ['off', 'Off']]],
   ];
   if ($('[data-card=status]')) groups.push(['Home UI', 'home', [['a', 'A'], ['b', 'B'], ['c', 'C']], 'buttons', '<button type="button" class="demo-btn demo-btn--reset" data-act="home-reset" title="Back to the current homepage UI">Current UI</button>']);   // the homepage only
   const esc =s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
@@ -66,7 +68,7 @@
       + (kind === 'select'
         ? '<select class="demo-select" data-key="' + key + '" aria-label="' + label + '">' + opts.map(([v, t]) => '<option value="' + esc(v) + '">' + esc(t) + '</option>').join('') + '</select>'
         : opts.map(([v, t]) => '<button type="button" class="demo-btn" data-key="' + key + '" data-val="' + v + '" aria-pressed="false">' + t + '</button>').join('') + (extra || ''))
-      + '</div>').join('') + '<button type="button" class="demo-reset" data-act="reset" title="Back to the start values: Trial store, badge shown">Reset</button></div>';
+      + '</div>').join('') + '<button type="button" class="demo-reset" data-act="reset" title="Back to the start values: Trial store, badge shown, YMM on">Reset</button></div>';
   top.insertBefore(bar, $('.sh-more', top));
   paint = () => {
     const p = PLANS[DEMO.plan];

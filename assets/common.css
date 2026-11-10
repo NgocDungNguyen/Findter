@@ -1485,6 +1485,9 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 /* sidebar: Analytics / Pricing stay hidden until "View more" */
 .sh-item--extra{display:none}
 .sh-appgroup.is-expanded .sh-item--extra{display:flex}
+/* the Master item is a prototype tool, not an app menu item: it sits under View more (with Analytics and Pricing) and shows while the Master page is open, so the collapsed list stays 5 items + View more */
+.sh-item--master{display:none}
+.sh-appgroup.is-expanded .sh-item--master,.sh-item--master[aria-current=page]{display:flex}
 
 /* sidebar: a sub page (or Master) is open, so the parent item shows highlighted text but no pill (the sub item gets the pill) */
 .sh-item--sub[aria-current=page]{background:var(--sh-active);color:#fcfcfc;font-weight:550}
@@ -1553,6 +1556,7 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 .wm-shop h3{margin:0 0 4px;font-size:14px;line-height:20px;font-weight:650;color:#303030}
 .wm-shop .prm-field{max-width:420px}
 .wm-shop__acts{justify-content:flex-start}
+.prm-card > h2 + .wm-shop{margin-top:12px;padding-top:0;border-top:0}
 .prm-edit{max-width:760px}
 .prm-titlebar{display:flex;align-items:center;gap:8px;margin:4px 0 14px}
 .prm-titlebar h1{margin:0;font-size:20px;line-height:28px;font-weight:700}
@@ -2402,6 +2406,22 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
 /* rds_shopify-900: keyboard focus ring for the guideline link in page headers (same 2px ring as the promo links); shared by every page that uses this link */
 .fdt-header__link:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; border-radius: 2px; }
 
+/* Settings page: a card per settings page (name + one-line description); the four pages open from it and come back with their back arrow */
+.st-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:0}
+.st-card{display:flex;align-items:flex-start;gap:14px;padding:20px;border-radius:12px;background:#fff;color:#303030;text-decoration:none;box-shadow:0 0 0 1px #e3e3e3,0 1px 0 rgba(26,26,26,.07);transition:box-shadow .12s,background-color .12s}
+.st-card:hover{background:#fafafa;box-shadow:0 0 0 1px #cccccc,0 1px 2px rgba(26,26,26,.1)}
+.st-card:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
+.st-card__icon{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:#f1f1f1;color:#303030}
+.st-card__icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.st-card__body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.st-card__title{font-size:14px;line-height:20px;font-weight:650}
+.st-card__desc{font-size:13px;line-height:20px;color:#616161}
+.st-card__go{flex:none;align-self:center;display:grid;place-items:center;width:20px;height:20px;color:#8a8a8a}
+.st-card__go svg{width:16px;height:16px;fill:currentColor}
+.st-card:hover .st-card__go{color:#303030}
+.sh-item[hidden]{display:none}
+@media (max-width:767.98px){.st-cards{grid-template-columns:1fr}}
+
 /* Sort page (sort.html): ported from the real app's Settings/SortBody.jsx + SortSkeleton.jsx and the .ft-sort-* rules of ManageFilter/FilterSet/index.css. Everything is scoped to .so-page. */
 .so-page{--so-text:#303030;--so-sub:#616161}
 .so-page .so-stack{display:flex;flex-direction:column;gap:16px}
@@ -2529,6 +2549,11 @@ body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!i
   .so-apps__grid{grid-template-columns:1fr}
   .so-dir{grid-template-columns:1fr;gap:4px}
 }
+/* the "ready" banner keeps the height of the yellow "collecting" one (no jump when the data is ready) */
+.mf-banner--done .mf-banner__head{background:#1d7a4f;color:#fff}
+/* unselected app boxes: a border that reaches 3:1 on white */
+.so-app__box{border-color:#8a8a8a}
+.so-app:hover .so-app__box{border-color:#4a4a4a}
 
 /* Search > Translations, Search > Synonyms Search, Filter set > Translate (extra.js). Everything is scoped to .ex-page. */
 .ex-page{--ex-text:#303030;--ex-sub:#616161}
@@ -2696,3 +2721,194 @@ button.ex-fo-drag:focus-visible{outline:2px solid #005bd3;outline-offset:2px}
   .fdt-menu-tabs .Polaris-Tabs{flex-wrap:nowrap}
   .fdt-menu-tabs .Polaris-Tabs__Tab{white-space:nowrap}
 }
+
+/* Polaris pieces the captured pages do not use, written with the same Polaris tokens (--p-*), for the hand-written admin pages built with tools/build/pl.js
+   (Merchandising, Search redirect, Separated variant products, Year Make Model, Search suggestion cards, Settings). */
+
+/* page frame */
+.pl-page{--so-text:var(--p-color-text);--so-sub:var(--p-color-text-secondary)}
+.pl-stack{display:flex;flex-direction:column;gap:var(--p-space-400)}
+.pl-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--p-space-400);align-items:start}
+.pl-colA,.pl-colB{display:flex;flex-direction:column;gap:var(--p-space-400);min-width:0}
+@media (max-width:899.98px){.pl-cols{grid-template-columns:minmax(0,1fr)}}
+.pl-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--p-space-300)}
+@media (max-width:479.98px){.pl-two{grid-template-columns:minmax(0,1fr)}}
+.pl-actions{display:flex;gap:8px;align-items:center}
+.pl-actions--end{justify-content:flex-end}
+.pl-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.pl-box{border:1px solid var(--p-color-border-secondary);border-radius:var(--p-border-radius-200);padding:var(--p-space-300);display:flex;flex-direction:column;gap:var(--p-space-300);min-width:0;background:var(--p-color-bg-surface)}
+.pl-box--tint{background:var(--p-color-bg-surface-secondary)}
+.pl-switchrow{display:flex;align-items:center;justify-content:space-between;gap:var(--p-space-400)}
+.pl-switchrow .pg-switch{flex:none}
+
+/* label / help / error (Polaris Labelled, InlineError) */
+.Polaris-Labelled{display:flex;flex-direction:column;min-width:0}
+.Polaris-Labelled .Polaris-Labelled__LabelWrapper{margin-bottom:var(--p-space-100)}
+.Polaris-Labelled__HelpText{margin-top:var(--p-space-100)}
+.Polaris-Labelled__Error{margin-top:var(--p-space-100)}
+.Polaris-Labelled__Error[hidden]{display:none}
+.Polaris-InlineError{display:flex;align-items:flex-start;gap:var(--p-space-100);color:var(--p-color-text-critical);font-size:var(--p-font-size-325);line-height:var(--p-font-line-height-400)}
+.Polaris-InlineError__Icon{flex:none;display:flex;width:20px;height:20px}
+.Polaris-InlineError__Icon .Polaris-Icon{width:20px;height:20px;margin:0}
+.Polaris-InlineError__Icon svg{fill:var(--p-color-icon-critical)}
+.Polaris-Choice-wrap{display:flex;flex-direction:column}
+.Polaris-Choice__Descriptions{padding-left:28px;margin-top:2px}
+.Polaris-Choice__Descriptions .Polaris-Text--root{display:block}
+
+/* RadioButton (same size, colors and focus ring as the Polaris Checkbox) */
+.Polaris-RadioButton{position:relative;display:flex;flex:none;width:var(--p-space-400);height:var(--p-space-400);margin:2px}
+.Polaris-RadioButton__Input{position:absolute;z-index:1;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.Polaris-RadioButton__Backdrop{position:absolute;inset:0;border-radius:50%;background:var(--p-color-input-bg-surface);box-shadow:0 0 0 1px var(--p-color-input-border) inset;transition:box-shadow .1s}
+.Polaris-RadioButton__Input:hover~.Polaris-RadioButton__Backdrop{box-shadow:0 0 0 1px var(--p-color-input-border-hover) inset}
+.Polaris-RadioButton__Input:checked~.Polaris-RadioButton__Backdrop{background:var(--p-color-bg-fill-brand);box-shadow:none}
+.Polaris-RadioButton__Input:checked~.Polaris-RadioButton__Backdrop::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--p-color-text-brand-on-bg-fill,#fff)}
+.Polaris-RadioButton__Input:focus-visible~.Polaris-RadioButton__Backdrop{outline:2px solid var(--p-color-border-focus,#005bd3);outline-offset:2px}
+.Polaris-RadioButton__ChoiceLabel{cursor:pointer}
+
+/* Badge tones the app's pages do not use */
+.Polaris-Badge--toneWarning{background-color:var(--p-color-bg-fill-warning-secondary);color:var(--p-color-text-warning)}
+.Polaris-Badge--toneAttention{background-color:var(--p-color-bg-fill-caution-secondary);color:var(--p-color-text-caution)}
+.Polaris-Badge--toneCritical{background-color:var(--p-color-bg-fill-critical-secondary);color:var(--p-color-text-critical)}
+.Polaris-Badge--toneNeutral{background-color:var(--p-color-bg-fill-transparent-secondary);color:var(--p-color-text-secondary)}
+
+/* Tag (removable chips) */
+.Polaris-Tag{display:inline-flex;align-items:center;max-width:100%;min-height:28px;padding:0 var(--p-space-200);border-radius:var(--p-border-radius-200);background:var(--p-color-bg-fill-tertiary);color:var(--p-color-text);font-size:var(--p-font-size-325);line-height:var(--p-font-line-height-400)}
+.Polaris-Tag--removable{padding-right:0}
+.Polaris-Tag__TagText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 0}
+.Polaris-Tag__Button{display:inline-flex;align-items:center;justify-content:center;flex:none;width:28px;height:28px;padding:0;border:0;border-radius:var(--p-border-radius-200);background:transparent;cursor:pointer}
+.Polaris-Tag__Button:hover{background:var(--p-color-bg-fill-transparent-secondary-hover,rgba(0,0,0,.1))}
+.Polaris-Tag__Button:focus-visible{outline:2px solid var(--p-color-border-focus,#005bd3);outline-offset:-2px}
+.Polaris-Tag__Button svg{width:16px;height:16px;fill:var(--p-color-icon)}
+.pl-tags{display:flex;flex-wrap:wrap;gap:var(--p-space-200)}
+.pl-tags:empty{display:none}
+
+/* ButtonGroup (segmented) and Pagination */
+.Polaris-ButtonGroup{display:flex;flex-wrap:wrap;align-items:center;gap:var(--p-space-200)}
+.Polaris-ButtonGroup--segmented{flex-wrap:nowrap;gap:0}
+.Polaris-ButtonGroup--segmented .Polaris-ButtonGroup__Item{margin-left:-1px}
+.Polaris-ButtonGroup--segmented .Polaris-ButtonGroup__Item:first-child{margin-left:0}
+.Polaris-ButtonGroup--segmented .Polaris-ButtonGroup__Item:not(:first-child) .Polaris-Button{border-top-left-radius:0;border-bottom-left-radius:0}
+.Polaris-ButtonGroup--segmented .Polaris-ButtonGroup__Item:not(:last-child) .Polaris-Button{border-top-right-radius:0;border-bottom-right-radius:0}
+.Polaris-ButtonGroup--segmented .Polaris-Button[aria-pressed=true]{background:var(--p-color-bg-fill-tertiary);box-shadow:0 0 0 1px var(--p-color-border) inset,0 1px 2px rgba(0,0,0,.15) inset;position:relative;z-index:1}
+.pl-pager{display:flex;align-items:center;justify-content:space-between;gap:var(--p-space-300);flex-wrap:wrap}
+.pl-flip{display:inline-flex;transform:scaleX(-1)}
+
+/* DataTable tweaks for the hand-written tables */
+.mc-dt .Polaris-DataTable__Table{min-width:var(--mc-dt-min,640px);width:100%}
+.mc-dt .Polaris-DataTable__ScrollContainer{overflow-x:auto}
+.mc-dt .Polaris-DataTable__Cell{vertical-align:middle}
+.mc-dt .Polaris-DataTable__Cell--firstColumn{text-align:left}
+.pl-name{display:flex;flex-direction:column;align-items:flex-start;gap:0;min-width:0}
+.pl-name .Polaris-Link{text-align:left;overflow-wrap:anywhere}
+.pl-handle{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border:0;border-radius:var(--p-border-radius-200);background:transparent;cursor:grab}
+.pl-handle svg{width:20px;height:20px;fill:var(--p-color-icon-secondary)}
+.pl-handle:hover{background:var(--p-color-bg-fill-transparent-hover,rgba(0,0,0,.06))}
+.pl-handle:focus-visible{outline:2px solid var(--p-color-border-focus,#005bd3);outline-offset:2px}
+tr.is-drag{opacity:.5}
+.pl-tagcell{display:flex;flex-wrap:wrap;gap:6px}
+.mc-dt .Polaris-Button--variantSecondary .Polaris-Icon{margin:0}
+
+/* tabs inside a hand-written page */
+.pl-tabs{margin:0}
+
+/* product list (Merchandising, Search suggestions): thumbnail, name, price */
+.pl-plist{max-height:288px;overflow-y:auto;border:1px solid var(--p-color-border-secondary);border-radius:var(--p-border-radius-200);background:var(--p-color-bg-surface)}
+.pl-prow{display:flex;align-items:center;gap:var(--p-space-300);padding:var(--p-space-200) var(--p-space-300);border-bottom:1px solid var(--p-color-border-secondary);cursor:pointer}
+.pl-prow:last-child{border-bottom:0}
+.pl-prow:hover{background:var(--p-color-bg-surface-hover)}
+.pl-prow.is-off{opacity:.5;cursor:not-allowed}
+.pl-prow .Polaris-Choice{align-items:center}
+.pl-thumb{flex:none;display:block;width:40px;height:40px;border-radius:var(--p-border-radius-200);box-shadow:0 0 0 1px var(--p-color-border-secondary) inset}
+.pl-pname{flex:1;min-width:0;overflow-wrap:anywhere}
+.pl-pprice{flex:none;white-space:nowrap;color:var(--p-color-text-secondary)}
+.pl-empty{margin:0;padding:var(--p-space-600) var(--p-space-300);text-align:center;color:var(--p-color-text-secondary)}
+.pl-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--p-space-200)}
+.pl-item{display:flex;align-items:center;gap:var(--p-space-300);padding:var(--p-space-200) var(--p-space-300);border:1px solid var(--p-color-border-secondary);border-radius:var(--p-border-radius-200);background:var(--p-color-bg-surface)}
+
+/* condition groups (Merchandising > Attributes) */
+.pl-cond{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.8fr) minmax(0,1.2fr) auto;gap:var(--p-space-200);align-items:center}
+.pl-cond--noop{grid-template-columns:minmax(0,1.1fr) minmax(0,2fr) auto}
+@media (max-width:599.98px){.pl-cond,.pl-cond--noop{grid-template-columns:minmax(0,1fr) auto}.pl-cond>*:nth-child(1){grid-column:1/-1}}
+.pl-gh{display:flex;align-items:center;gap:var(--p-space-200)}
+.pl-gh .Polaris-TextField{flex:1;min-width:0}
+.pl-num{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--p-color-bg-fill-tertiary);font-size:12px;font-weight:var(--p-font-weight-semibold);color:var(--p-color-text)}
+
+/* combobox popover (Separated variant products, Search suggestions) */
+.pl-combo{position:relative}
+.Polaris-Listbox{position:absolute;z-index:30;top:calc(100% + 4px);left:0;right:0;max-height:240px;margin:0;padding:var(--p-space-100);list-style:none;overflow-y:auto;background:var(--p-color-bg-surface);border-radius:var(--p-border-radius-300);box-shadow:var(--p-shadow-300,0 8px 16px rgba(0,0,0,.14))}
+.Polaris-Listbox-Option{display:flex;align-items:center;gap:var(--p-space-200);min-height:36px;padding:var(--p-space-100) var(--p-space-200);border-radius:var(--p-border-radius-200);cursor:pointer;font-size:var(--p-font-size-325);line-height:var(--p-font-line-height-400)}
+.Polaris-Listbox-Option:hover,.Polaris-Listbox-Option--active{background:var(--p-color-bg-surface-hover)}
+.Polaris-Listbox-Option--empty{color:var(--p-color-text-secondary);cursor:default}
+.Polaris-Listbox-Option .Polaris-Checkbox{pointer-events:none}
+.Polaris-Listbox-Option .pl-pprice{margin-left:auto}
+
+/* ProgressBar: the capture has the component; only the default tone is added here */
+.Polaris-ProgressBar--toneHighlight{--pc-progress-bar-background:var(--p-color-bg-fill-tertiary);--pc-progress-bar-indicator:var(--p-color-bg-fill-brand)}
+.Polaris-ProgressBar--toneHighlight{border-radius:var(--p-border-radius-full,9999px)}
+
+/* Settings page: a card per settings page */
+.pl-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--p-space-400)}
+@media (max-width:767.98px){.pl-settings{grid-template-columns:minmax(0,1fr)}}
+.pl-setcard{display:block;color:inherit;text-decoration:none;border-radius:var(--p-border-radius-300)}
+.pl-setcard:hover .Polaris-ShadowBevel{box-shadow:var(--p-shadow-200)}
+.pl-setcard:focus-visible{outline:2px solid var(--p-color-border-focus,#005bd3);outline-offset:2px}
+.pl-setcard .Polaris-Icon{width:20px;height:20px;margin:0}
+.pl-setcard__ico{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:var(--p-border-radius-200);background:var(--p-color-bg-surface-secondary)}
+.pl-setcard__ico svg{width:20px;height:20px;fill:none;stroke:var(--p-color-icon);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.pl-setcard__go{flex:none;align-self:center;display:flex}
+.pl-setcard__go svg{width:20px;height:20px;fill:var(--p-color-icon-secondary)}
+
+/* KPI tiles (Year Make Model > History) */
+.pl-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--p-space-400)}
+@media (max-width:599.98px){.pl-kpis{grid-template-columns:minmax(0,1fr)}}
+.pl-top{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--p-space-300)}
+.pl-top__row{display:grid;grid-template-columns:28px minmax(0,1.4fr) minmax(0,2fr) 96px;gap:var(--p-space-300);align-items:center}
+.pl-top__n{text-align:right;color:var(--p-color-text-secondary)}
+@media (max-width:599.98px){.pl-top__row{grid-template-columns:28px minmax(0,1fr) 80px}.pl-top__row .Polaris-ProgressBar{display:none}}
+.pl-rank{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;border-radius:12px;background:var(--p-color-bg-fill-tertiary);font-size:12px;font-weight:var(--p-font-weight-semibold)}
+
+/* YMM widget preview */
+.pl-prev{padding:var(--p-space-400);border:1px solid var(--p-color-border-secondary);border-radius:var(--p-border-radius-200);background:var(--p-color-bg-surface-secondary);display:flex;flex-direction:column;gap:var(--p-space-300)}
+.pl-prev__row{display:flex;flex-wrap:wrap;gap:var(--p-space-200);align-items:center}
+.pl-prev__sel{flex:1 1 90px;padding:8px 12px;border:1px solid #121212;border-radius:4px;background:#fff;font-size:13px;color:#121212}
+.pl-prev__btn{padding:8px 20px;border-radius:4px;background:#121212;color:#fff;font-size:13px;font-weight:700}
+.pl-prev__lnk{font-size:13px;text-decoration:underline;color:#121212}
+.pl-prev__chip{padding:3px 12px;border:1px solid #8a8a8a;border-radius:14px;background:#fff;font-size:12px}
+
+/* modals: wider window and form spacing */
+.mc-modal--wide{max-width:720px}
+.mf-modal__body .Polaris-Labelled+.Polaris-Labelled{margin-top:var(--p-space-400)}
+.mf-modal__body .pl-two{margin-top:var(--p-space-400)}
+.pl-file{padding:var(--p-space-100)}
+
+/* Product grid design, Phase 3: review app choice + the new preview card parts */
+.dz-apps{border:0;margin:0;padding:0;min-width:0}
+.dz-apps__row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.dz-app{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--p-color-border);border-radius:var(--p-border-radius-300);background:var(--p-color-bg-surface);font-size:13px;line-height:20px;font-weight:550;cursor:pointer}
+.dz-app:hover{background:var(--p-color-bg-surface-hover)}
+.dz-app:has(input:checked){border:2px solid var(--p-color-bg-fill-brand);padding:9px 11px}
+.dz-app:has(input:focus-visible){outline:2px solid var(--p-color-border-focus,#005bd3);outline-offset:2px}
+.dz-app input{accent-color:#303030;width:16px;height:16px;margin:0}
+.fdt-product-card__rating{display:flex;align-items:center;gap:6px;margin:4px 0 0;font-size:12px;line-height:16px;color:#4a4a4a}
+.fdt-product-card__stars{color:#b98900;letter-spacing:1px}
+.fdt-product-card__heart,.fdt-product-card__qv{position:absolute;z-index:2;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:pointer}
+.fdt-product-card__heart svg,.fdt-product-card__qv svg{width:16px;height:16px;fill:none;stroke:#303030;stroke-width:1.5;stroke-linejoin:round}
+.fdt-product-card__qv{right:10px}
+.fdt-product-card__qv--text{width:auto;height:28px;padding:0 12px;border-radius:14px;font:inherit;font-size:12px;line-height:16px;font-weight:550;color:#303030;text-align:center}
+.fdt-product-card__qa{position:absolute;z-index:2;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;min-height:36px;border:0;background:rgba(48,48,48,.92);color:#fff;font:inherit;font-size:13px;line-height:20px;font-weight:550;cursor:pointer}
+
+.pl-page .fdt-header__title:focus,.pl-page .fdt-header__title:focus-visible{outline:none}
+
+/* DataTable look of the app's own tables (bordered, rounded, bold headings) */
+.mc-dt{border:1px solid var(--p-color-border-secondary);border-radius:var(--p-border-radius-300);overflow:hidden}
+.mc-dt .Polaris-DataTable__Cell--header{font-weight:var(--p-font-weight-semibold)}
+.pl-dim{opacity:.6}
+.pl-legend{padding:0;margin:0 0 var(--p-space-100)}
+.Polaris-ShadowBevel:has(.Polaris-Listbox){position:relative;z-index:60;overflow:visible}
+
+/* text fields in forms: the Polaris border (the captured pages show the borderless search style) */
+.pl-page .Polaris-TextField__Backdrop,.mf-modal .Polaris-TextField__Backdrop,[data-sg] .Polaris-TextField__Backdrop{border:var(--p-border-width-025) solid var(--p-color-input-border);border-radius:var(--p-border-radius-200)}
+.pl-page .Polaris-TextField--error .Polaris-TextField__Backdrop,.mf-modal .Polaris-TextField--error .Polaris-TextField__Backdrop,[data-sg] .Polaris-TextField--error .Polaris-TextField__Backdrop{border-color:var(--p-color-border-critical,#e51c00);background-color:var(--p-color-bg-surface-critical,#fff5f5)}
+.pl-page .Polaris-Select--error .Polaris-Select__Backdrop{border-color:var(--p-color-border-critical,#e51c00)}
+
+.mc-fieldset{border:0;margin:0;padding:0;min-width:0}
