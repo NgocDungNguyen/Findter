@@ -15,7 +15,7 @@
   const TYPES = ['boost', 'demote', 'hide'];
   const LABEL = { boost: 'Boost', demote: 'Demote', hide: 'Hide' };
   const VERB = { boost: 'boosted', demote: 'demoted', hide: 'hidden' };
-  const TONE = { boost: 'Success', demote: 'Attention', hide: 'Warning' };
+  const TONE = { boost: 'Info', demote: 'Attention', hide: 'Warning' };   // blue / yellow / orange Polaris badge tones; red stays for errors and Delete
   const DEFAULT_ORDER = ['hide', 'demote', 'boost'];      // same default as the real app: the leftmost rule wins when a product is in more than one
   const MARKETS = ['Store default', 'United States', 'European Union', 'Asia Pacific'];
   const GUIDE = 'https://flintverse.gitbook.io/docs/findter-custom-filter-search/user-guide/';
@@ -104,7 +104,7 @@
 
   /* ---------- markup: list ---------- */
   const tabHtml = (id, label) => `<li class="Polaris-Tabs__TabContainer" role="presentation"><button id="mc-tab-${id}" class="Polaris-Tabs__Tab${mode() === id ? ' Polaris-Tabs__Tab--active' : ''}" data-mfp role="tab" type="button" aria-selected="${mode() === id}" aria-controls="mc-panel" tabindex="${mode() === id ? 0 : -1}" data-tab="${id}"><div class="Polaris-InlineStack" style="--pc-inline-stack-align:center;--pc-inline-stack-block-align:center;--pc-inline-stack-wrap:nowrap;--pc-inline-stack-gap-xs:var(--p-space-200);--pc-inline-stack-flex-direction-xs:row"><span class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--medium">${label}</span></div></button></li>`;
-  const headerHtml = () => `<div class="fdt-header"><h1 class="fdt-header__title" id="mc-title" tabindex="-1">Merchandising</h1><p class="fdt-header__description"><a class="fdt-header__link" href="${GUIDE}" target="_blank" rel="noopener noreferrer">Merchandising guidelines here</a></p></div>`;
+  const headerHtml = () => `<div class="fdt-header"><h1 class="fdt-header__title" id="mc-title" tabindex="-1">Merchandising</h1><p class="fdt-header__description"><a class="fdt-header__link" href="${GUIDE}" target="_blank" rel="noopener noreferrer">Merchandising guidelines</a></p></div>`;
   const tabsHtml = () => `<div class="fdt-menu-tabs"><div class="Polaris-Tabs__Outer"><div class="Polaris-Box" style="--pc-box-padding-block-start-md:var(--p-space-200);--pc-box-padding-block-end-md:var(--p-space-200);--pc-box-padding-inline-start-md:var(--p-space-200);--pc-box-padding-inline-end-md:var(--p-space-200)"><div class="Polaris-Tabs__Wrapper"><div class="Polaris-Tabs__ButtonWrapper"><ul class="Polaris-Tabs" role="tablist" aria-label="Merchandising pages">${tabHtml('collection', MODES.collection.label)}${tabHtml('search', MODES.search.label)}</ul></div></div></div></div></div>`;
   function rowOf(p) {
     const exp = isExpiredDate(p.end), on = normOrder(p.ruleOrder).filter(t => p.rules[t] && p.rules[t].enabled);
@@ -191,7 +191,7 @@
   const rulesHtml = () => P.card(vstack(P.head('Rules', '', 'Set up any combination. Only the ones you turn on will apply.') + P.sub('Drag a tab to change which rule wins when a product is targeted by more than one in this project. The leftmost tab has the highest priority.')
     + `<div id="mc-rtabs">${rtabsHtml()}</div><div role="tabpanel" id="mc-rpanel" aria-labelledby="mc-rt-${b.active}">${panelHtml()}</div>${errLine('norule')}`, '300'));
   function builderHtml() {
-    return `<div class="pl-stack"><div class="fdt-header"><div class="ex-titlebar ex-titlebar--split"><div class="ex-titlebar__l"><button type="button" class="ex-back" data-act="back" aria-label="Back to Merchandising"><span class="Polaris-Icon">${ICON.back}</span></button><div class="ex-titlebar__text"><h1 class="fdt-header__title" id="mc-title" tabindex="-1">${b.id ? 'Edit project' : 'Add a new project'}</h1><p class="fdt-header__description"><a class="fdt-header__link" href="${GUIDE}" target="_blank" rel="noopener noreferrer">Merchandising guidelines here</a></p></div></div></div></div>
+    return `<div class="pl-stack"><div class="fdt-header"><div class="ex-titlebar ex-titlebar--split"><div class="ex-titlebar__l"><button type="button" class="ex-back" data-act="back" aria-label="Back to Merchandising"><span class="Polaris-Icon">${ICON.back}</span></button><div class="ex-titlebar__text"><h1 class="fdt-header__title" id="mc-title" tabindex="-1">${b.id ? 'Edit project' : 'Add a new project'}</h1><p class="fdt-header__description"><a class="fdt-header__link" href="${GUIDE}" target="_blank" rel="noopener noreferrer">Merchandising guidelines</a></p></div></div></div></div>
       <div id="mc-status">${statusHtml()}</div>${detailsHtml()}<div id="mc-conflicts">${conflictHtml()}</div>${rulesHtml()}</div>`;
   }
 
