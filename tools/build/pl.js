@@ -42,5 +42,5 @@
   /* the app's status switch (ft-switch-btn): data-act="toggle" on the button; state in .slider-toggle.active */
   const toggle = ({ on, label, attrs = '', disabled }) => `<button type="button" class="ft-switch-btn${disabled ? ' disabled' : ''}" role="switch" aria-checked="${!!on}" aria-label="${esc(label)}" data-act="toggle"${disabled ? ' disabled' : ''} ${attrs}><span class="slider-toggle${on ? ' active' : ''} no-transition"></span></button>`;
   const progress = pct => `<div class="Polaris-ProgressBar Polaris-ProgressBar--sizeSmall Polaris-ProgressBar--toneHighlight" role="presentation" style="--pc-progress-bar-percent:${(pct / 100).toFixed(3)}"><div class="Polaris-ProgressBar__Indicator Polaris-ProgressBar__IndicatorAppearDone"></div></div>`;
-  window.FindterPL = { esc, svg, icon, stack, inline, card, text, sub, head, button, iconButton, link, badge, tag, divider, field, textField, select, checkbox, radio, banner, table, empty, toggle, progress, errorLine, help };
+  window.FindterPL = { tick, esc, svg, icon, stack, inline, card, text, sub, head, button, iconButton, link, badge, tag, divider, field, textField, select, checkbox, radio, banner, table, empty, toggle, progress, errorLine, help };
 })();

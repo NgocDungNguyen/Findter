@@ -25,17 +25,21 @@
   const COLLECTIONS = ['Skin care', 'Makeup', 'Hair', 'Body', 'Best sellers'];
   const METAFIELDS = ['Shelf life: 12 months', 'Shelf life: 24 months', 'Vegan: Yes', 'Cruelty free: Yes'];
   const money = n => '$' + Number(n).toFixed(2);
-  /* the demo store's starting rules, shared by the Merchandising page and other pages that read what the admin saved, or these when nothing is saved yet */
+  /* the demo store's starting projects (each with Boost, Demote, Hide rules), shared by the Merchandising page and other pages that read what the admin saved, or these when nothing is saved yet */
   const MERCH_SEEDS = {
     collection: [
-      { id: 1, enabled: true, type: 'boost', name: 'Boost best sellers in Skin care', start: '', end: '', market: 'Store default', applyMode: 'specific', collection: 'Skin care', productMode: 'specific', productIds: [1, 2], groups: [], groupRelation: 'AND' },
-      { id: 2, enabled: true, type: 'hide', name: 'Hide out of stock storewide', start: '', end: '', market: 'Store default', applyMode: 'all', collection: '', productMode: 'attributes', productIds: [], groups: [{ id: 9001, name: 'Condition group 1', conditions: [{ id: 9002, attr: 'Inventory', operator: 'is', value: 'Out of stock' }] }], groupRelation: 'AND' },
-      { id: 3, enabled: false, type: 'demote', name: 'Demote slow movers in Body', start: '2026-01-01', end: '2026-02-01', market: 'Store default', applyMode: 'specific', collection: 'Body', productMode: 'specific', productIds: [10], groups: [], groupRelation: 'AND' },
+      { id: 1, name: 'Skin care spotlight', enabled: true, start: '', end: '', market: 'Store default', applyMode: 'specific', collection: 'Skin care', ruleOrder: ['hide', 'demote', 'boost'],
+        rules: { boost: { enabled: true, productMode: 'specific', productIds: [1, 2], groups: [], groupRelation: 'AND' }, demote: { enabled: false, productMode: 'specific', productIds: [], groups: [], groupRelation: 'AND' },
+          hide: { enabled: true, productMode: 'attributes', productIds: [], groups: [{ id: 'sg1', name: 'Condition group 1', conditions: [{ id: 'sc1', attr: 'Inventory', operator: 'is', value: 'Out of stock' }] }], groupRelation: 'AND' } } },
+      { id: 2, name: 'Body clearance', enabled: false, start: '2026-01-01', end: '2026-02-01', market: 'Store default', applyMode: 'specific', collection: 'Body', ruleOrder: ['hide', 'demote', 'boost'],
+        rules: { boost: { enabled: false, productMode: 'specific', productIds: [], groups: [], groupRelation: 'AND' }, demote: { enabled: true, productMode: 'specific', productIds: [10], groups: [], groupRelation: 'AND' }, hide: { enabled: false, productMode: 'specific', productIds: [], groups: [], groupRelation: 'AND' } } },
     ],
     search: [
-      { id: 1, enabled: true, type: 'boost', name: 'Boost holiday favorites', start: '2026-11-01', end: '2026-12-31', market: 'Store default', applyMode: 'specific', matchMode: 'contains', terms: ['cream', 'lotion'], productMode: 'specific', productIds: [9, 10, 2], groups: [], groupRelation: 'AND' },
-      { id: 2, enabled: true, type: 'hide', name: 'Hide out of stock items', start: '', end: '', market: 'Store default', applyMode: 'all', matchMode: 'contains', terms: [], productMode: 'attributes', productIds: [], groups: [{ id: 9101, name: 'Condition group 1', conditions: [{ id: 9102, attr: 'Inventory', operator: 'is', value: 'Out of stock' }] }], groupRelation: 'AND' },
-      { id: 3, enabled: false, type: 'demote', name: 'Demote old clearance', start: '2026-01-01', end: '2026-03-01', market: 'Store default', applyMode: 'specific', matchMode: 'is', terms: ['clearance'], productMode: 'specific', productIds: [6], groups: [], groupRelation: 'AND' },
+      { id: 1, name: 'Holiday favorites', enabled: true, start: '2026-11-01', end: '2026-12-31', market: 'Store default', applyMode: 'specific', matchMode: 'contains', terms: ['cream', 'lotion'], ruleOrder: ['hide', 'demote', 'boost'],
+        rules: { boost: { enabled: true, productMode: 'specific', productIds: [9, 10, 2], groups: [], groupRelation: 'AND' }, demote: { enabled: false, productMode: 'specific', productIds: [], groups: [], groupRelation: 'AND' },
+          hide: { enabled: true, productMode: 'attributes', productIds: [], groups: [{ id: 'sg2', name: 'Condition group 1', conditions: [{ id: 'sc2', attr: 'Inventory', operator: 'is', value: 'Out of stock' }] }], groupRelation: 'AND' } } },
+      { id: 2, name: 'Old clearance', enabled: false, start: '2026-01-01', end: '2026-03-01', market: 'Store default', applyMode: 'specific', matchMode: 'is', terms: ['clearance'], ruleOrder: ['hide', 'demote', 'boost'],
+        rules: { boost: { enabled: false, productMode: 'specific', productIds: [], groups: [], groupRelation: 'AND' }, demote: { enabled: true, productMode: 'specific', productIds: [6], groups: [], groupRelation: 'AND' }, hide: { enabled: false, productMode: 'specific', productIds: [], groups: [], groupRelation: 'AND' } } },
     ],
   };
   const REDIRECT_SEED = [{ id: 1, terms: ['sale', 'deals'], url: '/collections/sale' }, { id: 2, terms: ['shoes', 'footwear'], url: '/collections/footwear' }];

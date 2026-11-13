@@ -189,3 +189,28 @@ tr.is-drag{opacity:.5}
 
 .fdt-product-card__qa{position:absolute;z-index:2;display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 12px;border:0;border-radius:14px;background:rgba(48,48,48,.92);color:#fff;font:inherit;font-size:12px;line-height:16px;font-weight:550;cursor:pointer}
 .fdt-product-card__rating--on{position:absolute;z-index:2;margin:0;padding:2px 8px;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);color:#303030}
+
+/* Merchandising (projects): rule tabs in priority order, "off" notice, conflict warning, summary note */
+.mc-rtabs{display:flex;border-bottom:1px solid var(--p-color-border-secondary)}
+.mc-rtab{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:var(--p-space-100);margin-bottom:-1px;border-bottom:2px solid transparent}
+.mc-rtab.is-active{border-bottom-color:var(--p-color-text,#303030)}
+.mc-rtab.is-drag{opacity:.5}
+.mc-rtab__b{flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:var(--p-space-200);min-height:36px;padding:var(--p-space-200) var(--p-space-100);border:0;background:transparent;color:var(--p-color-text-secondary);font:inherit;cursor:pointer}
+.mc-rtab.is-active .mc-rtab__b{color:var(--p-color-text)}
+.mc-rtab__b:focus-visible{outline:2px solid var(--p-color-border-focus,#005bd3);outline-offset:-2px}
+.mc-warnic{display:inline-flex}
+.mc-warnic .Polaris-Icon{width:16px;height:16px;margin:0}
+.mc-warnic svg{fill:var(--p-color-icon-warning,#5e4200)}
+.mc-dash{padding:var(--p-space-800,32px) var(--p-space-400);border:1px dashed var(--p-color-border);border-radius:var(--p-border-radius-200);text-align:center}
+.pl-note{display:flex;align-items:flex-start;gap:var(--p-space-200);padding:var(--p-space-300);border-radius:var(--p-border-radius-200);background:var(--p-color-bg-surface-secondary);color:var(--p-color-text-secondary)}
+.pl-note .Polaris-Icon{flex:none;width:20px;height:20px;margin:0}
+.pl-note svg{fill:var(--p-color-icon-secondary)}
+.pl-note strong{color:var(--p-color-text)}
+.pl-warnbanner{display:flex;gap:var(--p-space-300);padding:var(--p-space-400);border-radius:var(--p-border-radius-300);background:var(--p-color-bg-surface-warning,#fff5ea);box-shadow:0 0 0 1px var(--p-color-border-warning,#ffb800) inset;color:var(--p-color-text-warning,#5e4200)}
+.pl-warnbanner .Polaris-Icon{flex:none;width:20px;height:20px;margin:0}
+.pl-warnbanner svg{fill:var(--p-color-icon-warning,#5e4200)}
+.pl-warnbanner ul{margin:var(--p-space-100) 0 0;padding-left:18px;list-style:disc}
+.pl-warnbanner .Polaris-Link{color:inherit;text-decoration:underline}
+.pl-warntext{color:var(--p-color-text-warning,#5e4200)}
+.mc-group.is-drag{opacity:.5}
+@media (max-width:599.98px){.mc-rtab .pl-handle{width:24px}.mc-rtab__b{gap:var(--p-space-100);font-size:12px}}
